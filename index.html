@@ -4917,6 +4917,17 @@ async function buscarCIE11() {
   if (q.length < 3) { resultsEl.style.display = 'none'; return; }
 
   clearTimeout(cie11Timer);
+  // Mostrar resultados locales inmediatamente mientras carga la API
+  const localResults = buscarCIE11Local(q);
+  if (localResults.length) {
+    resultsEl.innerHTML = localResults.map(f =>
+      `<div class="cie-result-item" onclick="agregarDiagnostico('${f.code}', '${f.title.replace(/'/g,"&#39;")}')">
+        <span class="cie-result-code">${f.code}</span>
+        <span class="cie-result-name">${f.title}</span>
+      </div>`
+    ).join('');
+    resultsEl.style.display = '';
+  }
   cie11Timer = setTimeout(async () => {
     loadingEl.style.display = '';
     resultsEl.style.display = 'none';
@@ -4961,41 +4972,207 @@ async function buscarCIE11() {
   }, 400);
 }
 
-// Local fallback with common pediatric CIE-11 codes
+// Local fallback with comprehensive pediatric CIE-11 codes
 function buscarCIE11Local(q) {
   const comunes = [
+    // Respiratorio
     {code:'CA00', title:'Influenza'},
     {code:'CA08', title:'Neumonía'},
     {code:'CA26', title:'Bronquiolitis aguda'},
     {code:'CA40', title:'Otitis media aguda'},
+    {code:'CA41', title:'Otitis media con derrame'},
+    {code:'CA42', title:'Otitis media crónica'},
     {code:'CA01', title:'Infección viral de vías respiratorias superiores'},
-    {code:'DA91', title:'Gastroenteritis y colitis de origen infeccioso'},
-    {code:'1F03', title:'Varicela'},
-    {code:'1F00', title:'Sarampión'},
-    {code:'KA21', title:'Dermatitis atópica'},
-    {code:'FA24', title:'Fiebre sin foco'},
-    {code:'5A00', title:'Diabetes mellitus tipo 1'},
-    {code:'BA00', title:'Anemia por deficiencia de hierro'},
     {code:'CA22', title:'Bronquitis aguda'},
-    {code:'GC50', title:'Epilepsia'},
-    {code:'LA90', title:'Urticaria'},
     {code:'CA23', title:'Laringitis y traqueitis agudas'},
-    {code:'DA90', title:'Gastritis'},
-    {code:'GF80', title:'Trastorno por déficit de atención'},
-    {code:'5B55', title:'Obesidad'},
-    {code:'5B54', title:'Sobrepeso'},
-    {code:'MG43', title:'Niño sano — supervisión de salud'},
-    {code:'KA85', title:'Dermatitis del pañal'},
-    {code:'1C62', title:'Candidiasis'},
-    {code:'1F02', title:'Rubéola'},
+    {code:'CA24', title:'Croup — laringotraqueobronquitis'},
+    {code:'CA25', title:'Asma'},
     {code:'CA50', title:'Faringitis aguda'},
     {code:'CA51', title:'Amigdalitis aguda'},
     {code:'CA52', title:'Sinusitis aguda'},
-    {code:'LA80', title:'Alergia alimentaria'},
     {code:'CA60', title:'Rinitis alérgica'},
-    {code:'CA25', title:'Asma'},
+    {code:'CA61', title:'Rinitis no alérgica'},
+    {code:'CB01', title:'Bronquiectasias'},
+    {code:'CA27', title:'Epiglotitis aguda'},
+    // Gastrointestinal
+    {code:'DA91', title:'Gastroenteritis y colitis de origen infeccioso'},
+    {code:'DA90', title:'Gastritis'},
+    {code:'DA92', title:'Gastroenteritis viral'},
+    {code:'DA93', title:'Diarrea aguda'},
+    {code:'DA94', title:'Diarrea crónica'},
+    {code:'DD90', title:'Estreñimiento'},
+    {code:'DA41', title:'Reflujo gastroesofágico'},
+    {code:'DA42', title:'Enfermedad por reflujo gastroesofágico'},
+    {code:'DA44', title:'Hernia hiatal'},
+    {code:'DB92', title:'Intolerancia a la lactosa'},
+    {code:'DA95', title:'Vómitos'},
+    {code:'DC30', title:'Apendicitis aguda'},
+    {code:'DB93', title:'Enfermedad celíaca'},
+    {code:'DA80', title:'Cólico del lactante'},
+    {code:'DC31', title:'Invaginación intestinal'},
+    {code:'DC50', title:'Estenosis pilórica'},
+    {code:'DC51', title:'Hirschsprung — megacolon agangliónico'},
+    // Cavidad oral / lengua
+    {code:'DA01', title:'Anquiloglosia'},
+    {code:'DA00', title:'Fisura labial — labio hendido'},
+    {code:'DA02', title:'Fisura palatina — paladar hendido'},
+    {code:'DA05', title:'Estomatitis'},
+    {code:'DA06', title:'Estomatitis aftosa recurrente — aftas'},
+    {code:'DA07', title:'Candidiasis oral — muguet'},
+    {code:'DA08', title:'Gingivitis'},
+    {code:'DA09', title:'Periodontitis'},
+    {code:'DA10', title:'Erupción dentaria — teething'},
+    {code:'DA11', title:'Maloclusión dental'},
+    {code:'1C62', title:'Candidiasis'},
+    // Infecciosas
+    {code:'1F03', title:'Varicela'},
+    {code:'1F00', title:'Sarampión'},
+    {code:'1F02', title:'Rubéola'},
+    {code:'1F01', title:'Parotiditis — paperas'},
+    {code:'1F04', title:'Herpes zóster'},
+    {code:'1F05', title:'Herpes simple'},
+    {code:'1F10', title:'Exantema súbito — roséola — HHV6'},
+    {code:'1F11', title:'Eritema infeccioso — quinta enfermedad — parvovirus B19'},
+    {code:'1F12', title:'Mononucleosis infecciosa — VEB'},
+    {code:'1B95', title:'Escarlatina'},
+    {code:'1C20', title:'Infección por Streptococcus'},
+    {code:'1C30', title:'Tosferina — tos ferina — pertussis'},
+    {code:'1C31', title:'Difteria'},
+    {code:'1C32', title:'Tétanos'},
+    {code:'1C33', title:'Meningitis bacteriana'},
+    {code:'1C34', title:'Meningitis viral'},
+    {code:'1C40', title:'Sepsis neonatal'},
+    {code:'1C41', title:'Sepsis'},
+    {code:'1A00', title:'Cólera'},
+    {code:'1A01', title:'Fiebre tifoidea'},
+    {code:'1A40', title:'Tuberculosis'},
+    {code:'KA84', title:'Impétigo'},
+    {code:'KA86', title:'Celulitis'},
+    {code:'1C62.1', title:'Candidiasis cutánea'},
+    {code:'1C62.2', title:'Candidiasis del pañal'},
+    {code:'1F30', title:'Pediculosis — piojos'},
+    {code:'1F31', title:'Escabiosis — sarna'},
+    // Dermatología
+    {code:'KA21', title:'Dermatitis atópica — eczema'},
+    {code:'KA85', title:'Dermatitis del pañal'},
+    {code:'KA20', title:'Dermatitis de contacto'},
+    {code:'LA90', title:'Urticaria'},
+    {code:'LA91', title:'Angioedema'},
+    {code:'KA60', title:'Acné'},
+    {code:'ED40', title:'Psoriasis'},
+    {code:'KA80', title:'Tiña — dermatofitosis'},
+    {code:'KA81', title:'Tiña capitis'},
+    {code:'KA82', title:'Tiña corporis'},
+    {code:'KA83', title:'Tiña pedis — pie de atleta'},
+    {code:'KA87', title:'Forunculosis'},
+    {code:'EK50', title:'Alopecia areata'},
+    // Alergia / Inmunología
+    {code:'LA80', title:'Alergia alimentaria'},
+    {code:'LA81', title:'Alergia a proteína de leche de vaca — APLV'},
+    {code:'LA82', title:'Alergia al huevo'},
+    {code:'LA83', title:'Alergia al cacahuate — maní'},
+    {code:'LA84', title:'Alergia al trigo'},
+    {code:'LA85', title:'Anafilaxia'},
+    {code:'CA63', title:'Alergia a picadura de insecto'},
+    // Nutrición / Endocrinología
+    {code:'5A00', title:'Diabetes mellitus tipo 1'},
+    {code:'5A10', title:'Diabetes mellitus tipo 2'},
+    {code:'5B55', title:'Obesidad'},
+    {code:'5B54', title:'Sobrepeso'},
+    {code:'5B50', title:'Desnutrición proteico-calórica'},
+    {code:'5B51', title:'Kwashiorkor'},
+    {code:'5B52', title:'Marasmo'},
+    {code:'5B53', title:'Falla de medro — retraso en el crecimiento'},
+    {code:'5A20', title:'Hipotiroidismo'},
+    {code:'5A21', title:'Hipertiroidismo'},
+    {code:'5A40', title:'Raquitismo — deficiencia de vitamina D'},
+    {code:'5A41', title:'Deficiencia de vitamina A'},
+    {code:'5A42', title:'Deficiencia de vitamina C — escorbuto'},
+    {code:'BA00', title:'Anemia por deficiencia de hierro'},
+    {code:'BA01', title:'Anemia megaloblástica'},
+    {code:'BA02', title:'Anemia hemolítica'},
+    {code:'BA80', title:'Anemia de células falciformes — drepanocitosis'},
+    // Neurología / Desarrollo
+    {code:'GF80', title:'Trastorno por déficit de atención con hiperactividad — TDAH'},
+    {code:'GC50', title:'Epilepsia'},
+    {code:'GC51', title:'Crisis febriles — convulsiones febriles'},
+    {code:'GC52', title:'Espasmos infantiles — síndrome de West'},
+    {code:'6A00', title:'Trastorno del espectro autista — TEA'},
+    {code:'6A01', title:'Trastorno del desarrollo intelectual'},
+    {code:'6A02', title:'Trastorno del lenguaje'},
+    {code:'6A03', title:'Trastorno del habla'},
+    {code:'MB50', title:'Parálisis cerebral'},
+    {code:'GC53', title:'Meningitis'},
+    {code:'GC54', title:'Encefalitis'},
+    {code:'8A00', title:'Hidrocefalia'},
+    {code:'LA90.1', title:'Cefalea tensional'},
+    {code:'8A80', title:'Migraña'},
+    {code:'GC60', title:'Síndrome de Tourette'},
+    // Nefrología / Urología
+    {code:'GC10', title:'Infección de vías urinarias — IVU'},
+    {code:'GC11', title:'Cistitis'},
+    {code:'GC12', title:'Pielonefritis'},
+    {code:'GC13', title:'Síndrome nefrótico'},
+    {code:'GC14', title:'Síndrome nefrítico'},
+    {code:'GC15', title:'Enuresis nocturna'},
+    {code:'GC16', title:'Fimosis'},
+    {code:'GC17', title:'Criptorquidia'},
+    {code:'GC18', title:'Hidrocele'},
+    {code:'GC19', title:'Hipospadia'},
+    {code:'GC20', title:'Reflujo vesicoureteral'},
+    // Ortopedia / Musculoesquelético
+    {code:'FA20', title:'Fractura'},
+    {code:'FA30', title:'Esguince'},
+    {code:'FA40', title:'Luxación'},
+    {code:'FA50', title:'Displasia del desarrollo de cadera — DDC'},
+    {code:'FA51', title:'Pie equino varo — pie zambo'},
+    {code:'FA52', title:'Pie plano'},
+    {code:'FA53', title:'Genu valgo — rodillas en X'},
+    {code:'FA54', title:'Genu varo — piernas en paréntesis'},
+    {code:'FA55', title:'Escoliosis'},
+    {code:'FA56', title:'Cifosis'},
+    {code:'FA57', title:'Lordosis'},
+    {code:'FA60', title:'Artritis'},
+    {code:'FA61', title:'Artritis idiopática juvenil — AIJ'},
+    // Oftalmología
+    {code:'9A00', title:'Conjuntivitis'},
+    {code:'9A01', title:'Conjuntivitis alérgica'},
+    {code:'9A02', title:'Conjuntivitis bacteriana'},
+    {code:'9A03', title:'Conjuntivitis viral'},
+    {code:'9A04', title:'Dacriocistitis — obstrucción del conducto lagrimal'},
+    {code:'9A10', title:'Estrabismo'},
+    {code:'9A11', title:'Ambliopía — ojo perezoso'},
+    {code:'9A12', title:'Miopía'},
+    {code:'9A13', title:'Hipermetropía'},
+    {code:'9A14', title:'Astigmatismo'},
+    // Cardíaco
+    {code:'LA80.1', title:'Soplo cardíaco inocente'},
+    {code:'LA80.2', title:'Comunicación interventricular — CIV'},
+    {code:'LA80.3', title:'Comunicación interauricular — CIA'},
+    {code:'LA80.4', title:'Persistencia del conducto arterioso — PCA'},
+    {code:'LA80.5', title:'Tetralogía de Fallot'},
+    // Neonatal
+    {code:'KA00', title:'Ictericia neonatal'},
+    {code:'KA01', title:'Ictericia neonatal por incompatibilidad ABO'},
+    {code:'KA02', title:'Hiperbilirrubinemia neonatal'},
+    {code:'KA03', title:'Sepsis neonatal'},
+    {code:'KA04', title:'Prematuridad'},
+    {code:'KA05', title:'Bajo peso al nacer'},
+    {code:'KA06', title:'Síndrome de dificultad respiratoria neonatal'},
+    // Preventivo / Salud general
+    {code:'MG43', title:'Niño sano — supervisión de salud — control'},
+    {code:'FA24', title:'Fiebre sin foco'},
+    {code:'FA25', title:'Fiebre de origen desconocido'},
+    {code:'MG40', title:'Consulta de seguimiento'},
+    {code:'QA41', title:'Accidente — traumatismo no especificado'},
   ];
-  return comunes.filter(c => c.title.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+
+  const q2 = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return comunes.filter(c => {
+    const t = c.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const code = c.code.toLowerCase();
+    return t.includes(q2) || code.includes(q2);
+  }).slice(0, 10);
 }
 
 function agregarDiagnostico(code, title) {
