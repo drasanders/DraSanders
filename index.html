@@ -4184,9 +4184,22 @@ async function guardarConsultaEdit(id) {
     perimetro_braquial: document.getElementById(`edit-pb-${id}`).value || null,
     imc,
     motivo: document.getElementById(`edit-motivo-${id}`).value,
+    subjetivo: document.getElementById(`edit-subjetivo-${id}`)?.value || '',
     exploracion: document.getElementById(`edit-exploracion-${id}`).value,
+    diagnosticos_cie11: (() => {
+      const tags = document.querySelectorAll(`[id^="edit-cie-tag-${id}-"]`);
+      const diags = [];
+      tags.forEach(t => {
+        const code = t.querySelector('.cie-code')?.textContent;
+        const title = t.querySelector('.cie-name')?.textContent;
+        if (code && title) diags.push({code, title});
+      });
+      return JSON.stringify(diags);
+    })(),
     diagnostico: document.getElementById(`edit-diagnostico-${id}`).value,
+    tratamiento: document.getElementById(`edit-tratamiento-${id}`)?.value || '',
     plan: document.getElementById(`edit-plan-${id}`).value,
+    seguimiento: document.getElementById(`edit-seguimiento-${id}`)?.value || '',
   };
 
   try {
@@ -4447,6 +4460,60 @@ async function guardarVacunasTab(btn) {
     btn.textContent = '❌ Error';
     btn.disabled = false;
   }
+}
+
+// CIE-11 en modo edición
+let cie11EditTimers = {};
+function buscarCIE11Edit(consultaId) {
+  const q = document.getElementById(`edit-cie11-input-${consultaId}`)?.value.trim();
+  const resultsEl = document.getElementById(`edit-cie11-results-${consultaId}`);
+  if (!q || q.length < 2) { if(resultsEl) resultsEl.style.display='none'; return; }
+  clearTimeout(cie11EditTimers[consultaId]);
+  const local = buscarCIE11Local(q);
+  if (local.length && resultsEl) {
+    resultsEl.innerHTML = local.map(f =>
+      `<div class="cie-result-item" onclick="agregarDiagnosticoEdit('${consultaId}','${f.code}','${f.title.replace(/'/g,"&#39;")}')">
+        <span class="cie-result-code">${f.code}</span>
+        <span class="cie-result-name">${f.title}</span>
+      </div>`).join('');
+    resultsEl.style.display = '';
+  }
+  cie11EditTimers[consultaId] = setTimeout(async () => {
+    try {
+      const url = `https://id.who.int/icd/release/11/2024-01/mms/search?q=${encodeURIComponent(q)}&highlightingEnabled=false&lang=es`;
+      const res = await fetch(url, { headers: { 'API-Version':'v2','Accept-Language':'es','Accept':'application/json' } });
+      const data = await res.json();
+      if (data.destinationEntities?.length && resultsEl) {
+        resultsEl.innerHTML = data.destinationEntities.slice(0,10).map(e => {
+          const code = e.theCode || '';
+          const title = e.title?.['@value'] || e.title || '';
+          return `<div class="cie-result-item" onclick="agregarDiagnosticoEdit('${consultaId}','${code}',${JSON.stringify(title).replace(/'/g,"&#39;")})">
+            <span class="cie-result-code">${code}</span>
+            <span class="cie-result-name">${title}</span>
+          </div>`;
+        }).join('');
+        resultsEl.style.display = '';
+      }
+    } catch(e) {}
+  }, 500);
+}
+
+function agregarDiagnosticoEdit(consultaId, code, title) {
+  const lista = document.getElementById(`edit-cie11-lista-${consultaId}`);
+  const input = document.getElementById(`edit-cie11-input-${consultaId}`);
+  const results = document.getElementById(`edit-cie11-results-${consultaId}`);
+  if (!lista || document.getElementById(`edit-cie-tag-${consultaId}-${code}`)) return;
+  const tag = document.createElement('div');
+  tag.className = 'cie-tag';
+  tag.id = `edit-cie-tag-${consultaId}-${code}`;
+  tag.innerHTML = `<span class="cie-code">${code}</span><span class="cie-name">${title}</span><button class="cie-remove" onclick="eliminarDiagnosticoEdit('${consultaId}','${code}')">×</button>`;
+  lista.appendChild(tag);
+  if (input) input.value = '';
+  if (results) results.style.display = 'none';
+}
+
+function eliminarDiagnosticoEdit(consultaId, code) {
+  document.getElementById(`edit-cie-tag-${consultaId}-${code}`)?.remove();
 }
 
 function obtenerVacunas() {
@@ -4906,6 +4973,42 @@ async function guardarEdicionPaciente() {
   }
 }
 
+
+
+// ==================== CHART TOOLTIP ====================
+let chartTooltipEl = null;
+function initChartTooltip() {
+  if (!chartTooltipEl) {
+    chartTooltipEl = document.createElement('div');
+    chartTooltipEl.className = 'chart-tooltip';
+    chartTooltipEl.id = 'chart-tooltip';
+    document.body.appendChild(chartTooltipEl);
+  }
+}
+function showChartTooltip(evt, html) {
+  initChartTooltip();
+  chartTooltipEl.innerHTML = html;
+  chartTooltipEl.style.display = 'block';
+  moveChartTooltip(evt);
+}
+function moveChartTooltip(evt) {
+  if (!chartTooltipEl || chartTooltipEl.style.display === 'none') return;
+  const x = evt.clientX;
+  const y = evt.clientY;
+  const tw = chartTooltipEl.offsetWidth;
+  const th = chartTooltipEl.offsetHeight;
+  let left = x - tw/2;
+  let top = y - th - 14;
+  if (left < 8) left = 8;
+  if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
+  if (top < 8) top = y + 14;
+  chartTooltipEl.style.left = left + 'px';
+  chartTooltipEl.style.top = top + 'px';
+}
+function hideChartTooltip() {
+  if (chartTooltipEl) chartTooltipEl.style.display = 'none';
+}
+
 // ==================== CIE-11 ====================
 let cie11Diagnosticos = []; // [{code, title}]
 let cie11Timer = null;
@@ -5013,7 +5116,7 @@ function buscarCIE11Local(q) {
     {code:'DC50', title:'Estenosis pilórica'},
     {code:'DC51', title:'Hirschsprung — megacolon agangliónico'},
     // Cavidad oral / lengua
-    {code:'DA01', title:'Anquiloglosia'},
+    {code:'LA31.2', title:'Anquiloglosia — frenillo lingual corto — lengua atada'},
     {code:'DA00', title:'Fisura labial — labio hendido'},
     {code:'DA02', title:'Fisura palatina — paladar hendido'},
     {code:'DA05', title:'Estomatitis'},
@@ -5160,7 +5263,7 @@ function buscarCIE11Local(q) {
     {code:'KA05', title:'Bajo peso al nacer'},
     {code:'KA06', title:'Síndrome de dificultad respiratoria neonatal'},
     // Preventivo / Salud general
-    {code:'MG43', title:'Niño sano — supervisión de salud — control'},
+    {code:'QA00.1', title:'Examen de salud de rutina del niño — niño sano — control'},
     {code:'FA24', title:'Fiebre sin foco'},
     {code:'FA25', title:'Fiebre de origen desconocido'},
     {code:'MG40', title:'Consulta de seguimiento'},
@@ -5311,26 +5414,26 @@ function verArchivo(url) {
 
 // WHO Weight-for-age z-scores (SD) by month: [month, SD3neg, SD2neg, SD1neg, SD0, SD1, SD2, SD3]
 const WHO_WFA_BOYS = [
-  [0,2.1,2.9,3.9,3.3,4.4,5.0,5.7],[1,2.9,3.9,4.9,4.5,5.6,6.3,7.1],[2,3.8,4.9,6.0,5.6,6.9,7.7,8.6],
-  [3,4.4,5.7,6.9,6.4,7.9,8.8,9.9],[4,4.9,6.2,7.6,7.0,8.7,9.7,10.9],[5,5.3,6.7,8.2,7.5,9.3,10.4,11.8],
-  [6,5.7,7.1,8.7,7.9,9.8,11.0,12.4],[7,5.9,7.4,9.0,8.3,10.3,11.6,13.1],[8,6.2,7.7,9.3,8.6,10.7,12.1,13.6],
-  [9,6.4,8.0,9.6,8.9,11.0,12.5,14.1],[10,6.6,8.2,9.9,9.2,11.4,12.8,14.5],[11,6.8,8.4,10.2,9.4,11.7,13.2,14.9],
-  [12,6.9,8.6,10.4,9.6,12.0,13.6,15.3],[13,7.1,8.8,10.7,9.9,12.3,13.9,15.7],[14,7.2,9.0,10.9,10.1,12.6,14.2,16.1],
-  [15,7.4,9.2,11.1,10.3,12.8,14.5,16.5],[16,7.5,9.4,11.3,10.5,13.1,14.8,16.8],[17,7.7,9.6,11.5,10.7,13.4,15.1,17.2],
-  [18,7.8,9.8,11.8,10.9,13.6,15.4,17.5],[19,8.0,10.0,12.0,11.1,13.9,15.7,17.9],[20,8.1,10.1,12.2,11.3,14.1,16.0,18.2],
-  [21,8.2,10.3,12.4,11.5,14.4,16.3,18.6],[22,8.4,10.5,12.7,11.8,14.7,16.6,18.9],[23,8.5,10.7,12.9,12.0,15.0,16.9,19.3],
-  [24,8.6,10.8,13.1,12.2,15.2,17.2,19.6]
+  [0,2.1,2.5,3.0,3.3,3.9,4.4,5.0],[1,2.9,3.4,3.9,4.5,5.1,5.6,6.3],[2,3.8,4.4,5.0,5.6,6.3,6.9,7.8],
+  [3,4.4,5.1,5.8,6.4,7.2,7.9,8.9],[4,4.9,5.6,6.4,7.0,7.9,8.7,9.7],[5,5.3,6.0,6.9,7.5,8.5,9.3,10.4],
+  [6,5.7,6.5,7.3,7.9,8.9,9.8,11.0],[7,5.9,6.7,7.6,8.3,9.3,10.3,11.6],[8,6.2,7.0,7.9,8.6,9.7,10.7,12.1],
+  [9,6.4,7.2,8.2,8.9,10.0,11.0,12.5],[10,6.6,7.5,8.5,9.2,10.4,11.4,12.9],[11,6.8,7.7,8.7,9.4,10.7,11.7,13.3],
+  [12,6.9,7.7,8.7,9.6,10.8,11.9,13.3],[13,7.1,7.9,8.9,9.9,11.1,12.3,13.8],[14,7.2,8.1,9.2,10.1,11.4,12.6,14.2],
+  [15,7.4,8.3,9.4,10.3,11.7,12.8,14.5],[16,7.5,8.4,9.6,10.5,11.9,13.1,14.8],[17,7.7,8.6,9.8,10.7,12.1,13.4,15.2],
+  [18,7.8,8.8,10.0,10.9,12.4,13.7,15.5],[19,8.0,9.0,10.2,11.1,12.6,13.9,15.8],[20,8.1,9.1,10.4,11.3,12.8,14.2,16.1],
+  [21,8.2,9.2,10.5,11.5,13.1,14.5,16.5],[22,8.4,9.4,10.7,11.8,13.4,14.7,16.8],[23,8.5,9.6,10.9,12.0,13.6,15.0,17.1],
+  [24,9.2,10.2,11.3,12.2,13.3,14.5,16.1]
 ];
 const WHO_WFA_GIRLS = [
-  [0,2.0,2.7,3.6,3.2,4.2,4.8,5.5],[1,2.7,3.6,4.5,4.2,5.2,5.8,6.6],[2,3.4,4.5,5.5,5.1,6.3,7.0,7.9],
-  [3,4.0,5.2,6.3,5.8,7.2,8.1,9.1],[4,4.4,5.7,7.0,6.4,7.9,8.8,9.9],[5,4.8,6.1,7.5,6.9,8.5,9.5,10.7],
-  [6,5.1,6.5,7.9,7.3,9.0,10.1,11.4],[7,5.3,6.8,8.3,7.6,9.4,10.6,12.0],[8,5.6,7.0,8.6,7.9,9.8,11.0,12.5],
-  [9,5.8,7.3,8.9,8.2,10.2,11.5,13.0],[10,6.0,7.5,9.2,8.5,10.5,11.8,13.4],[11,6.1,7.7,9.4,8.7,10.8,12.2,13.8],
-  [12,6.3,7.9,9.6,8.9,11.1,12.5,14.2],[13,6.4,8.1,9.9,9.2,11.4,12.9,14.6],[14,6.6,8.3,10.1,9.4,11.7,13.2,15.0],
-  [15,6.7,8.5,10.3,9.6,12.0,13.5,15.4],[16,6.9,8.7,10.6,9.8,12.2,13.8,15.7],[17,7.0,8.9,10.8,10.0,12.5,14.1,16.1],
-  [18,7.2,9.1,11.0,10.2,12.7,14.4,16.4],[19,7.3,9.2,11.2,10.4,13.0,14.7,16.8],[20,7.5,9.4,11.4,10.6,13.2,15.0,17.1],
-  [21,7.6,9.6,11.7,10.9,13.5,15.3,17.5],[22,7.8,9.8,11.9,11.1,13.7,15.5,17.8],[23,7.9,10.0,12.1,11.3,14.0,15.8,18.2],
-  [24,8.1,10.2,12.3,11.5,14.2,16.1,18.5]
+  [0,2.0,2.4,2.8,3.2,3.7,4.2,4.8],[1,2.7,3.2,3.6,4.2,4.8,5.2,5.8],[2,3.4,4.0,4.5,5.1,5.8,6.3,7.1],
+  [3,4.0,4.7,5.2,5.8,6.6,7.2,8.1],[4,4.4,5.1,5.7,6.4,7.3,8.1,9.0],[5,4.8,5.5,6.1,6.9,7.8,8.7,9.7],
+  [6,5.1,5.8,6.5,7.3,8.2,9.3,10.4],[7,5.3,6.1,6.8,7.6,8.6,9.7,10.8],[8,5.6,6.3,7.0,7.9,9.0,10.1,11.3],
+  [9,5.8,6.6,7.3,8.2,9.3,10.5,11.7],[10,6.0,6.7,7.5,8.5,9.6,10.8,12.1],[11,6.1,6.9,7.7,8.7,9.9,11.1,12.5],
+  [12,6.3,7.0,7.9,8.9,10.1,11.4,12.8],[13,6.4,7.2,8.1,9.2,10.4,11.7,13.1],[14,6.6,7.4,8.3,9.4,10.7,12.0,13.4],
+  [15,6.7,7.5,8.5,9.6,10.9,12.3,13.8],[16,6.9,7.7,8.7,9.8,11.1,12.6,14.1],[17,7.0,7.9,8.9,10.0,11.4,12.9,14.4],
+  [18,7.2,8.1,9.1,10.2,11.6,13.2,14.7],[19,7.3,8.2,9.2,10.4,11.8,13.4,15.0],[20,7.5,8.4,9.4,10.6,12.1,13.7,15.3],
+  [21,7.6,8.6,9.6,10.9,12.4,14.0,15.7],[22,7.8,8.7,9.8,11.1,12.6,14.3,16.0],[23,7.9,8.9,10.0,11.3,12.9,14.6,16.4],
+  [24,8.1,9.0,10.2,11.5,13.1,14.8,16.6]
 ];
 
 // WHO Length/Height-for-age z-scores by month
@@ -5342,19 +5445,19 @@ const WHO_LFA_BOYS = [
   [12,68.6,71.0,73.4,75.7,78.1,80.5,82.9],[13,69.6,72.1,74.5,76.9,79.4,81.8,84.2],[14,70.6,73.1,75.6,78.0,80.5,83.0,85.5],
   [15,71.6,74.1,76.6,79.1,81.7,84.2,86.7],[16,72.5,75.0,77.6,80.2,82.8,85.4,87.9],[17,73.3,76.0,78.6,81.2,83.9,86.5,89.2],
   [18,74.2,76.9,79.6,82.3,85.0,87.7,90.4],[19,75.0,77.7,80.5,83.2,86.0,88.8,91.5],[20,75.8,78.6,81.4,84.2,87.0,89.8,92.6],
-  [21,76.5,79.4,82.3,85.1,88.0,90.9,93.8],[22,77.2,80.2,83.1,86.1,89.0,92.0,94.9],[23,78.0,81.0,84.0,87.0,90.0,93.0,96.0],
-  [24,78.7,81.7,84.8,87.8,90.9,93.9,97.0]
+  [21,76.5,79.4,82.3,85.1,88.0,90.9,93.8],[22,77.2,80.2,83.1,86.0,89.0,91.9,94.9],[23,78.0,81.0,83.9,86.9,89.9,92.9,95.9],
+  [24,78.0,81.0,83.9,86.9,89.9,92.9,95.9]
 ];
 const WHO_LFA_GIRLS = [
   [0,43.6,45.4,47.3,49.1,51.0,52.9,54.7],[1,47.8,49.8,51.7,53.7,55.6,57.6,59.5],[2,51.0,53.0,55.0,57.1,59.1,61.1,63.2],
-  [3,53.5,55.6,57.7,59.8,61.9,64.0,66.1],[4,55.6,57.8,59.9,62.1,64.3,66.4,68.6],[5,57.4,59.6,61.9,64.0,66.2,68.5,70.7],
-  [6,58.9,61.2,63.5,65.7,68.0,70.3,72.5],[7,60.3,62.7,65.0,67.3,69.6,72.0,74.3],[8,61.7,64.0,66.4,68.7,71.1,73.5,75.8],
+  [3,53.5,55.6,57.7,59.8,61.9,64.0,66.1],[4,55.6,57.8,59.9,62.1,64.3,66.4,68.6],[5,57.4,59.6,61.8,64.0,66.2,68.5,70.7],
+  [6,58.9,61.2,63.5,65.7,68.0,70.3,72.5],[7,60.3,62.7,65.0,67.3,69.6,71.9,74.2],[8,61.7,64.0,66.4,68.7,71.1,73.5,75.8],
   [9,62.9,65.3,67.7,70.1,72.6,75.0,77.4],[10,64.1,66.5,69.0,71.5,73.9,76.4,78.9],[11,65.2,67.7,70.3,72.8,75.3,77.8,80.3],
-  [12,66.3,68.9,71.4,74.0,76.6,79.2,81.7],[13,67.3,70.0,72.6,75.2,77.8,80.5,83.1],[14,68.3,71.0,73.7,76.4,79.1,81.7,84.4],
-  [15,69.3,72.0,74.8,77.5,80.2,83.0,85.7],[16,70.2,73.0,75.8,78.6,81.4,84.2,87.0],[17,71.1,74.0,76.8,79.7,82.6,85.4,88.3],
-  [18,71.9,74.9,77.8,80.7,83.6,86.5,89.4],[19,72.8,75.8,78.8,81.7,84.7,87.6,90.6],[20,73.7,76.7,79.7,82.7,85.7,88.7,91.7],
-  [21,74.5,77.5,80.6,83.7,86.7,89.8,92.9],[22,75.3,78.4,81.5,84.6,87.7,90.8,93.9],[23,76.0,79.2,82.3,85.5,88.6,91.8,94.9],
-  [24,76.7,79.9,83.1,86.4,89.6,92.8,96.1]
+  [12,65.8,68.4,71.0,73.5,76.1,78.7,81.3],[13,66.8,69.5,72.1,74.8,77.4,80.1,82.7],[14,67.8,70.5,73.2,75.9,78.6,81.4,84.1],
+  [15,68.7,71.5,74.3,77.1,79.9,82.7,85.5],[16,69.6,72.5,75.3,78.1,81.0,83.9,86.8],[17,70.5,73.4,76.3,79.2,82.1,85.0,87.9],
+  [18,71.3,74.3,77.2,80.2,83.1,86.1,89.0],[19,72.2,75.2,78.2,81.2,84.2,87.2,90.2],[20,73.0,76.0,79.1,82.1,85.1,88.2,91.2],
+  [21,73.8,76.9,79.9,83.0,86.1,89.2,92.2],[22,74.5,77.7,80.8,83.9,87.1,90.2,93.4],[23,75.3,78.5,81.6,84.8,88.0,91.2,94.4],
+  [24,75.3,78.5,81.6,84.8,88.0,91.2,94.4]
 ];
 
 // WHO Head circumference-for-age z-scores by month
@@ -5447,10 +5550,12 @@ async function iniciarCrecimiento() {
     const consultas = await api('GET','consultas',null,`?paciente_id=eq.${pacienteActual.id}&order=fecha.asc`);
     consultas.forEach(c => {
       const fechaConsulta = new Date(c.fecha + 'T12:00:00');
-      const meses = Math.round((fechaConsulta - nacimiento) / (1000 * 60 * 60 * 24 * 30.44));
-      if (meses < 0 || meses > 24) return;
+      // Usar meses decimales exactos (no redondear) para posición precisa en gráfica
+      const diasExactos = (fechaConsulta - nacimiento) / (1000 * 60 * 60 * 24);
+      const meses = diasExactos / 30.4375; // meses decimales exactos
+      if (meses < -0.1 || meses > 24.5) return;
       // Si ya hay un punto de nacimiento en mes 0, no duplicar
-      if (meses === 0 && puntos.find(p => p.fuente === 'nacimiento')) return;
+      if (meses < 0.1 && puntos.find(p => p.fuente === 'nacimiento')) return;
       // Solo agregar si tiene al menos un dato de medición
       if (c.peso || c.talla || c.perimetro_cefalico || c.perimetro_braquial) {
         puntos.push({
@@ -5493,79 +5598,192 @@ function renderGraficas(esMasculino, puntos) {
     </div>
     <div style="margin-top:20px;">${buildWFLChart(wfl, puntos, color, esMasculino)}</div>
     <div style="margin-top:16px;padding:12px 16px;background:var(--bg);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-light);">
-      📊 Líneas de referencia: <span style="color:#C84A4A;font-weight:700;">— -3 DE</span> &nbsp;
-      <span style="color:#D9956A;font-weight:700;">— -2 DE</span> &nbsp;
-      <span style="color:#B8A84A;font-weight:700;">— -1 DE</span> &nbsp;
-      <span style="color:#7DBF99;font-weight:700;">— Mediana (0)</span> &nbsp;
-      <span style="color:#B8A84A;font-weight:700;">— +1 DE</span> &nbsp;
-      <span style="color:#D9956A;font-weight:700;">— +2 DE</span> &nbsp;
-      <span style="color:#C84A4A;font-weight:700;">— +3 DE</span> &nbsp;
-      <span style="color:${color};font-weight:700;">● Paciente</span>
+      📊 OMS z-scores:
+      <span style="color:#C84A4A;font-weight:800;">— -3</span> &nbsp;
+      <span style="color:#E07050;font-weight:800;">— -2</span> &nbsp;
+      <span style="color:#E8C050;font-weight:800;">— -1</span> &nbsp;
+      <span style="color:#3A9E6A;font-weight:800;">— 0</span> &nbsp;
+      <span style="color:#E8C050;font-weight:800;">— +1</span> &nbsp;
+      <span style="color:#E07050;font-weight:800;">— +2</span> &nbsp;
+      <span style="color:#C84A4A;font-weight:800;">— +3</span> &nbsp;
+      <span style="color:${color};font-weight:800;">● Paciente</span>
     </div>`;
 }
 
 function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente, xMin, xMax, notaMuac=false) {
-  const W = 420, H = 260, PL = 45, PR = 15, PT = 30, PB = 35;
+  const W = 560, H = 340, PL = 48, PR = 40, PT = 28, PB = 38;
   const cW = W - PL - PR, cH = H - PT - PB;
 
+  // Use exact yMin/yMax from table (no padding) so gridlines match values
   const allY = tabla.flatMap(r => r.slice(1));
-  const yMin = Math.floor(Math.min(...allY) * 0.97);
-  const yMax = Math.ceil(Math.max(...allY) * 1.03);
+  const yMin = Math.floor(Math.min(...allY));
+  const yMax = Math.ceil(Math.max(...allY));
 
   const xS = x => PL + ((x - xMin) / (xMax - xMin)) * cW;
   const yS = y => PT + cH - ((y - yMin) / (yMax - yMin)) * cH;
 
-  const lineColors = ['#C84A4A','#D9956A','#B8A84A','#7DBF99','#B8A84A','#D9956A','#C84A4A'];
-  const lineDash   = ['4,3','4,3','4,3','none','4,3','4,3','4,3'];
-  const lineWidth  = [1.5, 1.5, 1, 2, 1, 1.5, 1.5];
-
-  let lines = '';
-  for (let col = 1; col <= 7; col++) {
-    const pts = tabla.map(r => `${xS(r[0])},${yS(r[col])}`).join(' ');
-    lines += `<polyline points="${pts}" fill="none" stroke="${lineColors[col-1]}" stroke-width="${lineWidth[col-1]}" stroke-dasharray="${lineDash[col-1]}" opacity="0.8"/>`;
-  }
-
-  // Shaded band -2 to +2
-  const p2pos = tabla.map(r => `${xS(r[0])},${yS(r[6])}`).join(' ');
-  const p2neg = [...tabla].reverse().map(r => `${xS(r[0])},${yS(r[2])}`).join(' ');
-  lines = `<polygon points="${p2pos} ${p2neg}" fill="#7DBF99" opacity="0.08"/>` + lines;
-
-  // Grid
+  // Gridlines — every month for X, every unit for Y
   let grid = '';
-  for (let m = xMin; m <= xMax; m += 3) {
-    grid += `<line x1="${xS(m)}" y1="${PT}" x2="${xS(m)}" y2="${PT+cH}" stroke="#F0F0F8" stroke-width="1"/>`;
-    grid += `<text x="${xS(m)}" y="${H-8}" font-size="8" fill="#AAAACC" text-anchor="middle" font-family="Quicksand">${m}m</text>`;
+  // Vertical gridlines every month, with week marks for first 2 months
+  for (let m = xMin; m <= xMax; m++) {
+    const isMajor = (m % 6 === 0) || m === xMin || m === xMax;
+    grid += `<line x1="${xS(m).toFixed(1)}" y1="${PT}" x2="${xS(m).toFixed(1)}" y2="${PT+cH}" stroke="${isMajor ? '#CCCCDD' : '#EEEEF4'}" stroke-width="${isMajor ? 1 : 0.5}"/>`;
+    if (isMajor || m % 3 === 0) {
+      grid += `<text x="${xS(m).toFixed(1)}" y="${PT+cH+14}" font-size="9" fill="#888AAA" text-anchor="middle" font-family="Quicksand,sans-serif">${m === 0 ? 'Nac.' : m+'m'}</text>`;
+    }
   }
-  const ySteps = 5;
-  for (let i = 0; i <= ySteps; i++) {
-    const yv = yMin + (yMax - yMin) * i / ySteps;
-    grid += `<line x1="${PL}" y1="${yS(yv)}" x2="${PL+cW}" y2="${yS(yv)}" stroke="#F0F0F8" stroke-width="1"/>`;
-    grid += `<text x="${PL-4}" y="${yS(yv)+3}" font-size="8" fill="#AAAACC" text-anchor="end" font-family="Quicksand">${yv.toFixed(1)}</text>`;
+  // Add week sub-marks for first 2 months (weeks 1-8)
+  if (xMin === 0) {
+    for (let w = 1; w <= 7; w++) {
+      const mW = w * 7 / 30.4375; // week in months
+      if (mW >= xMin && mW <= Math.min(2, xMax)) {
+        grid += `<line x1="${xS(mW).toFixed(1)}" y1="${PT+cH-8}" x2="${xS(mW).toFixed(1)}" y2="${PT+cH}" stroke="#BBBBDD" stroke-width="1"/>`;
+        grid += `<text x="${xS(mW).toFixed(1)}" y="${PT+cH+24}" font-size="7.5" fill="#AAAACC" text-anchor="middle" font-family="Quicksand,sans-serif">${w}s</text>`;
+      }
+    }
+  }
+  // Horizontal gridlines every unit
+  const yStep = yMax - yMin <= 30 ? 1 : yMax - yMin <= 60 ? 5 : 10;
+  for (let v = yMin; v <= yMax; v += yStep) {
+    const isMajor = yStep > 1 || (v % 5 === 0);
+    grid += `<line x1="${PL}" y1="${yS(v)}" x2="${PL+cW}" y2="${yS(v)}" stroke="${isMajor ? '#CCCCDD' : '#EEEEF4'}" stroke-width="${isMajor ? 1 : 0.5}"/>`;
+    if (isMajor) {
+      grid += `<text x="${PL-5}" y="${yS(v)+3}" font-size="9" fill="#888AAA" text-anchor="end" font-family="Quicksand,sans-serif">${v}</text>`;
+    }
   }
 
-  // Patient points
+  // Chart border
+  grid += `<rect x="${PL}" y="${PT}" width="${cW}" height="${cH}" fill="none" stroke="#CCCCDD" stroke-width="1"/>`;
+
+  // Helper: interpolate between two table rows for exact month position
+  function interpolateRow(tabla, meses) {
+    const sorted = [...tabla].sort((a,b) => a[0]-b[0]);
+    const lower = sorted.filter(r => r[0] <= meses).pop();
+    const upper = sorted.find(r => r[0] > meses);
+    if (!lower) return upper;
+    if (!upper) return lower;
+    const frac = (meses - lower[0]) / (upper[0] - lower[0]);
+    return lower.map((v, i) => i === 0 ? meses : v + frac * (upper[i] - v));
+  }
+
+  function calcZScore(tabla, meses, valor) {
+    const row = interpolateRow(tabla, meses);
+    if (!row) return null;
+    const med = row[4];
+    const sd = valor >= med ? (row[5] - row[4]) : (row[4] - row[3]);
+    return sd > 0 ? (valor - med) / sd : 0;
+  }
+  const lineColors = ['#C84A4A','#E07050','#E8C050','#3A9E6A','#E8C050','#E07050','#C84A4A'];
+  const lineDash   = ['5,3','5,3','5,3','none','5,3','5,3','5,3'];
+  const lineWidth  = [1.5, 1.5, 1.2, 2.5, 1.2, 1.5, 1.5];
+  const zLabels    = ['-3','-2','-1','0','+1','+2','+3'];
+
+  // Shaded normal band (-2 to +2)
+  const p2pos = tabla.filter(r=>r[0]>=xMin&&r[0]<=xMax).map(r=>`${xS(r[0]).toFixed(1)},${yS(r[6]).toFixed(1)}`).join(' ');
+  const p2neg = [...tabla].filter(r=>r[0]>=xMin&&r[0]<=xMax).reverse().map(r=>`${xS(r[0]).toFixed(1)},${yS(r[2]).toFixed(1)}`).join(' ');
+  let lines = `<polygon points="${p2pos} ${p2neg}" fill="#3A9E6A" opacity="0.07"/>`;
+
+  for (let col = 1; col <= 7; col++) {
+    const pts = tabla.filter(r=>r[0]>=xMin&&r[0]<=xMax).map(r=>`${xS(r[0]).toFixed(1)},${yS(r[col]).toFixed(1)}`).join(' ');
+    lines += `<polyline points="${pts}" fill="none" stroke="${lineColors[col-1]}" stroke-width="${lineWidth[col-1]}" stroke-dasharray="${lineDash[col-1]}" stroke-linecap="round" opacity="0.9"/>`;
+    // Label at right end
+    const lastRow = tabla.filter(r=>r[0]<=xMax).slice(-1)[0];
+    lines += `<text x="${xS(lastRow[0])+5}" y="${yS(lastRow[col])+3}" font-size="9" fill="${lineColors[col-1]}" font-family="Quicksand,sans-serif" font-weight="700">${zLabels[col-1]}</text>`;
+  }
+
+  // Patient line
+  const filtered = puntosPaciente.filter(p => p.x >= xMin && p.x <= xMax && !isNaN(p.y));
   let pacienteLine = '';
-  if (puntosPaciente.length > 1) {
-    const pts = puntosPaciente.filter(p => p.x >= xMin && p.x <= xMax).map(p => `${xS(p.x)},${yS(p.y)}`).join(' ');
-    if (pts) pacienteLine = `<polyline points="${pts}" fill="none" stroke="${colorPaciente}" stroke-width="2.5" stroke-linecap="round"/>`;
+  if (filtered.length > 1) {
+    const pts = filtered.map(p=>`${xS(p.x).toFixed(1)},${yS(p.y).toFixed(1)}`).join(' ');
+    pacienteLine = `<polyline points="${pts}" fill="none" stroke="${colorPaciente}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
-  const pacienteDots = puntosPaciente.filter(p => p.x >= xMin && p.x <= xMax).map(p =>
-    `<circle cx="${xS(p.x)}" cy="${yS(p.y)}" r="4" fill="${colorPaciente}" stroke="white" stroke-width="1.5"/>
-     <title>${p.x}m: ${p.y} ${yUnit}</title>`
-  ).join('');
 
-  const notaHtml = notaMuac ? `<div style="font-size:10px;color:var(--text-light);margin-top:4px;font-weight:600;">* Registrar perímetro braquial en cada consulta para visualizar datos</div>` : '';
+  // Z-score for last point using interpolation
+  let zScoreHtml = '';
+  if (filtered.length > 0) {
+    const lastP = filtered[filtered.length - 1];
+    const z = calcZScore(tabla, lastP.x, lastP.y);
+    if (z !== null) {
+      const zR = Math.round(z*10)/10;
+      let cls = '', clr = '';
+      if (z < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (z < -2) { cls='Bajo'; clr='#E07050'; }
+      else if (z < -1) { cls='Riesgo'; clr='#E8C050'; }
+      else if (z <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (z <= 2) { cls='Alto'; clr='#E07050'; }
+      else             { cls='Muy alto'; clr='#C84A4A'; }
+      const edadLabel = lastP.x < 2 ? `${Math.round(lastP.x * 30.4375)} días` : `${lastP.x.toFixed(1)}m`;
+      zScoreHtml = `<div style="margin-top:5px;font-size:11px;font-weight:700;color:${clr};">
+        Última (${edadLabel}): <b>${lastP.y} ${yUnit}</b> — z: <b>${zR>0?'+':''}${zR}</b> — ${cls}
+      </div>`;
+    }
+  }
+
+  const pacienteDots = filtered.map(p => {
+    const z = calcZScore(tabla, p.x, p.y);
+    const zStr = z !== null ? `z: ${z>=0?'+':''}${(Math.round(z*10)/10).toFixed(1)}` : '';
+    const edadLabel = p.x < 2 ? `${Math.round(p.x * 30.4375)} días` : `${p.x.toFixed(1)} meses`;
+    let cls = '', clr = '#3A9E6A';
+    if (z !== null) {
+      if (z < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (z < -2) { cls='Bajo'; clr='#E07050'; }
+      else if (z < -1) { cls='Riesgo'; clr='#E8C050'; }
+      else if (z <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (z <= 2) { cls='Alto'; clr='#E07050'; }
+      else             { cls='Muy alto'; clr='#C84A4A'; }
+    }
+    const tooltipHtml = `📅 ${edadLabel}<br>📊 ${p.y} ${yUnit}<br><span style='color:${clr}'>${zStr}${cls ? ' — '+cls : ''}</span>`;
+    const cx = xS(p.x).toFixed(1);
+    const cy = yS(p.y).toFixed(1);
+    return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2" 
+              style="cursor:pointer"
+              onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,'&#39;')}')"
+              onmousemove="moveChartTooltip(event)"
+              onmouseleave="hideChartTooltip()"/>`;
+  }).join('');
+
+  // Build HTML overlay dots (más confiable que SVG para hover)
+  const chartId = 'chart_' + Math.random().toString(36).substr(2,8);
+  const htmlDots = filtered.map(p => {
+    const z = calcZScore(tabla, p.x, p.y);
+    const zR = z !== null ? Math.round(z*10)/10 : null;
+    const edadLabel = p.x < 2 ? `${Math.round(p.x * 30.4375)} días` : `${p.x.toFixed(1)} meses`;
+    let cls = 'Normal', clr = '#3A9E6A';
+    if (zR !== null) {
+      if (zR < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (zR < -2) { cls='Bajo'; clr='#E07050'; }
+      else if (zR < -1) { cls='Riesgo'; clr='#E8C050'; }
+      else if (zR <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (zR <= 2) { cls='Alto'; clr='#E07050'; }
+      else              { cls='Muy alto'; clr='#C84A4A'; }
+    }
+    const zSign = zR !== null ? (zR > 0 ? '+' : '') : '';
+    const tooltip = `📅 ${edadLabel} | 📊 ${p.y} ${yUnit}${zR !== null ? ` | z: ${zSign}${zR} — ${cls}` : ''}`;
+    // Position as % of SVG viewBox
+    const pctX = (parseFloat(xS(p.x)) / W * 100).toFixed(2);
+    const pctY = (parseFloat(yS(p.y)) / H * 100).toFixed(2);
+    return `<div style="position:absolute;left:${pctX}%;top:${pctY}%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:${colorPaciente};border:2px solid white;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2);"
+              onmouseenter="showChartTooltip(event,\`${tooltip}\`)"
+              onmousemove="moveChartTooltip(event)"
+              onmouseleave="hideChartTooltip()"></div>`;
+  }).join('');
+
+  const notaHtml = notaMuac ? `<div style="font-size:10px;color:var(--text-light);margin-top:4px;font-weight:600;">* Registrar perímetro braquial en cada consulta</div>` : '';
 
   return `
     <div style="background:white;border-radius:var(--radius-sm);border:1.5px solid var(--border);padding:12px;">
-      <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:var(--text);margin-bottom:8px;">${titulo}</div>
-      <svg viewBox="0 0 ${W} ${H}" style="width:100%;" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${W}" height="${H}" fill="#FAFAFA" rx="8"/>
-        ${grid}${lines}${pacienteLine}${pacienteDots}
-        <text x="${PL + cW/2}" y="${H}" font-size="8" fill="#9999BB" text-anchor="middle" font-family="Quicksand">${xLabel}</text>
-        <text x="10" y="${PT + cH/2}" font-size="8" fill="#9999BB" text-anchor="middle" font-family="Quicksand" transform="rotate(-90,10,${PT+cH/2})">${yUnit}</text>
-      </svg>
-      ${notaHtml}
+      <div style="font-weight:800;font-size:12px;color:var(--text);margin-bottom:6px;">${titulo}</div>
+      <div style="position:relative;width:100%;">
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${H}" fill="#F9F9FC" rx="6"/>
+          ${grid}${lines}${pacienteLine}
+          <text x="${PL+cW/2}" y="${H-2}" font-size="9" fill="#888AAA" text-anchor="middle" font-family="Quicksand,sans-serif">${xLabel}</text>
+          <text x="11" y="${PT+cH/2}" font-size="9" fill="#888AAA" text-anchor="middle" font-family="Quicksand,sans-serif" transform="rotate(-90,11,${PT+cH/2})">${yUnit}</text>
+        </svg>
+        ${htmlDots}
+      </div>
+      ${zScoreHtml}${notaHtml}
     </div>`;
 }
 
@@ -5613,20 +5831,125 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
     const pts = puntosWFL.map(p => `${xS(parseFloat(p.talla))},${yS(parseFloat(p.peso))}`).join(' ');
     pacienteLine = `<polyline points="${pts}" fill="none" stroke="${colorPaciente}" stroke-width="2.5" stroke-linecap="round"/>`;
   }
-  const pacienteDots = puntosWFL.map(p =>
-    `<circle cx="${xS(parseFloat(p.talla))}" cy="${yS(parseFloat(p.peso))}" r="4" fill="${colorPaciente}" stroke="white" stroke-width="1.5"/>
-     <title>Talla ${p.talla}cm → Peso ${p.peso}kg</title>`
-  ).join('');
+
+  // Add z-score labels on curves
+  const zLabels = ['-3','-2','-1','0','+1','+2','+3'];
+  const lastRow = tabla[tabla.length-1];
+  for (let col = 1; col <= 7; col++) {
+    lines += `<text x="${xS(lastRow[0])+5}" y="${yS(lastRow[col])+3}" font-size="8" fill="${lineColors[col-1]}" font-family="Quicksand" font-weight="800">${zLabels[col-1]}</text>`;
+  }
+
+  const pacienteDots = puntosWFL.map(p => {
+    const talla = parseFloat(p.talla);
+    const peso = parseFloat(p.peso);
+    const lower = tabla.filter(r => r[0] <= talla).pop();
+    const upper = tabla.find(r => r[0] > talla);
+    let rowI = lower || upper;
+    if (lower && upper) {
+      const frac = (talla - lower[0]) / (upper[0] - lower[0]);
+      rowI = lower.map((v,i) => i===0 ? talla : v + frac*(upper[i]-v));
+    }
+    let zStr = '', cls = '', clr = '#3A9E6A';
+    if (rowI) {
+      const med = rowI[4];
+      const sd = peso >= med ? (rowI[5]-rowI[4]) : (rowI[4]-rowI[3]);
+      const z = sd > 0 ? (peso-med)/sd : 0;
+      const zR = Math.round(z*10)/10;
+      zStr = `z: ${zR>0?'+':''}${zR}`;
+      if (z < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (z < -2) { cls='Bajo peso'; clr='#E07050'; }
+      else if (z < -1) { cls='Riesgo'; clr='#E8C050'; }
+      else if (z <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (z <= 2) { cls='Posible sobrepeso'; clr='#E07050'; }
+      else             { cls='Obesidad'; clr='#C84A4A'; }
+    }
+    const tooltipHtml = `📏 Talla: ${talla} cm<br>⚖️ Peso: ${peso} kg<br><span style='color:${clr}'>${zStr}${cls ? ' — '+cls : ''}</span>`;
+    return `<circle cx="${xS(talla)}" cy="${yS(peso)}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2"
+              style="cursor:pointer"
+              onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,'&#39;')}')"
+              onmousemove="moveChartTooltip(event)"
+              onmouseleave="hideChartTooltip()"/>`;
+  }).join('');
+
+  // Z-score for last point using talla as x-axis
+  let zScoreHtml = '';
+  if (puntosWFL.length > 0) {
+    const lastP = puntosWFL[puntosWFL.length - 1];
+    const talla = parseFloat(lastP.talla);
+    const peso = parseFloat(lastP.peso);
+    // Find row by talla (x axis in WFL chart)
+    const lower = tabla.filter(r => r[0] <= talla).pop();
+    const upper = tabla.find(r => r[0] > talla);
+    let row = lower || upper;
+    if (lower && upper) {
+      const frac = (talla - lower[0]) / (upper[0] - lower[0]);
+      row = lower.map((v,i) => i===0 ? talla : v + frac*(upper[i]-v));
+    }
+    if (row) {
+      const med = row[4];
+      const sd = peso >= med ? (row[5]-row[4]) : (row[4]-row[3]);
+      const z = sd > 0 ? (peso-med)/sd : 0;
+      const zR = Math.round(z*10)/10;
+      let cls = '', clr = '';
+      if (z < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (z < -2) { cls='Bajo peso'; clr='#E07050'; }
+      else if (z < -1) { cls='Riesgo bajo peso'; clr='#E8C050'; }
+      else if (z <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (z <= 2) { cls='Posible sobrepeso'; clr='#E07050'; }
+      else             { cls='Obesidad'; clr='#C84A4A'; }
+      zScoreHtml = `<div style="margin-top:5px;font-size:11px;font-weight:700;color:${clr};">
+        Última: <b>${peso}kg</b> / <b>${talla}cm</b> — z: <b>${zR>0?'+':''}${zR}</b> — ${cls}
+      </div>`;
+    }
+  }
+
+  // HTML overlay dots for WFL chart
+  const wflHtmlDots = puntosWFL.map(p => {
+    const talla = parseFloat(p.talla);
+    const peso = parseFloat(p.peso);
+    const lower = tabla.filter(r => r[0] <= talla).pop();
+    const upper = tabla.find(r => r[0] > talla);
+    let rowI = lower || upper;
+    if (lower && upper) {
+      const frac = (talla - lower[0]) / (upper[0] - lower[0]);
+      rowI = lower.map((v,i) => i===0 ? talla : v + frac*(upper[i]-v));
+    }
+    let cls = 'Normal', clr = '#3A9E6A', zStr = '';
+    if (rowI) {
+      const med = rowI[4];
+      const sd = peso >= med ? (rowI[5]-rowI[4]) : (rowI[4]-rowI[3]);
+      const z = sd > 0 ? (peso-med)/sd : 0;
+      const zR = Math.round(z*10)/10;
+      zStr = `z: ${zR>0?'+':''}${zR}`;
+      if (z < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (z < -2) { cls='Bajo peso'; clr='#E07050'; }
+      else if (z < -1) { cls='Riesgo'; clr='#E8C050'; }
+      else if (z <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (z <= 2) { cls='Posible sobrepeso'; clr='#E07050'; }
+      else             { cls='Obesidad'; clr='#C84A4A'; }
+    }
+    const tooltip = `📏 Talla: ${talla} cm | ⚖️ Peso: ${peso} kg${zStr ? ` | ${zStr} — ${cls}` : ''}`;
+    const pctX = (xS(talla) / W * 100).toFixed(2);
+    const pctY = (yS(peso) / H * 100).toFixed(2);
+    return `<div style="position:absolute;left:${pctX}%;top:${pctY}%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:${colorPaciente};border:2px solid white;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2);"
+              onmouseenter="showChartTooltip(event,\`${tooltip}\`)"
+              onmousemove="moveChartTooltip(event)"
+              onmouseleave="hideChartTooltip()"></div>`;
+  }).join('');
 
   return `
     <div style="background:white;border-radius:var(--radius-sm);border:1.5px solid var(--border);padding:12px;">
       <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:var(--text);margin-bottom:8px;">Peso para la talla (kg/cm)</div>
-      <svg viewBox="0 0 ${W} ${H}" style="width:100%;" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${W}" height="${H}" fill="#FAFAFA" rx="8"/>
-        ${grid}${lines}${pacienteLine}${pacienteDots}
-        <text x="${PL + cW/2}" y="${H}" font-size="8" fill="#9999BB" text-anchor="middle" font-family="Quicksand">Talla (cm)</text>
-        <text x="10" y="${PT + cH/2}" font-size="8" fill="#9999BB" text-anchor="middle" font-family="Quicksand" transform="rotate(-90,10,${PT+cH/2})">kg</text>
-      </svg>
+      <div style="position:relative;width:100%;">
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+          <rect width="${W}" height="${H}" fill="#FAFAFA" rx="8"/>
+          ${grid}${lines}${pacienteLine}
+          <text x="${PL + cW/2}" y="${H}" font-size="8" fill="#9999BB" text-anchor="middle" font-family="Quicksand">Talla (cm)</text>
+          <text x="10" y="${PT + cH/2}" font-size="8" fill="#9999BB" text-anchor="middle" font-family="Quicksand" transform="rotate(-90,10,${PT+cH/2})">kg</text>
+        </svg>
+        ${wflHtmlDots}
+      </div>
+      ${zScoreHtml}
     </div>`;
 }
 
@@ -5689,20 +6012,56 @@ async function cargarConsultasPaciente(id) {
           <!-- NOTA CLINICA -->
           <div class="seccion-label lilac" style="font-size:12px;">📋 Nota clínica</div>
           <div class="form-group" style="margin-bottom:10px;">
-            <div class="form-label">Motivo</div>
+            <div class="form-label">Motivo de consulta</div>
             <input class="form-input" id="edit-motivo-${c.id}" value="${c.motivo||''}">
           </div>
-          <div class="form-group" style="margin-bottom:10px;">
-            <div class="form-label">Exploración física</div>
-            <textarea class="form-input" id="edit-exploracion-${c.id}" rows="3">${c.exploracion||''}</textarea>
+          <div class="form-row" style="margin-bottom:10px;">
+            <div class="form-group">
+              <div class="form-label">Subjetivo (síntomas)</div>
+              <textarea class="form-input" id="edit-subjetivo-${c.id}" rows="3">${c.subjetivo||''}</textarea>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Objetivo (exploración física)</div>
+              <textarea class="form-input" id="edit-exploracion-${c.id}" rows="3">${c.exploracion||''}</textarea>
+            </div>
           </div>
           <div class="form-group" style="margin-bottom:10px;">
-            <div class="form-label">Diagnóstico</div>
+            <div class="form-label">Diagnósticos CIE-11</div>
+            <div id="edit-cie11-lista-${c.id}" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+              ${(() => {
+                try {
+                  const diags = JSON.parse(c.diagnosticos_cie11 || '[]');
+                  return diags.map(d => `
+                    <div class="cie-tag" id="edit-cie-tag-${c.id}-${d.code}">
+                      <span class="cie-code">${d.code}</span>
+                      <span class="cie-name">${d.title}</span>
+                      <button class="cie-remove" onclick="eliminarDiagnosticoEdit('${c.id}','${d.code}')">×</button>
+                    </div>`).join('');
+                } catch(e) { return ''; }
+              })()}
+            </div>
+            <div style="position:relative;">
+              <input class="form-input" id="edit-cie11-input-${c.id}" placeholder="Buscar diagnóstico..." oninput="buscarCIE11Edit('${c.id}')" autocomplete="off">
+              <div id="edit-cie11-results-${c.id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:180px;overflow-y:auto;"></div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <div class="form-label">Diagnóstico (notas adicionales)</div>
             <textarea class="form-input" id="edit-diagnostico-${c.id}" rows="2">${c.diagnostico||''}</textarea>
           </div>
+          <div class="form-row" style="margin-bottom:10px;">
+            <div class="form-group">
+              <div class="form-label">Tratamiento</div>
+              <textarea class="form-input" id="edit-tratamiento-${c.id}" rows="3">${c.tratamiento||''}</textarea>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Plan / indicaciones</div>
+              <textarea class="form-input" id="edit-plan-${c.id}" rows="3">${c.plan||''}</textarea>
+            </div>
+          </div>
           <div class="form-group" style="margin-bottom:14px;">
-            <div class="form-label">Plan / indicaciones</div>
-            <textarea class="form-input" id="edit-plan-${c.id}" rows="3">${c.plan||''}</textarea>
+            <div class="form-label">Seguimiento</div>
+            <input class="form-input" id="edit-seguimiento-${c.id}" value="${c.seguimiento||''}">
           </div>
           <button id="btn-save-${c.id}" class="btn btn-primary btn-sm" onclick="guardarConsultaEdit('${c.id}')">💾 Guardar cambios</button>
         </div>
