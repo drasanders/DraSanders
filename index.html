@@ -472,42 +472,51 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
 /* CALENDAR */
 .cal-grid-dia {
-  display:grid; grid-template-columns:60px 1fr;
+  display:grid; grid-template-columns:64px 1fr;
   overflow-y:auto; overflow-x:hidden;
   height:calc(100vh - 200px);
   width:100%;
 }
 .cal-grid-semana {
-  display:grid; grid-template-columns:60px repeat(7,1fr);
+  display:grid; grid-template-columns:64px repeat(7,1fr);
   overflow-y:auto; overflow-x:auto;
   height:calc(100vh - 200px);
   width:100%; min-width:0;
 }
-.cal-time-col { border-right:1px solid var(--border); }
+.cal-time-col { border-right:2px solid #CACADE; background:#FAFAFE; }
 .cal-time-slot {
-  height:30px; display:flex; align-items:flex-start;
-  justify-content:flex-end; padding:3px 8px 0 0;
-  font-size:10px; font-weight:700; color:var(--text-light);
-  border-bottom:1px solid #F0F0F8;
+  height:40px; display:flex; align-items:flex-start;
+  justify-content:flex-end; padding:4px 8px 0 0;
+  font-size:10px; font-weight:800; color:#9090B0;
+  border-bottom:1px solid #E0E0F0;
+  box-sizing:border-box; letter-spacing:0.3px;
 }
 .cal-time-slot.half {
-  color:transparent; border-bottom:1px dashed #F4F4FC;
+  color:transparent; border-bottom:1px dashed #ECECF8;
+  height:40px; box-sizing:border-box;
 }
-.cal-day-col { position:relative; border-right:1px solid var(--border); }
+.cal-day-col { position:relative; border-right:1px solid #E0E0F0; }
 .cal-day-header {
-  padding:10px; text-align:center; border-bottom:2px solid var(--border);
+  height:64px; padding:8px; text-align:center;
+  border-bottom:2px solid #CACADE;
   position:sticky; top:0; background:white; z-index:5;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  box-sizing:border-box;
 }
 .cal-day-header.today { background:linear-gradient(135deg,var(--blue),var(--lilac)); }
 .cal-day-name { font-size:10px; font-weight:700; color:var(--text-light); text-transform:uppercase; }
 .cal-day-num { font-family:'Nunito',sans-serif; font-weight:900; font-size:20px; }
 .cal-day-num.today-num { color:var(--blue-d); }
 .cal-slot {
-  height:30px; border-bottom:1px solid #F8F8FC;
-  position:relative; cursor:pointer; transition:background 0.1s;
+  height:40px;
+  position:relative; cursor:pointer; transition:background 0.12s;
+  box-sizing:border-box;
 }
-.cal-slot.half { border-bottom:1px dashed #F4F4FC; }
-.cal-slot:hover { background:#F5F5FF; }
+.cal-slot:not(.half) { border-bottom:2px solid #D0D0E8; }
+.cal-slot.half { border-bottom:1px dashed #E8E8F4; background:rgba(0,0,0,0.007); }
+.cal-slot:hover { background:#EEF2FF; }
+.cal-slot.proximo-disponible { background:#F0FFF8; border-left:3px solid #4A9E6A; }
+.cal-slot.proximo-disponible:hover { background:#D8F5E8; }
 .cal-event {
   position:absolute; left:3px; right:3px;
   border-radius:8px; padding:4px 8px;
@@ -1852,6 +1861,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div class="form-label">Notas</div>
       <textarea class="form-input" id="nc-notas" rows="2" placeholder="Información adicional..."></textarea>
     </div>
+    <div id="nc-alert"></div>
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-nueva-cita')">Cancelar</button>
       <button class="btn btn-whatsapp" id="btn-wa-nueva" style="display:none;" onclick="confirmarCitaWhatsapp('nueva')">💬 Confirmar por WhatsApp</button>
@@ -2658,7 +2668,7 @@ function renderCalendario() {
 
     let html = `<div class="cal-grid-dia">
       <div class="cal-time-col">
-        <div style="height:52px;border-bottom:2px solid var(--border);"></div>
+        <div style="height:64px;border-bottom:2px solid #CACADE;box-sizing:border-box;"></div>
         ${slots.map(s => `<div class="cal-time-slot ${s.isHalf?'half':''}">${s.label}</div>`).join('')}
       </div>
       <div class="cal-day-col" style="position:relative;">
@@ -2688,7 +2698,7 @@ function renderCalendario() {
 
     let html = `<div class="cal-grid-semana">
       <div class="cal-time-col">
-        <div style="height:62px;border-bottom:2px solid var(--border);"></div>
+        <div style="height:64px;border-bottom:2px solid #CACADE;box-sizing:border-box;"></div>
         ${slots.map(s => `<div class="cal-time-slot ${s.isHalf?'half':''}">${s.label}</div>`).join('')}
       </div>
       ${dias.map(dia => {
@@ -2703,7 +2713,7 @@ function renderCalendario() {
           <div class="cal-day-header ${esHoy?'today':''}">
             <div class="cal-day-name">${dia.toLocaleDateString('es-MX',{weekday:'short'})}</div>
             <div class="cal-day-num ${esHoy?'today-num':''}">${dia.getDate()}</div>
-            ${citasDia.length ? `<div style="font-size:9px;font-weight:700;color:var(--blue-d);">${citasDia.length} cita${citasDia.length>1?'s':''}</div>` : ''}
+
           </div>
           ${slots.map(s => `
             <div class="cal-slot ${s.isHalf?'half':''}" onclick="nuevaCitaEnHora('${fechaStr}','${String(s.h).padStart(2,'0')}:${String(s.m).padStart(2,'0')}')">
@@ -2717,8 +2727,8 @@ function renderCalendario() {
 }
 
 function renderEventosAbsoluto(citas, fechaStr) {
-  const SLOT_H = 30;
-  const HEADER_H = 52;
+  const SLOT_H = 40;
+  const HEADER_H = 64;
   const START_H = 7;
   const bloqueosDia = calBloqueos.filter(b => b.fecha === fechaStr);
   const diaCompleto = bloqueosDia.find(b => b.dia_completo);
@@ -2768,37 +2778,95 @@ function renderEventosAbsoluto(citas, fechaStr) {
   return html;
 }
 
+function proximoEspacioDisponible(fecha, horaPreferida) {
+  // Duración default 30 min para buscar
+  const durMin = 30;
+  const bloqueosDia = calBloqueos.filter(b => b.fecha === fecha);
+  const citasDia = calCitas.filter(c => c.fecha_hora && c.fecha_hora.slice(0,10) === fecha);
+
+  // Slots disponibles del día: de 7:00 a 17:00, cada 30 min
+  const slots = [];
+  for (let h = 7; h < 17; h++) {
+    slots.push(h * 60);
+    slots.push(h * 60 + 30);
+  }
+
+  // Hora preferida en minutos
+  const [hPref, mPref] = horaPreferida.split(':').map(Number);
+  const minsPref = hPref * 60 + mPref;
+
+  // Ordenar slots: primero los >= hora preferida, luego los anteriores
+  const slotsOrdenados = [
+    ...slots.filter(s => s >= minsPref),
+    ...slots.filter(s => s < minsPref)
+  ];
+
+  for (const slotMins of slotsOrdenados) {
+    const slotFin = slotMins + durMin;
+
+    // Verificar bloqueos
+    const bloqueado = bloqueosDia.some(b => {
+      if (b.dia_completo) return true;
+      if (!b.hora_inicio || !b.hora_fin) return false;
+      const [hi, mi] = b.hora_inicio.split(':').map(Number);
+      const [hf, mf] = b.hora_fin.split(':').map(Number);
+      const bIni = hi * 60 + mi, bFin = hf * 60 + mf;
+      return slotMins < bFin && slotFin > bIni;
+    });
+    if (bloqueado) continue;
+
+    // Verificar citas existentes
+    const ocupado = citasDia.some(c => {
+      const dt = new Date(c.fecha_hora.replace(' ', 'T'));
+      const cIni = dt.getHours() * 60 + dt.getMinutes();
+      const cFin = cIni + (c.duracion || 30);
+      return slotMins < cFin && slotFin > cIni;
+    });
+    if (!ocupado) {
+      const hh = String(Math.floor(slotMins / 60)).padStart(2, '0');
+      const mm = String(slotMins % 60).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  }
+  return horaPreferida; // fallback
+}
+
 function nuevaCitaEnHora(fecha, hora) {
   const bloqueosDia = calBloqueos.filter(b => b.fecha === fecha);
   const diaCompleto = bloqueosDia.find(b => b.dia_completo);
   if (diaCompleto) { alert(`🚫 Día bloqueado${diaCompleto.motivo?': '+diaCompleto.motivo:''}. Elimina el bloqueo para agendar.`); return; }
-  const [h,m] = hora.split(':').map(Number);
-  const minsSel = h*60+m;
-  const bloqHora = bloqueosDia.find(b => {
-    if (!b.hora_inicio||!b.hora_fin) return false;
-    const [hi,mi2] = b.hora_inicio.split(':').map(Number);
-    const [hf,mf] = b.hora_fin.split(':').map(Number);
-    return minsSel>=hi*60+mi2 && minsSel<hf*60+mf;
-  });
-  if (bloqHora) { alert(`🚫 Horario bloqueado${bloqHora.motivo?': '+bloqHora.motivo:''}. Elimina el bloqueo para agendar.`); return; }
+
+  // Calcular próximo espacio disponible desde la hora clickeada
+  const horaDisponible = proximoEspacioDisponible(fecha, hora);
+  const fueAjustado = horaDisponible !== hora;
+
   poblarSelectPacientes();
   document.getElementById('nc-fecha').value = fecha;
-  document.getElementById('nc-hora').value = hora;
+  document.getElementById('nc-hora').value = horaDisponible;
+
+  // Si fue ajustado, mostrar nota visual en el modal
+  if (fueAjustado) {
+    setTimeout(() => {
+      const alertEl = document.getElementById('nc-alert');
+      if (alertEl) alertEl.innerHTML = `<div class="alert alert-info" style="font-size:12px;">⏰ Ajustado al próximo espacio disponible: <strong>${horaDisponible}</strong></div>`;
+      setTimeout(() => { if (alertEl) alertEl.innerHTML = ''; }, 4000);
+    }, 200);
+  }
   openModal('modal-nueva-cita');
 }
 
 function renderLineaHora() {
   const now = new Date();
   const minsDesdeSiete = (now.getHours() - 7) * 60 + now.getMinutes();
-  if (minsDesdeSiete < 0 || minsDesdeSiete > 10*60) return '';
-  const top = 52 + (minsDesdeSiete / 30) * 30;
+  if (minsDesdeSiete < 0 || minsDesdeSiete > 10 * 60) return '';
+  const top = 64 + (minsDesdeSiete / 30) * 40;
   return `<div class="cal-now-line" style="top:${top}px;"></div>`;
 }
 
 function scrollAHoraActual() {
   setTimeout(() => {
     const cont = document.querySelector('.cal-grid-dia') || document.querySelector('.cal-grid-semana');
-    if (cont) { const h = new Date().getHours()-7; cont.scrollTop = Math.max(0,(h-1)*60); }
+    if (cont) { const h = new Date().getHours() - 7; cont.scrollTop = Math.max(0, (h - 1) * 80); }
   }, 100);
 }
 
