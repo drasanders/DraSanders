@@ -2703,7 +2703,7 @@ function renderCalendario() {
           <div class="cal-day-header ${esHoy?'today':''}">
             <div class="cal-day-name">${dia.toLocaleDateString('es-MX',{weekday:'short'})}</div>
             <div class="cal-day-num ${esHoy?'today-num':''}">${dia.getDate()}</div>
-            ${citasDia.length ? `<div style="font-size:9px;font-weight:700;color:var(--blue-d);">${citasDia.length} cita${citasDia.length>1?'s':''}</div>` : ''}
+
           </div>
           ${slots.map(s => `
             <div class="cal-slot ${s.isHalf?'half':''}" onclick="nuevaCitaEnHora('${fechaStr}','${String(s.h).padStart(2,'0')}:${String(s.m).padStart(2,'0')}')">
@@ -3631,12 +3631,10 @@ async function guardarConsulta() {
 
   try {
     await api('POST','consultas',data);
+    const msg = esHistorica ? '✅ Nota histórica guardada correctamente' : '✅ Consulta guardada correctamente en el expediente';
+    showAlert('consulta-alert', msg, 'success');
     limpiarConsulta();
     await cargarDashboard();
-    if (pacienteActual) {
-      showView('detalle-paciente');
-      showExpTab('consultas');
-    }
   } catch(e) {
     showAlert('consulta-alert','Error al guardar: '+e.message,'error');
   }
