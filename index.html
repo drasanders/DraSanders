@@ -472,42 +472,48 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
 /* CALENDAR */
 .cal-grid-dia {
-  display:grid; grid-template-columns:60px 1fr;
+  display:grid; grid-template-columns:64px 1fr;
   overflow-y:auto; overflow-x:hidden;
   height:calc(100vh - 200px);
   width:100%;
 }
 .cal-grid-semana {
-  display:grid; grid-template-columns:60px repeat(7,1fr);
+  display:grid; grid-template-columns:64px repeat(7,1fr);
   overflow-y:auto; overflow-x:auto;
   height:calc(100vh - 200px);
   width:100%; min-width:0;
 }
-.cal-time-col { border-right:1px solid var(--border); }
+.cal-time-col { border-right:2px solid var(--border); background:var(--bg); }
 .cal-time-slot {
-  height:30px; display:flex; align-items:flex-start;
-  justify-content:flex-end; padding:3px 8px 0 0;
-  font-size:10px; font-weight:700; color:var(--text-light);
-  border-bottom:1px solid #F0F0F8;
+  height:40px; display:flex; align-items:flex-start;
+  justify-content:flex-end; padding:4px 8px 0 0;
+  font-size:10px; font-weight:800; color:var(--text-light);
+  border-bottom:1px solid #E8E8F4; letter-spacing:0.3px;
+  box-sizing:border-box;
 }
 .cal-time-slot.half {
-  color:transparent; border-bottom:1px dashed #F4F4FC;
+  color:transparent; border-bottom:1px dashed #EDEDF8;
+  height:40px; box-sizing:border-box;
 }
-.cal-day-col { position:relative; border-right:1px solid var(--border); }
+.cal-day-col { position:relative; border-right:1px solid #E4E4F0; }
 .cal-day-header {
-  padding:10px; text-align:center; border-bottom:2px solid var(--border);
+  height:64px; padding:10px; text-align:center; border-bottom:2px solid var(--border);
   position:sticky; top:0; background:white; z-index:5;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  box-sizing:border-box;
 }
 .cal-day-header.today { background:linear-gradient(135deg,var(--blue),var(--lilac)); }
 .cal-day-name { font-size:10px; font-weight:700; color:var(--text-light); text-transform:uppercase; }
 .cal-day-num { font-family:'Nunito',sans-serif; font-weight:900; font-size:20px; }
 .cal-day-num.today-num { color:var(--blue-d); }
 .cal-slot {
-  height:30px; border-bottom:1px solid #F8F8FC;
+  height:40px; border-bottom:1px solid #EDEDF8;
   position:relative; cursor:pointer; transition:background 0.1s;
+  box-sizing:border-box;
 }
-.cal-slot.half { border-bottom:1px dashed #F4F4FC; }
-.cal-slot:hover { background:#F5F5FF; }
+.cal-slot.half { border-bottom:1px dashed #F2F2FA; background:rgba(0,0,0,0.008); }
+.cal-slot:not(.half) { border-bottom:1px solid #D8D8EE; }
+.cal-slot:hover { background:#F0F4FF; }
 .cal-event {
   position:absolute; left:3px; right:3px;
   border-radius:8px; padding:4px 8px;
@@ -2658,7 +2664,7 @@ function renderCalendario() {
 
     let html = `<div class="cal-grid-dia">
       <div class="cal-time-col">
-        <div style="height:52px;border-bottom:2px solid var(--border);"></div>
+        <div style="height:64px;border-bottom:2px solid var(--border);box-sizing:border-box;"></div>
         ${slots.map(s => `<div class="cal-time-slot ${s.isHalf?'half':''}">${s.label}</div>`).join('')}
       </div>
       <div class="cal-day-col" style="position:relative;">
@@ -2688,7 +2694,7 @@ function renderCalendario() {
 
     let html = `<div class="cal-grid-semana">
       <div class="cal-time-col">
-        <div style="height:62px;border-bottom:2px solid var(--border);"></div>
+        <div style="height:64px;border-bottom:2px solid var(--border);box-sizing:border-box;"></div>
         ${slots.map(s => `<div class="cal-time-slot ${s.isHalf?'half':''}">${s.label}</div>`).join('')}
       </div>
       ${dias.map(dia => {
@@ -2717,8 +2723,8 @@ function renderCalendario() {
 }
 
 function renderEventosAbsoluto(citas, fechaStr) {
-  const SLOT_H = 30;
-  const HEADER_H = 52;
+  const SLOT_H = 40;
+  const HEADER_H = 64;
   const START_H = 7;
   const bloqueosDia = calBloqueos.filter(b => b.fecha === fechaStr);
   const diaCompleto = bloqueosDia.find(b => b.dia_completo);
