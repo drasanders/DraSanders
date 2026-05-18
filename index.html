@@ -39,6 +39,7 @@ body { font-family:'Quicksand',sans-serif; background:var(--bg); color:var(--tex
   display:flex; flex-direction:column;
   box-shadow:var(--shadow-lg); position:fixed;
   top:0; left:0; bottom:0; z-index:20;
+  overflow-y:auto;
 }
 .logo-area { text-align:center; margin-bottom:28px; }
 .logo-dino { font-size:32px; animation:bounce 3s infinite ease-in-out; display:block; }
@@ -558,6 +559,34 @@ textarea.form-input { resize:vertical; min-height:70px; }
 </style>
 </head>
 <body>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#E8F4F8 0%,#F0E8F8 50%,#F8F0E8 100%);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:24px;padding:48px 40px;width:380px;box-shadow:0 20px 60px rgba(100,80,140,0.15);text-align:center;">
+    <div style="font-size:48px;margin-bottom:8px;">🦕</div>
+    <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#4A3F6B;margin-bottom:4px;">Consultorio Dra. Sanders</div>
+    <div style="font-size:13px;color:#999;font-weight:600;margin-bottom:32px;">Sistema de gestión pediátrica</div>
+    <div id="login-alert" style="margin-bottom:12px;"></div>
+    <div style="text-align:left;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:#666;margin-bottom:6px;">Usuario</div>
+      <input id="login-user" type="text" placeholder="Tu usuario" autocomplete="username"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #DDD;border-radius:10px;font-size:14px;"
+        onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    </div>
+    <div style="text-align:left;margin-bottom:24px;">
+      <div style="font-size:12px;font-weight:700;color:#666;margin-bottom:6px;">Contraseña</div>
+      <input id="login-pass" type="password" placeholder="Tu contraseña" autocomplete="current-password"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #DDD;border-radius:10px;font-size:14px;"
+        onkeydown="if(event.key==='Enter')hacerLogin()">
+    </div>
+    <button onclick="hacerLogin()" id="login-btn"
+      style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:12px;background:linear-gradient(135deg,#A8D8E8,#C8A8E8);border:none;color:#4A3F6B;cursor:pointer;">
+      Entrar
+    </button>
+    <div id="login-loading" style="display:none;margin-top:16px;color:#999;font-size:13px;font-weight:600;">Verificando...</div>
+  </div>
+</div>
+
 <div class="layout">
 
 <!-- SIDEBAR -->
@@ -578,9 +607,14 @@ textarea.form-input { resize:vertical; min-height:70px; }
     <div class="user-card">
       <div class="avatar">S</div>
       <div>
-        <div style="font-size:12px;font-weight:700;">Dra. Sanders</div>
+        <div style="font-size:12px;font-weight:700;" id="sidebar-username">Dra. Sanders</div>
         <div style="font-size:10px;color:var(--text-light);">Pediatra</div>
       </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button onclick="cerrarSesion()" style="width:100%;font-size:11px;color:var(--text-light);background:none;border:1px solid var(--border);border-radius:8px;padding:6px;cursor:pointer;">
+        🚪 Cerrar sesión
+      </button>
     </div>
   </div>
 </aside>
@@ -1396,14 +1430,12 @@ textarea.form-input { resize:vertical; min-height:70px; }
         <div class="page-sub" id="finanzas-periodo-label"></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <!-- Selector de período -->
         <div style="display:flex;background:var(--bg);border-radius:50px;padding:3px;gap:2px;">
           <button id="btn-fin-hoy" class="btn btn-primary btn-sm" onclick="setFinPeriodo('hoy')" style="border-radius:50px;font-size:12px;">Hoy</button>
           <button id="btn-fin-semana" class="btn btn-ghost btn-sm" onclick="setFinPeriodo('semana')" style="border-radius:50px;font-size:12px;">Semana</button>
           <button id="btn-fin-mes" class="btn btn-ghost btn-sm" onclick="setFinPeriodo('mes')" style="border-radius:50px;font-size:12px;">Mes</button>
           <button id="btn-fin-anio" class="btn btn-ghost btn-sm" onclick="setFinPeriodo('anio')" style="border-radius:50px;font-size:12px;">Año</button>
         </div>
-        <!-- Nav fechas -->
         <button class="btn btn-ghost btn-sm" onclick="navFinanzas(-1)">←</button>
         <button class="btn btn-ghost btn-sm" onclick="navFinanzas(0)">Hoy</button>
         <button class="btn btn-ghost btn-sm" onclick="navFinanzas(1)">→</button>
@@ -1412,46 +1444,67 @@ textarea.form-input { resize:vertical; min-height:70px; }
     <div class="content">
       <div id="finanzas-alert"></div>
 
-      <!-- STATS CARDS -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);" id="finanzas-stats">
-        <div class="loading"><div class="spinner"></div></div>
-      </div>
-
-      <!-- MUNICIPIO SECTION -->
-      <div class="panel" id="finanzas-municipio-panel" style="display:none;margin-bottom:18px;">
-        <div class="panel-header">
-          <div class="panel-title">🏛️ Relación municipio</div>
+      <!-- PESTAÑAS -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;">
+        <div id="fintab-privado" onclick="showFinTab('privado')"
+          style="padding:12px 28px;font-size:14px;font-weight:800;cursor:pointer;color:var(--blue-d);border-bottom:3px solid var(--blue-d);margin-bottom:-2px;">
+          🔵 Privado
         </div>
-        <div id="finanzas-municipio-tabla"></div>
+        <div id="fintab-municipio" onclick="showFinTab('municipio')"
+          style="padding:12px 28px;font-size:14px;font-weight:800;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">
+          🟢 Municipio
+        </div>
       </div>
 
-      <!-- GRAFICAS Y TABLAS -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-
-        <!-- DESGLOSE MÉTODO DE PAGO -->
+      <!-- PRIVADO -->
+      <div id="fincontent-privado">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);" id="finanzas-stats">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;margin-top:18px;">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">💳 Por método de pago</div></div>
+            <div class="panel-body" id="finanzas-metodos"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">👥 Resumen</div></div>
+            <div class="panel-body" id="finanzas-tipos"></div>
+          </div>
+        </div>
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">💳 Por método de pago</div>
+            <div class="panel-title">📋 Detalle de cobros — Privado</div>
+            <div id="finanzas-facturas-badge"></div>
           </div>
-          <div class="panel-body" id="finanzas-metodos"></div>
-        </div>
-
-        <!-- DESGLOSE TIPO PACIENTE -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">👥 Por tipo de paciente</div>
-          </div>
-          <div class="panel-body" id="finanzas-tipos"></div>
+          <div id="finanzas-tabla"></div>
         </div>
       </div>
 
-      <!-- TABLA DETALLE -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">📋 Detalle de cobros</div>
-          <div id="finanzas-facturas-badge"></div>
+      <!-- MUNICIPIO -->
+      <div id="fincontent-municipio" style="display:none;">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px;" id="mun-stats">
+          <div class="loading"><div class="spinner"></div></div>
         </div>
-        <div id="finanzas-tabla"></div>
+        <div style="display:flex;gap:8px;margin-bottom:18px;">
+          <button class="btn btn-primary" onclick="abrirModalLotePago()">💰 Registrar pago por lote</button>
+          <button class="btn btn-ghost" onclick="moverTodosARelacion()">📤 Mover pendientes a "En relación"</button>
+        </div>
+        <div class="panel">
+          <div style="display:flex;gap:0;border-bottom:2px solid var(--border);padding:0 16px;background:white;border-radius:var(--radius) var(--radius) 0 0;">
+            <div id="mun-tab-pendiente" onclick="showMunTab('pendiente')"
+              style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:#B8A84A;border-bottom:3px solid #B8A84A;margin-bottom:-2px;">🟡 Pendientes</div>
+            <div id="mun-tab-en_relacion" onclick="showMunTab('en_relacion')"
+              style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">📤 En relación</div>
+            <div id="mun-tab-pagado" onclick="showMunTab('pagado')"
+              style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">✅ Pagadas</div>
+            <div id="mun-tab-lotes" onclick="showMunTab('lotes')"
+              style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">📦 Lotes pagados</div>
+          </div>
+          <div id="mun-content-pendiente" style="padding:0;"></div>
+          <div id="mun-content-en_relacion" style="display:none;padding:0;"></div>
+          <div id="mun-content-pagado" style="display:none;padding:0;"></div>
+          <div id="mun-content-lotes" style="display:none;padding:0;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1800,14 +1853,63 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
 <!-- NUEVA CITA -->
 <div id="modal-nueva-cita" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-nueva-cita')">
-  <div class="modal">
+  <div class="modal" style="width:560px;">
     <div class="modal-title">📅 Nueva cita</div>
-    <div class="form-group" style="margin-bottom:12px;">
-      <div class="form-label">Paciente *</div>
+
+    <div class="form-group" style="margin-bottom:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="form-label" style="margin:0;">Paciente *</div>
+        <button type="button" class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px;" onclick="toggleNuevoPacienteCita()">
+          <span id="btn-nuevo-pac-label">＋ Nuevo paciente</span>
+        </button>
+      </div>
       <select class="form-input" id="nc-paciente" onchange="onPacienteCitaChange()">
         <option value="">Seleccionar paciente...</option>
       </select>
     </div>
+
+    <!-- MINI-FORM NUEVO PACIENTE -->
+    <div id="nc-nuevo-paciente-form" style="display:none;background:var(--bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:800;color:var(--blue-d);margin-bottom:10px;">
+        👶 Registrar nuevo paciente
+        <span style="font-size:10px;font-weight:600;color:var(--text-light);"> — Se guardará al agendar la cita</span>
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <div class="form-group">
+          <div class="form-label">Nombre completo *</div>
+          <input class="form-input" id="ncp-nombre" placeholder="Nombre del paciente">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Fecha de nacimiento *</div>
+          <input class="form-input" id="ncp-nacimiento" type="date">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <div class="form-group">
+          <div class="form-label">Sexo</div>
+          <select class="form-input" id="ncp-sexo">
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Teléfono tutor</div>
+          <input class="form-input" id="ncp-telefono" placeholder="10 dígitos" type="tel">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Nombre de la mamá</div>
+          <input class="form-input" id="ncp-tutor" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <div class="form-label">CURP</div>
+          <input class="form-input" id="ncp-curp" placeholder="Opcional" style="font-family:monospace;font-size:12px;">
+        </div>
+      </div>
+      <div id="ncp-alert" style="margin-top:8px;"></div>
+    </div>
+
     <div class="form-row">
       <div class="form-group">
         <div class="form-label">Fecha *</div>
@@ -1852,7 +1954,6 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div class="form-label">Motivo</div>
       <input class="form-input" id="nc-motivo" placeholder="Control mensual, vacuna, fiebre...">
     </div>
-    <!-- FOLIO MUNICIPIO -->
     <div class="form-group" id="nc-folio-group" style="display:none;margin-bottom:12px;">
       <div class="form-label">Folio municipio <span style="color:#C84A4A;">*</span></div>
       <input class="form-input" id="nc-folio" placeholder="Ej. MUN-2026-0042" style="font-family:monospace;font-weight:700;letter-spacing:1px;">
@@ -1863,7 +1964,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
     </div>
     <div id="nc-alert"></div>
     <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-nueva-cita')">Cancelar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-nueva-cita');cerrarNuevoPacienteCita()">Cancelar</button>
       <button class="btn btn-whatsapp" id="btn-wa-nueva" style="display:none;" onclick="confirmarCitaWhatsapp('nueva')">💬 Confirmar por WhatsApp</button>
       <button class="btn btn-primary" onclick="guardarCita()">💾 Guardar cita</button>
     </div>
@@ -2028,13 +2129,14 @@ textarea.form-input { resize:vertical; min-height:70px; }
         </div>
         <div class="form-group">
           <div class="form-label">Método de pago</div>
-          <select class="form-input" id="ec-metodo-pago">
+          <select class="form-input" id="ec-metodo-pago" onchange="onMetodoPagoChange()">
             <option value="">Sin registrar</option>
             <option value="efectivo">💵 Efectivo</option>
             <option value="transferencia">📲 Transferencia</option>
             <option value="tarjeta_debito">💳 Tarjeta débito</option>
             <option value="tarjeta_credito">💳 Tarjeta crédito</option>
             <option value="cheque">📝 Cheque</option>
+            <option value="cortesia">🎁 Cortesía</option>
           </select>
         </div>
       </div>
@@ -2088,7 +2190,9 @@ async function api(method, table, data = null, params = '') {
 }
 
 // ==================== INIT ====================
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => { verificarSesion(); });
+
+async function arrancarSistema() {
   // Fecha
   const now = new Date();
   const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
@@ -2107,7 +2211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await cargarTodo();
-});
+}
 
 async function cargarTodo() {
   await cargarPacientes();
@@ -2294,13 +2398,20 @@ const CAT_INFO = {
 
 // Recursos precargados (links útiles)
 const RECURSOS_DEFAULT = [
+  {
+    id:'d0',
+    titulo:'Lista de Alimentos — Dra. Sanders',
+    categoria:'alimentacion',
+    tipo:'imagen',
+    imagen_url:'https://bfukpzfvaqkchhntnyww.supabase.co/storage/v1/object/public/recursos/lista_alimentos.png',
+    descripcion:'Lista oficial de alimentos recomendados por la Dra. Sanders. Incluye frutas, verduras, cereales, proteínas y grasas con indicadores de alérgenos.',
+    whatsapp_msg:'Hola 👋 Le compartimos la *Lista de Alimentos* de la *Dra. Sanders, Pediatra* 🦕\n\nEsta guía le ayudará a conocer los alimentos recomendados para su bebé:\n🍎 Frutas · 🥦 Verduras · 🌾 Cereales · 🍗 Proteínas · 🥑 Grasas\n\nVer imagen: https://bfukpzfvaqkchhntnyww.supabase.co/storage/v1/object/public/recursos/lista_alimentos.png\n\n📍 Consultorio 508 · Blvd. Belisario Domínguez · Tuxtla Gtz.\n📞 961-203-8476'
+  },
   { id:'d1', titulo:'Hitos del desarrollo CDC', categoria:'desarrollo', tipo:'link', link:'https://www.cdc.gov/act-early/es/index.html', descripcion:'Programa Aprenda los signos. Reaccione pronto. de la CDC' },
   { id:'d2', titulo:'Esquema de vacunación México 2024', categoria:'vacunas', tipo:'link', link:'https://www.gob.mx/salud/documentos/cartilla-nacional-de-vacunacion', descripcion:'Cartilla Nacional de Vacunación oficial' },
-  { id:'d3', titulo:'Alimentación complementaria OMS', categoria:'alimentacion', tipo:'link', link:'https://www.who.int/es/news-room/fact-sheets/detail/complementary-feeding', descripcion:'Guía oficial OMS sobre alimentación complementaria' },
   { id:'d4', titulo:'Sueño seguro del bebé', categoria:'sueno', tipo:'link', link:'https://www.healthychildren.org/Spanish/ages-stages/baby/sleep/Paginas/A-Parents-Guide-to-Safe-Sleep.aspx', descripcion:'Guía de la Academia Americana de Pediatría' },
   { id:'d5', titulo:'Cólico del lactante', categoria:'recien_nacido', tipo:'nota', nota:'El cólico es llanto intenso por más de 3 horas al día, más de 3 días a la semana, en bebés menores de 3 meses. Es normal y se resuelve solo.\n\n✅ Qué hacer:\n• Cargar al bebé\n• Movimiento suave\n• Ruido blanco\n• Revisar técnica de lactancia\n\n⚠️ Consultar si:\n• Fiebre\n• No come\n• Vómitos frecuentes', descripcion:'Información para padres sobre cólico infantil' },
   { id:'d6', titulo:'Signos de alarma en el recién nacido', categoria:'alarma', tipo:'nota', nota:'Lleve a su bebé al médico de inmediato si presenta:\n\n🔴 URGENTE:\n• Dificultad para respirar\n• Color azulado en labios o piel\n• Fiebre mayor a 38°C (menores de 3 meses)\n• No come en más de 4 horas\n• Llanto inconsolable\n• Convulsiones\n• Ictericia intensa\n\n🟡 CONSULTAR PRONTO:\n• Menos de 6 pañales mojados al día\n• No recupera peso al nacer en 2 semanas\n• Ombligo con pus o mal olor', descripcion:'Señales de alerta que requieren atención médica' },
-  { id:'d7', titulo:'Lactancia materna exitosa', categoria:'alimentacion', tipo:'link', link:'https://www.who.int/es/news-room/fact-sheets/detail/infant-and-young-child-feeding', descripcion:'OMS — Guía de lactancia materna' },
   { id:'d8', titulo:'Desarrollo del lenguaje por edad', categoria:'desarrollo', tipo:'nota', nota:'📅 2 meses: Hace sonidos "aah"\n📅 4 meses: Balbucea, ríe\n📅 6 meses: Consonantes "ba","ma"\n📅 9 meses: "mamá","papá" sin significado\n📅 12 meses: 1-3 palabras con significado\n📅 18 meses: 10-20 palabras\n📅 24 meses: Frases de 2 palabras\n📅 36 meses: Oraciones completas\n\n⚠️ Consulte si su hijo no cumple estos hitos', descripcion:'Guía de hitos del lenguaje por edad' },
 ];
 
@@ -2339,12 +2450,26 @@ function renderRecursos() {
 
   document.getElementById('recursos-grid').innerHTML = lista.map(r => {
     const cat = CAT_INFO[r.categoria] || CAT_INFO['otro'];
-    const tipoIcon = r.tipo === 'pdf' ? '📄' : r.tipo === 'link' ? '🔗' : '📝';
-    const tipoLabel = r.tipo === 'pdf' ? 'PDF' : r.tipo === 'link' ? 'Liga web' : 'Nota';
     const esDefault = r.id?.startsWith('d');
+    const esImagen = r.tipo === 'imagen';
+    const tipoIcon = r.tipo === 'pdf' ? '📄' : r.tipo === 'link' ? '🔗' : esImagen ? '🖼' : '📝';
+    const tipoLabel = r.tipo === 'pdf' ? 'PDF' : r.tipo === 'link' ? 'Liga web' : esImagen ? 'Imagen' : 'Nota';
+
+    // Preview de imagen
+    const imgPreview = esImagen && r.imagen_url ? `
+      <div style="margin:8px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${r.imagen_url}','_blank')">
+        <img src="${r.imagen_url}" alt="${r.titulo}" style="width:100%;height:120px;object-fit:cover;display:block;">
+      </div>` : '';
+
+    // Botón WhatsApp — aparece en todos los recursos
+    const urlCompartir = r.tipo === 'link' ? r.link : r.tipo === 'imagen' ? r.imagen_url : r.tipo === 'pdf' ? r.archivo_url : null;
+    const msgWA = r.whatsapp_msg || (urlCompartir
+      ? `Hola 👋 Le compartimos el recurso: *${r.titulo}* de la *Dra. Sanders, Pediatra* 🦕\n\n${r.descripcion||''}\n\n🔗 ${urlCompartir}`
+      : `Hola 👋 Le compartimos información de la *Dra. Sanders, Pediatra* 🦕\n\n*${r.titulo}*\n\n${r.nota || r.descripcion || ''}`);
+    const btnWA = `<button class="btn btn-sm" onclick="enviarRecursoWA(event,'${r.id}')" style="background:#25D366;color:white;border:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;">📲 WhatsApp</button>`;
 
     return `
-    <div class="recurso-card">
+    <div class="recurso-card" id="rc-${r.id}">
       <div class="recurso-card-header">
         <div class="recurso-icono" style="background:${cat.bg};">${tipoIcon}</div>
         <div style="flex:1;min-width:0;">
@@ -2352,18 +2477,63 @@ function renderRecursos() {
           <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${cat.bg};color:${cat.color};">${cat.label}</span>
         </div>
       </div>
+      ${imgPreview}
       <div class="recurso-card-body">
         ${r.descripcion ? `<div style="font-size:12px;color:var(--text-light);font-weight:600;line-height:1.4;">${r.descripcion}</div>` : ''}
       </div>
-      <div class="recurso-card-footer">
+      <div class="recurso-card-footer" style="flex-wrap:wrap;gap:6px;">
         ${r.tipo === 'link' ? `<button class="btn btn-primary btn-sm" onclick="window.open('${r.link}','_blank')">🔗 Abrir</button>` : ''}
         ${r.tipo === 'nota' ? `<button class="btn btn-primary btn-sm" onclick="verNota('${r.id}')">👁 Ver</button><button class="btn btn-ghost btn-sm" onclick="imprimirNota('${r.id}')">🖨 Imprimir</button>` : ''}
-        ${r.tipo === 'pdf' && r.archivo_url ? `<button class="btn btn-primary btn-sm" onclick="window.open('${r.archivo_url}','_blank')">📄 Abrir PDF</button><button class="btn btn-ghost btn-sm" onclick="window.open('${r.archivo_url}','_blank')">🖨 Imprimir</button>` : ''}
+        ${esImagen && r.imagen_url ? `<button class="btn btn-primary btn-sm" onclick="window.open('${r.imagen_url}','_blank')">🖼 Ver imagen</button>` : ''}
+        ${r.tipo === 'pdf' && r.archivo_url ? `<button class="btn btn-primary btn-sm" onclick="window.open('${r.archivo_url}','_blank')">📄 Abrir PDF</button>` : ''}
+        ${btnWA}
         <span style="margin-left:auto;font-size:10px;font-weight:700;color:var(--text-light);">${tipoLabel}</span>
         ${!esDefault ? `<button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="eliminarRecurso('${r.id}')">🗑</button>` : ''}
       </div>
+      <!-- Panel WhatsApp (oculto) -->
+      <div id="wa-panel-${r.id}" style="display:none;margin-top:10px;background:#E8FFF0;border-radius:10px;padding:12px;border:1px solid #A0E0B0;">
+        <div style="font-size:12px;font-weight:700;color:#2A7A4A;margin-bottom:8px;">📲 Enviar por WhatsApp</div>
+        <input id="wa-tel-${r.id}" type="tel" placeholder="Número (ej. 9611234567)" maxlength="10"
+          style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid #A0E0B0;font-size:13px;margin-bottom:8px;"
+          onkeydown="if(event.key==='Enter')abrirWA('${r.id}')">
+        <div style="display:flex;gap:6px;">
+          <button onclick="abrirWA('${r.id}')" style="flex:1;background:#25D366;color:white;border:none;padding:8px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✅ Abrir WhatsApp</button>
+          <button onclick="document.getElementById('wa-panel-${r.id}').style.display='none'" style="background:none;border:1px solid #ccc;padding:8px 12px;border-radius:8px;font-size:12px;cursor:pointer;">✕</button>
+        </div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">Se abrirá WhatsApp con el mensaje listo para enviar</div>
+      </div>
     </div>`;
   }).join('');
+
+  // Guardar mensajes para cada recurso
+  window._waMsgs = {};
+  lista.forEach(r => {
+    const urlCompartir = r.tipo === 'link' ? r.link : r.tipo === 'imagen' ? r.imagen_url : r.tipo === 'pdf' ? r.archivo_url : null;
+    window._waMsgs[r.id] = r.whatsapp_msg || (urlCompartir
+      ? `Hola 👋 Le compartimos el recurso: *${r.titulo}* de la *Dra. Sanders, Pediatra* 🦕\n\n${r.descripcion||''}\n\n🔗 ${urlCompartir}`
+      : `Hola 👋 Le compartimos información de la *Dra. Sanders, Pediatra* 🦕\n\n*${r.titulo}*\n\n${r.nota || r.descripcion || ''}`);
+  });
+}
+
+function enviarRecursoWA(event, id) {
+  event.stopPropagation();
+  // Cerrar otros paneles abiertos
+  document.querySelectorAll('[id^="wa-panel-"]').forEach(p => {
+    if (p.id !== `wa-panel-${id}`) p.style.display = 'none';
+  });
+  const panel = document.getElementById(`wa-panel-${id}`);
+  panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  if (panel.style.display !== 'none') {
+    setTimeout(() => document.getElementById(`wa-tel-${id}`)?.focus(), 100);
+  }
+}
+
+function abrirWA(id) {
+  const tel = document.getElementById(`wa-tel-${id}`).value.trim().replace(/\D/g,'');
+  if (!tel || tel.length < 10) { alert('Ingresa un número de 10 dígitos'); return; }
+  const msg = window._waMsgs?.[id] || '';
+  window.open(`https://wa.me/52${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+  document.getElementById(`wa-panel-${id}`).style.display = 'none';
 }
 
 function verNota(id) {
@@ -2578,7 +2748,6 @@ function navCalHoy() {
   actualizarTituloFecha();
   cargarCitasCal();
 }
-
 function actualizarTituloFecha() {
   const opts = calVista === 'dia'
     ? {weekday:'long', day:'numeric', month:'long', year:'numeric'}
@@ -2779,72 +2948,46 @@ function renderEventosAbsoluto(citas, fechaStr) {
 }
 
 function proximoEspacioDisponible(fecha, horaPreferida) {
-  // Duración default 30 min para buscar
   const durMin = 30;
   const bloqueosDia = calBloqueos.filter(b => b.fecha === fecha);
   const citasDia = calCitas.filter(c => c.fecha_hora && c.fecha_hora.slice(0,10) === fecha);
-
-  // Slots disponibles del día: de 7:00 a 17:00, cada 30 min
   const slots = [];
-  for (let h = 7; h < 17; h++) {
-    slots.push(h * 60);
-    slots.push(h * 60 + 30);
-  }
-
-  // Hora preferida en minutos
+  for (let h = 7; h < 17; h++) { slots.push(h*60); slots.push(h*60+30); }
   const [hPref, mPref] = horaPreferida.split(':').map(Number);
-  const minsPref = hPref * 60 + mPref;
-
-  // Ordenar slots: primero los >= hora preferida, luego los anteriores
-  const slotsOrdenados = [
-    ...slots.filter(s => s >= minsPref),
-    ...slots.filter(s => s < minsPref)
-  ];
-
+  const minsPref = hPref*60 + mPref;
+  const slotsOrdenados = [...slots.filter(s=>s>=minsPref), ...slots.filter(s=>s<minsPref)];
   for (const slotMins of slotsOrdenados) {
     const slotFin = slotMins + durMin;
-
-    // Verificar bloqueos
     const bloqueado = bloqueosDia.some(b => {
       if (b.dia_completo) return true;
-      if (!b.hora_inicio || !b.hora_fin) return false;
-      const [hi, mi] = b.hora_inicio.split(':').map(Number);
-      const [hf, mf] = b.hora_fin.split(':').map(Number);
-      const bIni = hi * 60 + mi, bFin = hf * 60 + mf;
-      return slotMins < bFin && slotFin > bIni;
+      if (!b.hora_inicio||!b.hora_fin) return false;
+      const [hi,mi] = b.hora_inicio.split(':').map(Number);
+      const [hf,mf] = b.hora_fin.split(':').map(Number);
+      return slotMins < hf*60+mf && slotFin > hi*60+mi;
     });
     if (bloqueado) continue;
-
-    // Verificar citas existentes
     const ocupado = citasDia.some(c => {
-      const dt = new Date(c.fecha_hora.replace(' ', 'T'));
-      const cIni = dt.getHours() * 60 + dt.getMinutes();
-      const cFin = cIni + (c.duracion || 30);
+      const dt = new Date(c.fecha_hora.replace(' ','T'));
+      const cIni = dt.getHours()*60+dt.getMinutes();
+      const cFin = cIni + (c.duracion||30);
       return slotMins < cFin && slotFin > cIni;
     });
     if (!ocupado) {
-      const hh = String(Math.floor(slotMins / 60)).padStart(2, '0');
-      const mm = String(slotMins % 60).padStart(2, '0');
-      return `${hh}:${mm}`;
+      return `${String(Math.floor(slotMins/60)).padStart(2,'0')}:${String(slotMins%60).padStart(2,'0')}`;
     }
   }
-  return horaPreferida; // fallback
+  return horaPreferida;
 }
 
 function nuevaCitaEnHora(fecha, hora) {
   const bloqueosDia = calBloqueos.filter(b => b.fecha === fecha);
   const diaCompleto = bloqueosDia.find(b => b.dia_completo);
   if (diaCompleto) { alert(`🚫 Día bloqueado${diaCompleto.motivo?': '+diaCompleto.motivo:''}. Elimina el bloqueo para agendar.`); return; }
-
-  // Calcular próximo espacio disponible desde la hora clickeada
   const horaDisponible = proximoEspacioDisponible(fecha, hora);
   const fueAjustado = horaDisponible !== hora;
-
   poblarSelectPacientes();
   document.getElementById('nc-fecha').value = fecha;
   document.getElementById('nc-hora').value = horaDisponible;
-
-  // Si fue ajustado, mostrar nota visual en el modal
   if (fueAjustado) {
     setTimeout(() => {
       const alertEl = document.getElementById('nc-alert');
@@ -2858,7 +3001,7 @@ function nuevaCitaEnHora(fecha, hora) {
 function renderLineaHora() {
   const now = new Date();
   const minsDesdeSiete = (now.getHours() - 7) * 60 + now.getMinutes();
-  if (minsDesdeSiete < 0 || minsDesdeSiete > 10 * 60) return '';
+  if (minsDesdeSiete < 0 || minsDesdeSiete > 10*60) return '';
   const top = 64 + (minsDesdeSiete / 30) * 40;
   return `<div class="cal-now-line" style="top:${top}px;"></div>`;
 }
@@ -2866,7 +3009,7 @@ function renderLineaHora() {
 function scrollAHoraActual() {
   setTimeout(() => {
     const cont = document.querySelector('.cal-grid-dia') || document.querySelector('.cal-grid-semana');
-    if (cont) { const h = new Date().getHours() - 7; cont.scrollTop = Math.max(0, (h - 1) * 80); }
+    if (cont) { const h = new Date().getHours()-7; cont.scrollTop = Math.max(0,(h-1)*80); }
   }, 100);
 }
 
@@ -3103,430 +3246,349 @@ function getRango() {
   return { inicio, fin, label };
 }
 
-function iniciarFinanzas() { setFinPeriodo('mes'); }
+function iniciarFinanzas() {
+  showFinTab('privado');
+  setFinPeriodo('mes');
+}
 
 async function cargarFinanzas() {
   const { inicio, fin, label } = getRango();
   const labelEl = document.getElementById('finanzas-periodo-label');
   if (labelEl) labelEl.textContent = label;
-
   try {
     const citas = await api('GET','citas',null,
       `?fecha_hora=gte.${inicio}T00:00:00&fecha_hora=lte.${fin}T23:59:59&order=fecha_hora.desc`);
 
-    // Solo cobradas reales: privados con monto + municipio pagados (no pendientes ni en relación)
     const cobradas = citas.filter(c => {
-      if (!c.monto || parseFloat(c.monto) === 0) return false;
-      if (c.tipo === 'municipio') return c.estado_pago_municipio === 'pagado';
-      return true;
+      if (c.tipo === 'municipio') return false;
+      if (c.metodo_pago === 'cortesia') return true;
+      return c.monto && parseFloat(c.monto) > 0;
     });
+    const cortesias = cobradas.filter(c => c.metodo_pago === 'cortesia');
     const total = cobradas.reduce((s,c) => s + parseFloat(c.monto||0), 0);
-    const sinCobro = citas.filter(c => !c.monto || parseFloat(c.monto) === 0).length;
+    const sinCobro = citas.filter(c => c.tipo !== 'municipio' && !c.metodo_pago && (!c.monto || parseFloat(c.monto) === 0)).length;
     const facturas = cobradas.filter(c => c.requiere_factura).length;
 
-    // Total del día (siempre, independiente del período)
     const hoy = fechaLocal();
-    const citasHoy = await api('GET','citas',null,
-      `?fecha_hora=gte.${hoy}T00:00:00&fecha_hora=lte.${hoy}T23:59:59`);
-    const cobradasHoy = citasHoy.filter(c => {
-      if (!c.monto || parseFloat(c.monto) === 0) return false;
-      if (c.tipo === 'municipio') return c.estado_pago_municipio === 'pagado';
-      return true;
-    });
-    const totalHoy = cobradasHoy.reduce((s,c) => s + parseFloat(c.monto||0), 0);
-
-    // Total del mes (siempre)
+    const citasHoy = await api('GET','citas',null,`?fecha_hora=gte.${hoy}T00:00:00&fecha_hora=lte.${hoy}T23:59:59`);
+    const totalHoy = citasHoy.filter(c => c.tipo!=='municipio' && c.metodo_pago!=='cortesia' && c.monto && parseFloat(c.monto)>0)
+      .reduce((s,c) => s+parseFloat(c.monto||0), 0);
     const inicioMes = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`;
-    const finMes = fechaLocal(new Date(new Date().getFullYear(), new Date().getMonth()+1, 0));
-    const citasMes = await api('GET','citas',null,
-      `?fecha_hora=gte.${inicioMes}T00:00:00&fecha_hora=lte.${finMes}T23:59:59`);
-    const cobradasMes = citasMes.filter(c => {
-      if (!c.monto || parseFloat(c.monto) === 0) return false;
-      if (c.tipo === 'municipio') return c.estado_pago_municipio === 'pagado';
-      return true;
-    });
-    const totalMes = cobradasMes.reduce((s,c) => s + parseFloat(c.monto||0), 0);
+    const finMes = fechaLocal(new Date(new Date().getFullYear(),new Date().getMonth()+1,0));
+    const citasMes = await api('GET','citas',null,`?fecha_hora=gte.${inicioMes}T00:00:00&fecha_hora=lte.${finMes}T23:59:59`);
+    const totalMes = citasMes.filter(c => c.tipo!=='municipio' && c.metodo_pago!=='cortesia' && c.monto && parseFloat(c.monto)>0)
+      .reduce((s,c) => s+parseFloat(c.monto||0), 0);
 
-    // MUNICIPIO
-    const citasMunicipio = citas.filter(c => c.tipo === 'municipio');
-    const munPanel = document.getElementById('finanzas-municipio-panel');
-    if (munPanel) munPanel.style.display = citasMunicipio.length ? '' : 'none';
-
-    if (citasMunicipio.length) {
-      const munPendientes = citasMunicipio.filter(c => (c.estado_pago_municipio||'pendiente')==='pendiente');
-      const munEnRelacion = citasMunicipio.filter(c => c.estado_pago_municipio==='en_relacion');
-      const munPagadas   = citasMunicipio.filter(c => c.estado_pago_municipio==='pagado');
-      const munTotal = citasMunicipio.length * 500;
-      const munPagadoTotal = munPagadas.length * 500;
-
-      const tablaFilas = (lista) => lista.length ? `
-        <table class="data-table">
-          <thead><tr>
-            <th>Fecha</th><th>Paciente</th><th>Folio</th><th>Cambiar estado</th>
-          </tr></thead>
-          <tbody>${lista.map(c => {
-            const p = pacientes.find(x => x.id === c.paciente_id);
-            const ep = c.estado_pago_municipio || 'pendiente';
-            return `<tr>
-              <td>${new Date((c.fecha_hora||"").replace(" ","T")).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}</td>
-              <td style="font-weight:700;">${p?p.nombre:'—'}</td>
-              <td style="font-family:monospace;font-weight:700;color:var(--blue-d);">${c.folio_municipio||'<span style="color:var(--text-light);">Sin folio</span>'}</td>
-              <td>
-                <select class="form-input" style="padding:4px 8px;font-size:11px;width:150px;" onchange="cambiarEstadoPagoMun('${c.id}',this.value)">
-                  <option value="pendiente" ${ep==='pendiente'?'selected':''}>🟡 Pendiente</option>
-                  <option value="en_relacion" ${ep==='en_relacion'?'selected':''}>📤 En relación</option>
-                  <option value="pagado" ${ep==='pagado'?'selected':''}>✅ Pagado</option>
-                </select>
-              </td>
-            </tr>`;
-          }).join('')}</tbody>
-        </table>` :
-        `<div class="empty-state" style="padding:24px;"><div class="empty-icon" style="font-size:32px;">✅</div><p>No hay consultas en este estado</p></div>`;
-
-      document.getElementById('finanzas-municipio-tabla').innerHTML = `
-        <!-- RESUMEN -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;background:var(--bg);border-bottom:1px solid var(--border);">
-          <div style="text-align:center;"><div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;">${citasMunicipio.length}</div><div style="font-size:11px;font-weight:700;color:var(--text-light);">Total consultas</div></div>
-          <div style="text-align:center;"><div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#B8A84A;">${munPendientes.length}</div><div style="font-size:11px;font-weight:700;color:var(--text-light);">🟡 Pendientes</div></div>
-          <div style="text-align:center;"><div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--peach-d);">${munEnRelacion.length}</div><div style="font-size:11px;font-weight:700;color:var(--text-light);">📤 En relación</div></div>
-          <div style="text-align:center;"><div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--green-d);">${munPagadas.length}</div><div style="font-size:11px;font-weight:700;color:var(--text-light);">✅ Pagadas ($${munPagadoTotal.toLocaleString('es-MX')})</div></div>
-        </div>
-
-        <!-- SUB-TABS -->
-        <div style="display:flex;gap:0;border-bottom:2px solid var(--border);padding:0 16px;background:white;">
-          <div class="mun-subtab active" id="mun-tab-pendiente" onclick="showMunTab('pendiente')"
-            style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:#B8A84A;border-bottom:3px solid #B8A84A;margin-bottom:-2px;">
-            🟡 Pendientes (${munPendientes.length})
-          </div>
-          <div class="mun-subtab" id="mun-tab-en_relacion" onclick="showMunTab('en_relacion')"
-            style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">
-            📤 En relación (${munEnRelacion.length})
-          </div>
-          <div class="mun-subtab" id="mun-tab-pagado" onclick="showMunTab('pagado')"
-            style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">
-            ✅ Pagadas (${munPagadas.length})
-          </div>
-        </div>
-
-        <!-- CONTENIDO TABS -->
-        <div id="mun-content-pendiente" style="padding:0;">
-          <div style="padding:10px 16px;background:#FFF8E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:12px;font-weight:700;color:#B8A84A;">Total pendiente: $${(munPendientes.length*500).toLocaleString('es-MX')}</span>
-            <button class="btn btn-ghost btn-sm" onclick="moverTodosARelacion()">📤 Mover todas a "En relación"</button>
-          </div>
-          ${tablaFilas(munPendientes)}
-        </div>
-        <div id="mun-content-en_relacion" style="display:none;padding:0;">
-          <div style="padding:10px 16px;background:#FFF0E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:12px;font-weight:700;color:var(--peach-d);">Total en relación: $${(munEnRelacion.length*500).toLocaleString('es-MX')}</span>
-            <button class="btn btn-primary btn-sm" onclick="generarRelacionMunicipio('en_relacion')">📋 Generar PDF de esta relación</button>
-          </div>
-          ${tablaFilas(munEnRelacion)}
-        </div>
-        <div id="mun-content-pagado" style="display:none;padding:0;">
-          <div style="padding:10px 16px;background:#E0F5E8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:12px;font-weight:700;color:var(--green-d);">Total pagado: $${munPagadoTotal.toLocaleString('es-MX')}</span>
-            <button class="btn btn-ghost btn-sm" onclick="generarRelacionMunicipio('pagado')">📋 Generar PDF historial pagado</button>
-          </div>
-          ${tablaFilas(munPagadas)}
-        </div>`;
-    }
-
-    // STATS
     document.getElementById('finanzas-stats').innerHTML = `
       <div class="stat-card green" style="grid-column:span 2;">
         <span class="stat-icon">💰</span>
         <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:36px;line-height:1;color:var(--text);">
           $${totalHoy.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
         </div>
-        <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-top:4px;">Cobrado hoy</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-top:4px;">Cobrado hoy (privado)</div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
           <span style="font-size:12px;font-weight:600;color:var(--text-light);">Acumulado del mes: </span>
           <span style="font-size:14px;font-weight:800;color:var(--green-d);">$${totalMes.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
         </div>
       </div>
       <div class="stat-card blue"><span class="stat-icon">🩺</span>
-        <div class="stat-value">${citas.length}</div>
-        <div class="stat-label">Consultas en período</div></div>
+        <div class="stat-value">${citas.filter(c=>c.tipo!=='municipio').length}</div>
+        <div class="stat-label">Consultas privadas</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#FFE8F0,#FFDAE8);">
+        <span class="stat-icon">🎁</span>
+        <div class="stat-value" style="color:#C04060;">${cortesias.length}</div>
+        <div class="stat-label" style="color:#903050;">Cortesías</div>
+      </div>
       <div class="stat-card peach"><span class="stat-icon">📋</span>
         <div class="stat-value">${sinCobro}</div>
         <div class="stat-label">Sin registro de pago</div></div>`;
 
-    // MÉTODOS
-    const metodoLabels = {efectivo:'💵 Efectivo',transferencia:'📲 Transferencia',tarjeta_debito:'💳 T. Débito',tarjeta_credito:'💳 T. Crédito',cheque:'📝 Cheque','':'Sin registrar'};
-    const metodoColors = {efectivo:'var(--green-d)',transferencia:'var(--blue-d)',tarjeta_debito:'var(--lilac-d)',tarjeta_credito:'var(--peach-d)',cheque:'var(--yellow-d)','':'var(--text-light)'};
+    const metodoLabels = {efectivo:'💵 Efectivo',transferencia:'📲 Transferencia',tarjeta_debito:'💳 T. Débito',tarjeta_credito:'💳 T. Crédito',cheque:'📝 Cheque',cortesia:'🎁 Cortesía','':'Sin registrar'};
+    const metodoColors = {efectivo:'var(--green-d)',transferencia:'var(--blue-d)',tarjeta_debito:'var(--lilac-d)',tarjeta_credito:'var(--peach-d)',cheque:'var(--yellow-d)',cortesia:'#E07090','':'var(--text-light)'};
     const metodos = {};
     cobradas.forEach(c=>{ const m=c.metodo_pago||''; if(!metodos[m]) metodos[m]={count:0,total:0}; metodos[m].count++; metodos[m].total+=parseFloat(c.monto||0); });
+    const totalBarras = cobradas.filter(c=>c.metodo_pago!=='cortesia').reduce((s,c)=>s+parseFloat(c.monto||0),0);
 
     document.getElementById('finanzas-metodos').innerHTML = Object.keys(metodos).length ?
       Object.entries(metodos).sort((a,b)=>b[1].total-a[1].total).map(([m,v])=>`
         <div style="margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:13px;font-weight:700;">${metodoLabels[m]||m}</span>
-            <span style="font-size:13px;font-weight:800;color:${metodoColors[m]||'var(--text)'};">$${v.total.toLocaleString('es-MX',{minimumFractionDigits:2})}</span>
+            <span style="font-size:13px;font-weight:800;color:${metodoColors[m]||'var(--text)'};">
+              ${m==='cortesia'?`${v.count} consulta${v.count!==1?'s':''}`:'$'+v.total.toLocaleString('es-MX',{minimumFractionDigits:2})}
+            </span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="flex:1;height:8px;background:var(--bg);border-radius:10px;overflow:hidden;">
-              <div style="height:100%;width:${total?Math.round(v.total/total*100):0}%;background:${metodoColors[m]||'var(--blue-d)'};border-radius:10px;"></div>
+              <div style="height:100%;width:${m==='cortesia'?Math.min(100,Math.round(v.count/Math.max(1,cobradas.length)*100)):totalBarras?Math.round(v.total/totalBarras*100):0}%;background:${metodoColors[m]||'var(--blue-d)'};border-radius:10px;"></div>
             </div>
-            <span style="font-size:11px;color:var(--text-light);font-weight:600;min-width:55px;text-align:right;">${v.count} cobro${v.count!==1?'s':''}</span>
+            <span style="font-size:11px;color:var(--text-light);font-weight:600;min-width:55px;text-align:right;">${v.count} ${m==='cortesia'?'gratis':'cobro'}${v.count!==1?'s':''}</span>
           </div>
         </div>`).join('') :
       `<div class="empty-state"><div class="empty-icon">💳</div><p>Sin cobros en este período</p></div>`;
 
-    // TIPOS
-    const tipos = {};
-    cobradas.forEach(c=>{ const t=c.tipo||'privado'; if(!tipos[t]) tipos[t]={count:0,total:0}; tipos[t].count++; tipos[t].total+=parseFloat(c.monto||0); });
-    document.getElementById('finanzas-tipos').innerHTML = Object.entries(tipos).map(([t,v])=>`
+    document.getElementById('finanzas-tipos').innerHTML = `
       <div style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:13px;font-weight:700;">${t==='privado'?'🔵 Privado':'🟢 Municipio'}</span>
-          <span style="font-size:13px;font-weight:800;color:${t==='privado'?'var(--blue-d)':'var(--green-d)'};">$${v.total.toLocaleString('es-MX',{minimumFractionDigits:2})}</span>
+          <span style="font-size:13px;font-weight:700;">🔵 Cobrado</span>
+          <span style="font-size:13px;font-weight:800;color:var(--blue-d);">$${totalBarras.toLocaleString('es-MX',{minimumFractionDigits:2})}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;height:8px;background:var(--bg);border-radius:10px;overflow:hidden;">
-            <div style="height:100%;width:${total?Math.round(v.total/total*100):0}%;background:${t==='privado'?'var(--blue-d)':'var(--green-d)'};border-radius:10px;"></div>
+            <div style="height:100%;width:100%;background:var(--blue-d);border-radius:10px;"></div>
           </div>
-          <span style="font-size:11px;color:var(--text-light);font-weight:600;min-width:55px;text-align:right;">${v.count} cobro${v.count!==1?'s':''}</span>
+          <span style="font-size:11px;color:var(--text-light);font-weight:600;">${cobradas.filter(c=>c.metodo_pago!=='cortesia').length} cobros</span>
         </div>
-      </div>`).join('') || `<div class="empty-state"><div class="empty-icon">👥</div><p>Sin datos</p></div>`;
+      </div>
+      ${cortesias.length?`<div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:13px;font-weight:700;">🎁 Cortesías</span>
+          <span style="font-size:13px;font-weight:800;color:#E07090;">${cortesias.length} consulta${cortesias.length!==1?'s':''}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;height:8px;background:var(--bg);border-radius:10px;overflow:hidden;">
+            <div style="height:100%;width:${Math.round(cortesias.length/Math.max(1,cobradas.length)*100)}%;background:#E07090;border-radius:10px;"></div>
+          </div>
+          <span style="font-size:11px;color:var(--text-light);font-weight:600;">${cortesias.length} gratis</span>
+        </div>
+      </div>`:''}`;
 
-    // TABLA
     const tablaEl = document.getElementById('finanzas-tabla');
     const factBadge = document.getElementById('finanzas-facturas-badge');
-    if (factBadge) factBadge.innerHTML = facturas ? `<span class="badge badge-lilac">🧾 ${facturas} factura${facturas!==1?'s':''}</span>` : '';
-
+    if (factBadge) factBadge.innerHTML = facturas?`<span class="badge badge-lilac">🧾 ${facturas} factura${facturas!==1?'s':''}</span>`:'';
     if (!cobradas.length) {
       tablaEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No hay cobros registrados en este período</p></div>`;
     } else {
-      tablaEl.innerHTML = `
-        <table class="data-table">
-          <thead><tr><th>Fecha</th><th>Paciente</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Factura</th></tr></thead>
-          <tbody>${cobradas.map(c=>{
-            const p = pacientes.find(x=>x.id===c.paciente_id);
-            const dt = new Date(c.fecha_hora);
-            return `<tr>
-              <td><div style="font-weight:700;">${dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}</div>
-                  <div style="font-size:11px;color:var(--text-light);">${dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</div></td>
-              <td style="font-weight:700;">${p?p.nombre:'—'}</td>
-              <td><span class="badge ${c.tipo==='municipio'?'badge-green':'badge-blue'}">${c.tipo==='municipio'?'Municipio':'Privado'}</span></td>
-              <td>${metodoLabels[c.metodo_pago||'']||'—'}</td>
-              <td style="font-weight:800;color:var(--green-d);">$${parseFloat(c.monto).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
-              <td>${c.requiere_factura?`<span class="badge badge-lilac">🧾 ${c.rfc||'Sin RFC'}</span>`:'<span style="color:var(--text-light);font-size:12px;">No</span>'}</td>
-            </tr>`;
-          }).join('')}</tbody>
-        </table>`;
+      tablaEl.innerHTML = `<table class="data-table">
+        <thead><tr><th>Fecha</th><th>Paciente</th><th>Método</th><th>Monto</th><th>Factura</th></tr></thead>
+        <tbody>${cobradas.map(c=>{
+          const p=pacientes.find(x=>x.id===c.paciente_id);
+          const dt=new Date(c.fecha_hora);
+          const esCortesia=c.metodo_pago==='cortesia';
+          return `<tr>
+            <td><div style="font-weight:700;">${dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}</div>
+                <div style="font-size:11px;color:var(--text-light);">${dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</div></td>
+            <td style="font-weight:700;">${p?p.nombre:'—'}</td>
+            <td>${metodoLabels[c.metodo_pago||'']||'—'}</td>
+            <td style="font-weight:800;color:${esCortesia?'#E07090':'var(--green-d)'};">${esCortesia?'🎁 Cortesía':'$'+parseFloat(c.monto).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+            <td>${c.requiere_factura?`<span class="badge badge-lilac">🧾 ${c.rfc||'Sin RFC'}</span>`:'<span style="color:var(--text-light);font-size:12px;">No</span>'}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
     }
   } catch(e) {
-    const el = document.getElementById('finanzas-stats');
-    if (el) el.innerHTML = `<div class="alert alert-error" style="grid-column:1/-1">Error: ${e.message}</div>`;
+    const el=document.getElementById('finanzas-stats');
+    if(el) el.innerHTML=`<div class="alert alert-error" style="grid-column:1/-1">Error: ${e.message}</div>`;
   }
 }
 
+function showFinTab(tab) {
+  ['privado','municipio'].forEach(t => {
+    const c=document.getElementById(`fincontent-${t}`);
+    const b=document.getElementById(`fintab-${t}`);
+    if(c) c.style.display=t===tab?'':'none';
+    if(b){
+      b.style.color=t===tab?(t==='privado'?'var(--blue-d)':'var(--green-d)'):'var(--text-light)';
+      b.style.borderBottom=t===tab?`3px solid ${t==='privado'?'var(--blue-d)':'var(--green-d)'}`:'3px solid transparent';
+    }
+  });
+  if(tab==='municipio') cargarMunicipio();
+  else cargarFinanzas();
+}
+
 function showMunTab(tab) {
-  ['pendiente','en_relacion','pagado'].forEach(t => {
-    const content = document.getElementById(`mun-content-${t}`);
-    const tabEl = document.getElementById(`mun-tab-${t}`);
-    if (content) content.style.display = t===tab ? '' : 'none';
-    if (tabEl) {
-      const colors = {pendiente:'#B8A84A', en_relacion:'var(--peach-d)', pagado:'var(--green-d)'};
-      if (t===tab) {
-        tabEl.style.color = colors[t];
-        tabEl.style.borderBottomColor = colors[t];
-      } else {
-        tabEl.style.color = 'var(--text-light)';
-        tabEl.style.borderBottomColor = 'transparent';
-      }
+  ['pendiente','en_relacion','pagado','lotes'].forEach(t => {
+    const c=document.getElementById(`mun-content-${t}`);
+    const b=document.getElementById(`mun-tab-${t}`);
+    if(c) c.style.display=t===tab?'':'none';
+    if(b){
+      const colors={pendiente:'#B8A84A',en_relacion:'var(--peach-d)',pagado:'var(--green-d)',lotes:'var(--blue-d)'};
+      b.style.color=t===tab?colors[t]:'var(--text-light)';
+      b.style.borderBottom=t===tab?`3px solid ${colors[t]}`:'3px solid transparent';
     }
   });
 }
 
-async function moverTodosARelacion() {
-  const rows = document.querySelectorAll('#mun-content-pendiente tbody tr');
-  if (!rows.length) { alert('No hay consultas pendientes'); return; }
-  if (!confirm(`¿Mover ${rows.length} consultas a "En relación"?`)) return;
+async function cargarMunicipio() {
+  const munStats=document.getElementById('mun-stats');
+  if(munStats) munStats.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
   try {
-    const ids = [...rows].map(r => r.querySelector('select')?.closest('tr')?.querySelector('select')?.closest('tr') || r);
-    // Get IDs from select onchange attributes
-    const selects = document.querySelectorAll('#mun-content-pendiente select');
-    for (const sel of selects) {
-      const id = sel.getAttribute('onchange').match(/'([^']+)'/)[1];
-      await api('PATCH','citas',{estado_pago_municipio:'en_relacion'},`?id=eq.${id}`);
-    }
-    showAlert('finanzas-alert',`✅ ${selects.length} consultas movidas a "En relación"`,'success');
-    await cargarFinanzas();
-    showMunTab('en_relacion');
-  } catch(e) { alert('Error: '+e.message); }
+    const todas=await api('GET','citas',null,'?tipo=eq.municipio&order=fecha_hora.desc');
+    const pendientes=todas.filter(c=>(c.estado_pago_municipio||'pendiente')==='pendiente');
+    const enRelacion=todas.filter(c=>c.estado_pago_municipio==='en_relacion');
+    const pagadas=todas.filter(c=>c.estado_pago_municipio==='pagado');
+    if(munStats) munStats.innerHTML=`
+      <div class="stat-card green"><span class="stat-icon">🏛️</span>
+        <div class="stat-value">${todas.length}</div><div class="stat-label">Total consultas</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#FFF8E0,#FFF3C0);">
+        <span class="stat-icon">🟡</span>
+        <div class="stat-value" style="color:#B8A84A;">${pendientes.length}</div>
+        <div class="stat-label">Pendientes</div>
+        <div style="font-size:12px;font-weight:800;color:#B8A84A;margin-top:4px;">$${(pendientes.length*500).toLocaleString('es-MX')}</div></div>
+      <div class="stat-card peach"><span class="stat-icon">📤</span>
+        <div class="stat-value">${enRelacion.length}</div><div class="stat-label">En relación</div>
+        <div style="font-size:12px;font-weight:800;color:var(--peach-d);margin-top:4px;">$${(enRelacion.length*500).toLocaleString('es-MX')}</div></div>
+      <div class="stat-card blue"><span class="stat-icon">💰</span>
+        <div class="stat-value" style="color:var(--green-d);">$${(pagadas.length*500).toLocaleString('es-MX')}</div>
+        <div class="stat-label">Total cobrado</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-top:4px;">Pendiente: $${((pendientes.length+enRelacion.length)*500).toLocaleString('es-MX')}</div></div>`;
+
+    const tablaFilas=lista=>lista.length?`
+      <table class="data-table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Folio</th><th>Cambiar estado</th></tr></thead>
+      <tbody>${lista.map(c=>{
+        const p=pacientes.find(x=>x.id===c.paciente_id);
+        const ep=c.estado_pago_municipio||'pendiente';
+        const fecha=new Date((c.fecha_hora||'').replace(' ','T')).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+        return `<tr><td>${fecha}</td><td style="font-weight:700;">${p?p.nombre:'—'}</td>
+          <td style="font-family:monospace;font-weight:700;color:var(--blue-d);">${c.folio_municipio||'—'}</td>
+          <td><select class="form-input" style="padding:4px 8px;font-size:11px;width:160px;" onchange="cambiarEstadoPagoMun('${c.id}',this.value)">
+            <option value="pendiente" ${ep==='pendiente'?'selected':''}>🟡 Pendiente</option>
+            <option value="en_relacion" ${ep==='en_relacion'?'selected':''}>📤 En relación</option>
+            <option value="pagado" ${ep==='pagado'?'selected':''}>✅ Pagado</option>
+          </select></td></tr>`;
+      }).join('')}</tbody></table>`:
+      `<div class="empty-state" style="padding:24px;"><div class="empty-icon" style="font-size:32px;">✅</div><p>No hay consultas en este estado</p></div>`;
+
+    document.getElementById('mun-content-pendiente').innerHTML=`
+      <div style="padding:10px 16px;background:#FFF8E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:#B8A84A;">Pendiente: $${(pendientes.length*500).toLocaleString('es-MX')}</span>
+        <button class="btn btn-ghost btn-sm" onclick="moverTodosARelacion()">📤 Mover todas a "En relación"</button>
+      </div>${tablaFilas(pendientes)}`;
+    document.getElementById('mun-content-en_relacion').innerHTML=`
+      <div style="padding:10px 16px;background:#FFF0E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:var(--peach-d);">En relación: $${(enRelacion.length*500).toLocaleString('es-MX')}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" onclick="abrirModalLotePago()">💰 Registrar pago por lote</button>
+          <button class="btn btn-ghost btn-sm" onclick="generarRelacionMunicipio('en_relacion')">📋 PDF</button>
+        </div>
+      </div>${tablaFilas(enRelacion)}`;
+    document.getElementById('mun-content-pagado').innerHTML=`
+      <div style="padding:10px 16px;background:#E0F5E8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:var(--green-d);">Cobrado: $${(pagadas.length*500).toLocaleString('es-MX')}</span>
+        <button class="btn btn-ghost btn-sm" onclick="generarRelacionMunicipio('pagado')">📋 PDF historial</button>
+      </div>${tablaFilas(pagadas)}`;
+    await renderLotesPagados();
+    showMunTab('pendiente');
+  } catch(e) {
+    if(munStats) munStats.innerHTML=`<div class="alert alert-error" style="grid-column:1/-1">Error: ${e.message}</div>`;
+  }
 }
 
-function generarRelacionMunicipio(estado) {
-  const { label } = getRango();
-  const contenedor = document.getElementById(`mun-content-${estado}`);
-  if (!contenedor) return;
-  const citasMun = [];
-  contenedor.querySelectorAll('tbody tr').forEach(tr => {
-    const tds = tr.querySelectorAll('td');
-    if (tds.length >= 3) {
-      citasMun.push({
-        fecha: tds[0].textContent.trim(),
-        paciente: tds[1].textContent.trim(),
-        folio: tds[2].textContent.trim(),
-      });
-    }
+async function renderLotesPagados() {
+  const cont=document.getElementById('mun-content-lotes');if(!cont) return;
+  try {
+    const lotes=await api('GET','lotes_municipio',null,'?order=fecha_pago.desc');
+    if(!lotes.length){cont.innerHTML=`<div class="empty-state" style="padding:32px;"><div class="empty-icon">📦</div><p>No hay lotes registrados</p></div>`;return;}
+    cont.innerHTML=lotes.map(l=>{
+      const fecha=l.fecha_pago?new Date(l.fecha_pago+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}):'—';
+      const folios=l.folios?JSON.parse(l.folios):[];
+      return `<div style="padding:16px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><div style="font-weight:800;font-size:15px;margin-bottom:4px;">📦 ${l.nombre}</div>
+            <div style="font-size:12px;color:var(--text-light);font-weight:600;">${fecha} · ${folios.length} folio${folios.length!==1?'s':''}</div>
+            ${l.notas?`<div style="font-size:12px;color:var(--text-light);margin-top:2px;">📝 ${l.notas}</div>`:''}
+            ${folios.length?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">${folios.map(f=>`<span style="font-family:monospace;font-size:11px;font-weight:700;background:#E0F0FF;color:var(--blue-d);padding:2px 8px;border-radius:20px;">${f}</span>`).join('')}</div>`:''}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--green-d);">$${parseFloat(l.monto||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+            <button class="btn btn-danger btn-sm" style="margin-top:8px;font-size:11px;" onclick="eliminarLote('${l.id}')">🗑 Eliminar</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){cont.innerHTML=`<div class="alert alert-error">Error: ${e.message}</div>`;}
+}
+
+function abrirModalLotePago(){
+  document.getElementById('lp-nombre').value='';document.getElementById('lp-fecha').value=fechaLocal();
+  document.getElementById('lp-monto').value='';document.getElementById('lp-notas').value='';
+  document.getElementById('lp-sel-todos').checked=false;document.getElementById('lp-alert').innerHTML='';
+  const citasEnRelacion=[];
+  document.querySelectorAll('#mun-content-en_relacion tbody tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td'),sel=tr.querySelector('select');
+    if(tds.length>=3&&sel){const m=sel.getAttribute('onchange').match(/'([^']+)'/);
+      if(m) citasEnRelacion.push({id:m[1],folio:tds[2].textContent.trim(),paciente:tds[1].textContent.trim(),fecha:tds[0].textContent.trim()});}
   });
-  if (!citasMun.length) { alert('No hay consultas en este estado'); return; }
-  const total = citasMun.length * 500;
-  const estadoLabel = estado==='en_relacion'?'En relación':'Pagadas';
-  const win = window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html lang="es"><head>
-    <meta charset="UTF-8"><title>Relación Municipio — ${label}</title>
-    <style>
-      body{font-family:Arial,sans-serif;padding:40px;color:#333;}
-      .header{display:flex;justify-content:space-between;margin-bottom:30px;border-bottom:2px solid #333;padding-bottom:16px;}
-      table{width:100%;border-collapse:collapse;margin-bottom:24px;}
-      th{background:#f0f0f0;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;border:1px solid #ddd;}
-      td{padding:10px 12px;border:1px solid #ddd;font-size:13px;}
-      tr:nth-child(even){background:#fafafa;}
-      .total{text-align:right;font-size:16px;font-weight:bold;margin-top:16px;}
-      .firma{margin-top:60px;display:flex;justify-content:space-between;}
-      .firma-line{border-top:1px solid #333;width:200px;text-align:center;padding-top:8px;font-size:12px;}
-      @media print{body{padding:20px;}}
-    </style></head><body>
-    <div class="header">
-      <div>
-        <h2 style="margin:0 0 4px;">Dra. Sanders — Pediatra</h2>
-        <div style="font-size:14px;color:#666;">Relación de consultas municipio — ${estadoLabel}</div>
-        <div style="font-size:13px;margin-top:6px;">Período: <strong>${label}</strong></div>
-        <div style="font-size:13px;">Emisión: <strong>${new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'})}</strong></div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:13px;">Consultas: <strong>${citasMun.length}</strong></div>
-        <div style="font-size:13px;">Costo por consulta: <strong>$500.00</strong></div>
-        <div style="font-size:20px;font-weight:bold;margin-top:8px;color:#2A7A4A;">Total: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
-      </div>
-    </div>
-    <table>
-      <thead><tr><th>#</th><th>Fecha</th><th>Paciente</th><th>Folio municipio</th><th>Monto</th></tr></thead>
-      <tbody>${citasMun.map((c,i)=>`<tr>
-        <td>${i+1}</td><td>${c.fecha}</td><td>${c.paciente}</td>
-        <td style="font-family:monospace;font-weight:bold;">${c.folio}</td>
-        <td>$500.00</td></tr>`).join('')}
-      </tbody>
-    </table>
-    <div class="total">Total a cobrar: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
-    <div class="firma">
-      <div class="firma-line">Dra. Sanders<br>Médico Pediatra</div>
-      <div class="firma-line">Sello y firma municipio<br>Recibido</div>
-    </div>
-    <script>window.onload=()=>window.print();<\/script>
-    </body></html>`);
-  win.document.close();
+  const lista=document.getElementById('lp-folios-lista');
+  if(!citasEnRelacion.length){lista.innerHTML=`<div style="padding:16px;text-align:center;color:var(--text-light);font-size:13px;font-weight:600;">No hay consultas "En relación". Muévelas primero.</div>`;}
+  else{lista.innerHTML=citasEnRelacion.map(c=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+      <input type="checkbox" class="lp-folio-check" value="${c.id}" data-folio="${c.folio}" onchange="actualizarContadorLote()">
+      <div style="flex:1;"><div style="font-weight:700;font-size:13px;">${c.paciente}</div><div style="font-size:11px;color:var(--text-light);">${c.fecha}</div></div>
+      <span style="font-family:monospace;font-weight:700;font-size:12px;color:var(--blue-d);">${c.folio}</span>
+      <span style="font-weight:800;color:var(--green-d);font-size:13px;">$500</span>
+    </label>`).join('');actualizarContadorLote();}
+  openModal('modal-lote-pago');
 }
-
-function toggleCheckAll(cb) {
-  document.querySelectorAll('.mun-check').forEach(c => c.checked = cb.checked);
+function toggleSelTodosLote(cb){document.querySelectorAll('.lp-folio-check').forEach(c=>c.checked=cb.checked);actualizarContadorLote();}
+function actualizarContadorLote(){
+  const checks=document.querySelectorAll('.lp-folio-check:checked'),total=checks.length*500;
+  const cont=document.getElementById('lp-sel-count');
+  if(cont) cont.textContent=checks.length?`${checks.length} seleccionados — $${total.toLocaleString('es-MX')}`:'';
+  const m=document.getElementById('lp-monto');if(m&&checks.length) m.value=total;
 }
-
-async function marcarEnRelacion() {
-  const checks = [...document.querySelectorAll('.mun-check:checked')].map(c => c.value);
-  if (!checks.length) { alert('Selecciona al menos una consulta'); return; }
-  try {
-    for (const id of checks) await api('PATCH','citas',{estado_pago_municipio:'en_relacion'},`?id=eq.${id}`);
-    showAlert('finanzas-alert',`✅ ${checks.length} consultas marcadas como "En relación"`,'success');
-    await cargarFinanzas();
-  } catch(e) { alert('Error: '+e.message); }
+async function guardarLotePago(){
+  const nombre=document.getElementById('lp-nombre').value.trim(),fecha=document.getElementById('lp-fecha').value,monto=document.getElementById('lp-monto').value;
+  if(!nombre||!fecha||!monto){showAlert('lp-alert','Nombre, fecha y monto requeridos','error');return;}
+  const checks=[...document.querySelectorAll('.lp-folio-check:checked')];
+  if(!checks.length){showAlert('lp-alert','Selecciona al menos un folio','error');return;}
+  try{
+    await api('POST','lotes_municipio',{nombre,fecha_pago:fecha,monto:parseFloat(monto),notas:document.getElementById('lp-notas').value,folios:JSON.stringify(checks.map(c=>c.dataset.folio))});
+    for(const c of checks) await api('PATCH','citas',{estado_pago_municipio:'pagado'},`?id=eq.${c.value}`);
+    closeModal('modal-lote-pago');showAlert('finanzas-alert',`✅ Lote registrado. ${checks.length} consultas pagadas.`,'success');
+    await cargarMunicipio();showMunTab('lotes');
+  }catch(e){showAlert('lp-alert','Error: '+e.message,'error');}
 }
-
-async function cambiarEstadoPagoMun(id, estado) {
-  try {
-    await api('PATCH','citas',{estado_pago_municipio: estado},`?id=eq.${id}`);
-    showAlert('finanzas-alert','✅ Estado actualizado','success');
-  } catch(e) { alert('Error: '+e.message); }
-}
-
-async function marcarEnRelacion() {
-  const checks = [...document.querySelectorAll('.mun-check:checked')].map(c => c.value);
-  if (!checks.length) { alert('Selecciona al menos una consulta'); return; }
-  try {
-    for (const id of checks) await api('PATCH','citas',{estado_pago_municipio:'en_relacion'},`?id=eq.${id}`);
-    showAlert('finanzas-alert',`✅ ${checks.length} consultas marcadas como "En relación"`,'success');
-    await cargarFinanzas();
-  } catch(e) { alert('Error: '+e.message); }
-}
-
-function generarRelacionMunicipio() {
-  const { label } = getRango();
-  const citasMun = [];
-  document.querySelectorAll('#finanzas-municipio-tabla tbody tr').forEach(tr => {
-    const tds = tr.querySelectorAll('td');
-    if (tds.length >= 4) {
-      citasMun.push({
-        fecha: tds[1].textContent.trim(),
-        paciente: tds[2].textContent.trim(),
-        folio: tds[3].textContent.trim(),
-      });
+async function eliminarLote(id){
+  if(!confirm('¿Eliminar este lote? Las consultas volverán a "En relación".')) return;
+  try{
+    const lotes=await api('GET','lotes_municipio',null,`?id=eq.${id}`);
+    if(lotes[0]?.folios){
+      const folios=JSON.parse(lotes[0].folios);
+      const citasMun=await api('GET','citas',null,'?tipo=eq.municipio&estado_pago_municipio=eq.pagado');
+      for(const c of citasMun.filter(c=>folios.includes(c.folio_municipio)))
+        await api('PATCH','citas',{estado_pago_municipio:'en_relacion'},`?id=eq.${c.id}`);
     }
-  });
-  if (!citasMun.length) { alert('No hay consultas de municipio en este período'); return; }
-  const total = citasMun.length * 500;
-  const win = window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html lang="es"><head>
-    <meta charset="UTF-8"><title>Relación Municipio — ${label}</title>
-    <style>
-      body{font-family:Arial,sans-serif;padding:40px;color:#333;}
-      h1{font-size:22px;margin-bottom:4px;}
-      .header{display:flex;justify-content:space-between;margin-bottom:30px;border-bottom:2px solid #333;padding-bottom:16px;}
-      table{width:100%;border-collapse:collapse;margin-bottom:24px;}
-      th{background:#f0f0f0;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;border:1px solid #ddd;}
-      td{padding:10px 12px;border:1px solid #ddd;font-size:13px;}
-      tr:nth-child(even){background:#fafafa;}
-      .total{text-align:right;font-size:16px;font-weight:bold;margin-top:16px;}
-      .firma{margin-top:60px;display:flex;justify-content:space-between;}
-      .firma-line{border-top:1px solid #333;width:200px;text-align:center;padding-top:8px;font-size:12px;}
-      @media print{body{padding:20px;}}
-    </style></head><body>
-    <div class="header">
-      <div>
-        <h1>Dra. Sanders — Pediatra</h1>
-        <div style="font-size:14px;color:#666;margin-bottom:8px;">Relación de consultas municipio</div>
-        <div style="font-size:13px;">Período: <strong>${label}</strong></div>
-        <div style="font-size:13px;">Emisión: <strong>${new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'})}</strong></div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:13px;">Consultas: <strong>${citasMun.length}</strong></div>
-        <div style="font-size:13px;">Costo por consulta: <strong>$500.00</strong></div>
-        <div style="font-size:20px;font-weight:bold;margin-top:8px;color:#2A7A4A;">Total: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
-      </div>
-    </div>
-    <table>
-      <thead><tr><th>#</th><th>Fecha</th><th>Paciente</th><th>Folio municipio</th><th>Monto</th></tr></thead>
-      <tbody>${citasMun.map((c,i)=>`<tr>
-        <td>${i+1}</td><td>${c.fecha}</td><td>${c.paciente}</td>
-        <td style="font-family:monospace;font-weight:bold;">${c.folio}</td>
-        <td>$500.00</td></tr>`).join('')}
-      </tbody>
-    </table>
-    <div class="total">Total a cobrar: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
-    <div class="firma">
-      <div class="firma-line">Dra. Sanders<br>Médico Pediatra</div>
-      <div class="firma-line">Sello y firma municipio<br>Recibido</div>
-    </div>
-    <script>window.onload=()=>window.print();<\/script>
-    </body></html>`);
-  win.document.close();
+    await api('DELETE','lotes_municipio',null,`?id=eq.${id}`);
+    showAlert('finanzas-alert','🗑 Lote eliminado.','success');await cargarMunicipio();
+  }catch(e){alert('Error: '+e.message);}
 }
-
-function onPacienteCitaChange() {
-  const id = document.getElementById('nc-paciente').value;
-  const btn = document.getElementById('btn-wa-nueva');
-  if (!btn) return;
-  const p = pacientes.find(x => x.id === id);
-  btn.style.display = (p && (p.telefono_mama || p.telefono_papa)) ? '' : 'none';
+async function moverTodosARelacion(){
+  const selects=document.querySelectorAll('#mun-content-pendiente select');
+  if(!selects.length){alert('No hay consultas pendientes');return;}
+  if(!confirm(`¿Mover ${selects.length} consultas a "En relación"?`)) return;
+  try{
+    for(const sel of selects){const m=sel.getAttribute('onchange').match(/'([^']+)'/);if(m) await api('PATCH','citas',{estado_pago_municipio:'en_relacion'},`?id=eq.${m[1]}`);}
+    showAlert('finanzas-alert',`✅ ${selects.length} consultas movidas`,'success');await cargarMunicipio();showMunTab('en_relacion');
+  }catch(e){alert('Error: '+e.message);}
+}
+async function cambiarEstadoPagoMun(id,estado){
+  try{await api('PATCH','citas',{estado_pago_municipio:estado},`?id=eq.${id}`);showAlert('finanzas-alert','✅ Estado actualizado','success');setTimeout(()=>cargarMunicipio(),600);}
+  catch(e){alert('Error: '+e.message);}
+}
+function generarRelacionMunicipio(estado){
+  const cont=document.getElementById(`mun-content-${estado}`);if(!cont) return;
+  const rows=[];cont.querySelectorAll('tbody tr').forEach(tr=>{const tds=tr.querySelectorAll('td');if(tds.length>=3) rows.push({fecha:tds[0].textContent.trim(),paciente:tds[1].textContent.trim(),folio:tds[2].textContent.trim()});});
+  if(!rows.length){alert('No hay consultas');return;}
+  const total=rows.length*500,lbl=estado==='en_relacion'?'En relación':'Historial pagado';
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relación Municipio</title><style>body{font-family:Arial,sans-serif;padding:40px;}table{width:100%;border-collapse:collapse;}th{background:#f0f0f0;padding:8px 12px;text-align:left;border:1px solid #ddd;font-size:12px;}td{padding:8px 12px;border:1px solid #ddd;font-size:13px;}tr:nth-child(even){background:#fafafa;}.firma{margin-top:60px;display:flex;justify-content:space-between;}.fl{border-top:1px solid #333;width:200px;text-align:center;padding-top:8px;font-size:12px;}@media print{body{padding:20px;}}</style></head><body>
+  <h2>Relación Municipio — ${lbl}</h2><p>Emisión: ${new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'})} | Consultas: ${rows.length} | Total: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</p>
+  <table><thead><tr><th>#</th><th>Fecha</th><th>Paciente</th><th>Folio</th><th>Monto</th></tr></thead>
+  <tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.fecha}</td><td>${r.paciente}</td><td style="font-family:monospace;font-weight:bold;">${r.folio}</td><td>$500.00</td></tr>`).join('')}</tbody></table>
+  <p style="text-align:right;font-size:16px;font-weight:bold;">Total: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</p>
+  <div class="firma"><div class="fl">Médico Pediatra</div><div class="fl">Sello municipio / Recibido</div></div>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);win.document.close();
+}
+function onMetodoPagoChange(){
+  const m=document.getElementById('ec-metodo-pago')?.value,el=document.getElementById('ec-monto');
+  if(!el) return;
+  if(m==='cortesia'){el.value='0';el.style.color='#C04060';el.style.fontWeight='800';el.readOnly=true;}
+  else{el.style.color='';el.style.fontWeight='';el.readOnly=false;}
 }
 
 function confirmarCitaWhatsapp(modo) {
   let pacienteId, fecha, hora, motivo, duracion, tipo;
-
   if (modo === 'nueva') {
     pacienteId = document.getElementById('nc-paciente').value;
     fecha = document.getElementById('nc-fecha').value;
@@ -3539,59 +3601,110 @@ function confirmarCitaWhatsapp(modo) {
     if (!c) return;
     pacienteId = c.paciente_id;
     const dt = new Date((c.fecha_hora||"").replace(" ","T"));
-    fecha = fechaLocal(dt);
-    hora = dt.toTimeString().slice(0,5);
+    fecha = fechaLocal(dt); hora = dt.toTimeString().slice(0,5);
     motivo = document.getElementById('ec-motivo').value || c.motivo;
     duracion = document.getElementById('ec-duracion').value || c.duracion;
     tipo = document.getElementById('ec-tipo').value || c.tipo;
   }
-
   const p = pacientes.find(x => x.id === pacienteId);
   if (!p) { alert('Selecciona un paciente primero'); return; }
-
   const tel = (p.telefono_mama || p.telefono_papa || '').replace(/\D/g,'');
   if (!tel) { alert('El paciente no tiene teléfono registrado'); return; }
-
-  // Format date
   const fechaObj = new Date(fecha + 'T12:00:00');
   const fechaFmt = fechaObj.toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
   const fechaCap = fechaFmt.charAt(0).toUpperCase() + fechaFmt.slice(1);
-
-  const nombrePaciente = p.nombre;
-  const motivoTexto = motivo ? `\n📋 *Motivo:* ${motivo}` : '';
-  const durTexto = duracion ? `\n⏱ *Duración aproximada:* ${duracion} minutos` : '';
-  const tipoTexto = tipo === 'municipio' ? 'Municipio' : 'Consulta privada';
-
-  const mensaje = `Hola, le escribimos del consultorio de la *Dra. Sanders*, pediatra 🦕
-
-Los contactamos para confirmar la cita de *${nombrePaciente}*:
-
-📅 *Fecha:* ${fechaCap}
-🕐 *Hora:* ${hora} hrs
-
-Por favor confirme su asistencia respondiendo este mensaje. Si necesita cancelar o reagendar, comuníquese con anticipación.
-
-¡Hasta pronto! 😊`;
-
-  const url = `https://wa.me/52${tel}?text=${encodeURIComponent(mensaje)}`;
-  window.open(url, '_blank');
+  const mensaje = `Hola, le escribimos del consultorio de la *Dra. Sanders*, pediatra 🦕\n\nLos contactamos para confirmar la cita de *${p.nombre}*:\n\n📅 *Fecha:* ${fechaCap}\n🕐 *Hora:* ${hora} hrs${motivo?'\n📋 *Motivo:* '+motivo:''}\n\nPor favor confirme su asistencia respondiendo este mensaje.\n\n¡Hasta pronto! 😊`;
+  window.open(`https://wa.me/52${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
-// ==================== GUARDAR CITA ====================
+function actualizarDuracionDefault() {
+  const tipo = document.getElementById('nc-tipo')?.value;
+  const dur  = document.getElementById('nc-duracion');
+  if (!dur) return;
+  if (tipo === 'municipio') dur.value = '20';
+  else dur.value = '40';
+  const folioGroup = document.getElementById('nc-folio-group');
+  if (folioGroup) folioGroup.style.display = tipo === 'municipio' ? '' : 'none';
+}
+
+// ==================== NUEVA CONSULTA ====================
+
 function poblarSelectPacientes() {
   const sel = document.getElementById('nc-paciente');
   if (!sel) return;
+  const ordenados = [...pacientes].sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
   sel.innerHTML = '<option value="">Seleccionar paciente...</option>' +
-    pacientes.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+    ordenados.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
   document.getElementById('nc-fecha').value = fechaLocal();
   document.getElementById('nc-hora').value = new Date().toTimeString().slice(0,5);
 }
 
+function toggleNuevoPacienteCita() {
+  const form = document.getElementById('nc-nuevo-paciente-form');
+  const sel  = document.getElementById('nc-paciente');
+  const label = document.getElementById('btn-nuevo-pac-label');
+  const visible = form.style.display !== 'none';
+  form.style.display = visible ? 'none' : '';
+  sel.style.display  = visible ? '' : 'none';
+  label.textContent  = visible ? '＋ Nuevo paciente' : '← Seleccionar existente';
+  if (!visible) {
+    ['ncp-nombre','ncp-nacimiento','ncp-telefono','ncp-tutor','ncp-curp'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+    document.getElementById('ncp-sexo').value = 'masculino';
+    document.getElementById('ncp-alert').innerHTML = '';
+  }
+}
+
+function cerrarNuevoPacienteCita() {
+  const form = document.getElementById('nc-nuevo-paciente-form');
+  const sel  = document.getElementById('nc-paciente');
+  const label = document.getElementById('btn-nuevo-pac-label');
+  if (form) form.style.display = 'none';
+  if (sel)  sel.style.display  = '';
+  if (label) label.textContent = '＋ Nuevo paciente';
+}
+
+function onPacienteCitaChange() {
+  const id = document.getElementById('nc-paciente').value;
+  const btn = document.getElementById('btn-wa-nueva');
+  if (!btn) return;
+  const p = pacientes.find(x => x.id === id);
+  btn.style.display = (p && (p.telefono_mama || p.telefono_papa)) ? '' : 'none';
+}
+
 async function guardarCita() {
-  const pacienteId = document.getElementById('nc-paciente').value;
   const fecha = document.getElementById('nc-fecha').value;
-  const hora = document.getElementById('nc-hora').value;
-  if (!pacienteId || !fecha || !hora) { alert('Por favor selecciona paciente, fecha y hora'); return; }
+  const hora  = document.getElementById('nc-hora').value;
+  if (!fecha || !hora) { showAlert('nc-alert','Por favor indica fecha y hora','error'); return; }
+
+  const modoNuevo = document.getElementById('nc-nuevo-paciente-form').style.display !== 'none';
+  let pacienteId  = document.getElementById('nc-paciente').value;
+
+  if (modoNuevo) {
+    const nombre     = document.getElementById('ncp-nombre').value.trim();
+    const nacimiento = document.getElementById('ncp-nacimiento').value;
+    if (!nombre || !nacimiento) {
+      showAlert('ncp-alert','Nombre y fecha de nacimiento son requeridos','error'); return;
+    }
+    try {
+      const nuevo = await api('POST','pacientes',{
+        nombre,
+        fecha_nacimiento: nacimiento,
+        sexo:           document.getElementById('ncp-sexo').value,
+        telefono_mama:  document.getElementById('ncp-telefono').value || null,
+        nombre_mama:    document.getElementById('ncp-tutor').value   || null,
+        curp:           document.getElementById('ncp-curp').value     || null,
+      });
+      await cargarPacientes();
+      pacienteId = nuevo[0]?.id;
+      if (!pacienteId) { showAlert('ncp-alert','Error: no se obtuvo el ID del paciente','error'); return; }
+    } catch(e) {
+      showAlert('ncp-alert','Error al crear paciente: '+e.message,'error'); return;
+    }
+  }
+
+  if (!pacienteId) { showAlert('nc-alert','Por favor selecciona o registra un paciente','error'); return; }
 
   const tipo = document.getElementById('nc-tipo').value;
   const data = {
@@ -3599,27 +3712,27 @@ async function guardarCita() {
     fecha_hora: `${fecha}T${hora}:00`,
     tipo,
     duracion: parseInt(document.getElementById('nc-duracion').value),
-    estado: document.getElementById('nc-estado').value,
-    motivo: document.getElementById('nc-motivo').value,
-    notas: document.getElementById('nc-notas').value,
-    folio_municipio: tipo === 'municipio' ? document.getElementById('nc-folio').value : null,
-    estado_pago_municipio: tipo === 'municipio' ? 'pendiente' : null,
-    monto: tipo === 'municipio' ? 500 : null,
+    estado:   document.getElementById('nc-estado').value,
+    motivo:   document.getElementById('nc-motivo').value,
+    notas:    document.getElementById('nc-notas').value,
+    folio_municipio:        tipo === 'municipio' ? document.getElementById('nc-folio').value : null,
+    estado_pago_municipio:  tipo === 'municipio' ? 'pendiente' : null,
+    monto:                  tipo === 'municipio' ? 500 : null,
   };
 
   try {
     await api('POST','citas',data);
     closeModal('modal-nueva-cita');
-    // Reset modal fields
-    ['nc-motivo','nc-notas'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    cerrarNuevoPacienteCita();
+    ['nc-motivo','nc-notas','nc-folio'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const alertEl = document.getElementById('nc-alert'); if(alertEl) alertEl.innerHTML='';
     await cargarCitas();
     showAlert('citas-alert','✅ Cita registrada correctamente','success');
   } catch(e) {
-    alert('Error al guardar cita: ' + e.message);
+    showAlert('nc-alert','Error al guardar cita: '+e.message,'error');
   }
 }
 
-// ==================== NUEVA CONSULTA ====================
 function filtrarPacientesConsulta() {
   const q = document.getElementById('search-consulta-paciente').value.toLowerCase();
   const filtrados = q.length > 1 ? pacientes.filter(p => p.nombre.toLowerCase().includes(q)) : [];
@@ -6171,6 +6284,121 @@ function showAlert(containerId, msg, type) {
   el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
   setTimeout(() => { el.innerHTML = ''; }, 4000);
 }
+// ==================== AUTENTICACIÓN ====================
+async function sha256(msg) {
+  const buf = new TextEncoder().encode(msg);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function hacerLogin() {
+  const usuario = document.getElementById('login-user').value.trim();
+  const clave   = document.getElementById('login-pass').value;
+  if (!usuario || !clave) { showLoginAlert('Ingresa usuario y contraseña'); return; }
+  document.getElementById('login-btn').style.opacity='0.5';
+  document.getElementById('login-loading').style.display='block';
+  document.getElementById('login-alert').innerHTML='';
+  try {
+    const SUPA_URL2='https://bfukpzfvaqkchhntnyww.supabase.co';
+    const SUPA_KEY2='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmdWtwemZ2YXFrY2hobnRueXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjk1NTEsImV4cCI6MjA5MjgwNTU1MX0.G-X6eCN7gIvGWAZRnrZ_2DBRdkXe7i_GSXXto6J9iGw';
+    const h = {'apikey':SUPA_KEY2,'Authorization':'Bearer '+SUPA_KEY2};
+    const r1 = await fetch(`${SUPA_URL2}/rest/v1/usuarios?usuario=eq.${encodeURIComponent(usuario)}&activo=eq.true&select=id,usuario,nombre`, {headers:h});
+    const d1 = await r1.json();
+    if (!d1.length) { loginError('Usuario o contraseña incorrectos'); return; }
+    const u = d1[0];
+    const hashIngresado = await sha256(clave);
+    const r2 = await fetch(`${SUPA_URL2}/rest/v1/usuarios?id=eq.${u.id}&contrasena_hash=eq.${encodeURIComponent(hashIngresado)}&select=id`, {headers:h});
+    const d2 = await r2.json();
+    if (!d2.length) { loginError('Usuario o contraseña incorrectos'); return; }
+    const sesion = {id:u.id, usuario:u.usuario, nombre:u.nombre, ts:Date.now()};
+    localStorage.setItem('pediatra_sesion', JSON.stringify(sesion));
+    iniciarApp(sesion);
+  } catch(e) { loginError('Error: '+e.message); }
+}
+
+function loginError(msg) {
+  document.getElementById('login-btn').style.opacity='1';
+  document.getElementById('login-loading').style.display='none';
+  showLoginAlert(msg);
+}
+
+function showLoginAlert(msg) {
+  document.getElementById('login-alert').innerHTML=
+    `<div style="background:#FFE8E8;color:#C04040;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;">${msg}</div>`;
+}
+
+function cerrarSesion() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  localStorage.removeItem('pediatra_sesion');
+  location.reload();
+}
+
+function verificarSesion() {
+  const datos = localStorage.getItem('pediatra_sesion');
+  if (!datos) { mostrarLogin(); return; }
+  try {
+    const s = JSON.parse(datos);
+    if ((Date.now()-s.ts)/3600000 > 12) { localStorage.removeItem('pediatra_sesion'); mostrarLogin(); return; }
+    iniciarApp(s);
+  } catch(e) { mostrarLogin(); }
+}
+
+function mostrarLogin() {
+  const ls = document.getElementById('login-screen');
+  ls.style.display='flex';
+  ls.style.alignItems='center';
+  ls.style.justifyContent='center';
+  setTimeout(()=>document.getElementById('login-user').focus(),100);
+}
+
+function iniciarApp(sesion) {
+  document.getElementById('login-screen').style.display='none';
+  const el=document.getElementById('sidebar-username');
+  if(el&&sesion.nombre) el.textContent=sesion.nombre;
+  arrancarSistema();
+}
+
 </script>
+<!-- ============ MODAL LOTE DE PAGO ============ -->
+<div id="modal-lote-pago" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-lote-pago')">
+  <div class="modal" style="width:640px;">
+    <div class="modal-title">💰 Registrar pago por lote — Municipio</div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-label">Nombre del lote *</div>
+        <input class="form-input" id="lp-nombre" placeholder="Ej. Lote Mayo 2026...">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Fecha de pago *</div>
+        <input class="form-input" id="lp-fecha" type="date">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-label">Monto total recibido *</div>
+        <input class="form-input" id="lp-monto" type="number" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Notas</div>
+        <input class="form-input" id="lp-notas" placeholder="Referencia bancaria...">
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-bottom:8px;">📋 Folios incluidos en este pago</div>
+    <div style="max-height:280px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--radius-sm);">
+      <div style="padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="lp-sel-todos" onchange="toggleSelTodosLote(this)">
+        <label for="lp-sel-todos" style="font-size:12px;font-weight:700;cursor:pointer;">Seleccionar todos</label>
+        <span id="lp-sel-count" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--blue-d);"></span>
+      </div>
+      <div id="lp-folios-lista" style="padding:8px;"></div>
+    </div>
+    <div id="lp-alert" style="margin-top:10px;"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-lote-pago')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarLotePago()">💰 Registrar pago</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
