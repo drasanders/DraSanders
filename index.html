@@ -556,6 +556,123 @@ textarea.form-input { resize:vertical; min-height:70px; }
 .conn-dot.ok { background:#4A9B6A; animation:pulse 2s infinite; }
 .conn-dot.error { background:#C84A4A; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+/* ===================== RESPONSIVE MÓVIL ===================== */
+@media (max-width: 768px) {
+
+  /* Ocultar sidebar, mostrar nav inferior */
+  .sidebar { display: none !important; }
+
+  /* Nav inferior fija */
+  .mobile-nav {
+    display: flex !important;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--white); border-top: 1.5px solid var(--border);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(100,100,140,0.12);
+  }
+  .mobile-nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; cursor: pointer; padding: 4px 2px;
+    font-size: 9px; font-weight: 700; color: var(--text-light);
+    transition: color 0.2s;
+  }
+  .mobile-nav-item.active { color: var(--blue-d); }
+  .mobile-nav-item .mn-icon { font-size: 22px; line-height: 1; }
+
+  /* Main sin margen de sidebar */
+  .main { margin-left: 0 !important; width: 100% !important; padding-bottom: 70px; }
+
+  /* Topbar compacto */
+  .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  .page-title { font-size: 18px; }
+  .topbar > div:last-child { width: 100%; overflow-x: auto; }
+
+  /* Content con padding móvil */
+  .content { padding: 14px 12px; }
+
+  /* Grids → 1 columna */
+  .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+  .form-row { flex-direction: column !important; }
+  .form-row .form-group { width: 100% !important; }
+
+  /* Grids de 2 columnas → 1 */
+  div[style*="grid-template-columns:1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr"] {
+    display: flex !important; flex-direction: column !important;
+  }
+
+  /* Tablas → scroll horizontal */
+  .data-table { font-size: 12px; }
+  .panel { overflow-x: auto; }
+  .panel > table, .panel > div > table { min-width: 500px; }
+
+  /* Modales full screen */
+  .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .modal {
+    width: 100% !important; max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh; overflow-y: auto;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  /* Botones más grandes para touch */
+  .btn { min-height: 42px; font-size: 13px; }
+  .btn-sm { min-height: 34px; }
+
+  /* Inputs más grandes */
+  .form-input, select.form-input, textarea.form-input {
+    font-size: 16px !important; /* evita zoom en iOS */
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  /* Tabs del expediente → scroll horizontal */
+  .exp-tabs {
+    overflow-x: auto; white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .exp-tabs::-webkit-scrollbar { display: none; }
+  .exp-tab { display: inline-flex !important; font-size: 11px; padding: 8px 12px; }
+
+  /* Calendario → compacto */
+  .cal-slot { font-size: 10px; }
+  .cal-cita { font-size: 10px; padding: 2px 4px; }
+
+  /* Ocultar columnas no esenciales en tablas */
+  .hide-mobile { display: none !important; }
+
+  /* Stat cards compactas */
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 22px; }
+  .stat-icon { font-size: 18px; margin-bottom: 4px; }
+
+  /* Panel header en columna si necesario */
+  .panel-header { flex-wrap: wrap; gap: 8px; }
+
+  /* Expediente topbar */
+  #view-detalle-paciente .topbar { flex-wrap: wrap; }
+
+  /* Growth charts full width */
+  canvas { max-width: 100% !important; height: auto !important; }
+
+  /* Finanzas tabs scroll */
+  #fincontent-privado .stats-grid,
+  #mun-stats { grid-template-columns: 1fr 1fr !important; }
+
+  /* Login centrado */
+  #login-screen > div {
+    width: 92% !important;
+    padding: 32px 24px !important;
+  }
+}
+
+/* Desktop — ocultar nav móvil */
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -3187,6 +3304,11 @@ async function verPaciente(id) {
   showView('detalle-paciente');
 }
 
+async function verPacienteEnTab(id, tab) {
+  await verPaciente(id);
+  showExpTab(tab);
+}
+
 function irAExpedienteDesdeCita() {
   const c = calCitas.find(x => x.id === citaEditandoId);
   if (!c) return;
@@ -3816,8 +3938,7 @@ async function guardarConsulta() {
     const msg = esHistorica ? '✅ Nota histórica guardada correctamente' : '✅ Consulta guardada correctamente en el expediente';
     limpiarConsulta();
     await cargarDashboard();
-    await verPaciente(pacienteConsultaId);
-    showExpTab('consultas');
+    await verPacienteEnTab(pacienteConsultaId, 'consultas');
     showAlert('exp-alert', msg, 'success');
   } catch(e) {
     showAlert('consulta-alert','Error al guardar: '+e.message,'error');
@@ -6361,6 +6482,34 @@ function iniciarApp(sesion) {
   arrancarSistema();
 }
 
+// ==================== NAV MÓVIL ====================
+function setMobileNav(view) {
+  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(`mn-${view}`);
+  if (el) el.classList.add('active');
+}
+
+function toggleMobileMenu() {
+  const m = document.getElementById('mobile-more-menu');
+  m.style.display = m.style.display === 'none' ? '' : 'none';
+}
+
+// Cerrar menú al tocar fuera
+document.addEventListener('click', e => {
+  const menu = document.getElementById('mobile-more-menu');
+  const btnMas = document.getElementById('mn-mas');
+  if (menu && !menu.contains(e.target) && btnMas && !btnMas.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+// Sync nav móvil con showView
+const _origShowView = showView;
+showView = function(name) {
+  _origShowView(name);
+  setMobileNav(name);
+};
+
 </script>
 <!-- ============ MODAL LOTE DE PAGO ============ -->
 <div id="modal-lote-pago" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-lote-pago')">
@@ -6401,6 +6550,37 @@ function iniciarApp(sesion) {
       <button class="btn btn-primary" onclick="guardarLotePago()">💰 Registrar pago</button>
     </div>
   </div>
+</div>
+
+<!-- NAV INFERIOR MÓVIL -->
+<nav class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-item active" id="mn-dashboard" onclick="showView('dashboard');setMobileNav('dashboard')">
+    <span class="mn-icon">🏠</span>Inicio
+  </div>
+  <div class="mobile-nav-item" id="mn-pacientes" onclick="showView('pacientes');setMobileNav('pacientes')">
+    <span class="mn-icon">👶</span>Pacientes
+  </div>
+  <div class="mobile-nav-item" id="mn-citas" onclick="showView('citas');setMobileNav('citas')">
+    <span class="mn-icon">📅</span>Agenda
+  </div>
+  <div class="mobile-nav-item" id="mn-nueva-consulta" onclick="showView('nueva-consulta');setMobileNav('nueva-consulta')">
+    <span class="mn-icon">🩺</span>Nota
+  </div>
+  <div class="mobile-nav-item" id="mn-finanzas" onclick="showView('finanzas');setMobileNav('finanzas')">
+    <span class="mn-icon">💰</span>Finanzas
+  </div>
+  <div class="mobile-nav-item" id="mn-mas" onclick="toggleMobileMenu()">
+    <span class="mn-icon">☰</span>Más
+  </div>
+</nav>
+
+<!-- MENÚ "MÁS" MÓVIL -->
+<div id="mobile-more-menu" style="display:none;position:fixed;bottom:70px;left:0;right:0;z-index:99;background:var(--white);border-top:1.5px solid var(--border);border-radius:20px 20px 0 0;padding:16px;box-shadow:0 -8px 32px rgba(100,100,140,0.15);">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <button class="btn btn-ghost" onclick="showView('recursos');setMobileNav('recursos');toggleMobileMenu()" style="justify-content:flex-start;gap:8px;">📚 Recursos</button>
+    <button class="btn btn-ghost" onclick="cerrarSesion();toggleMobileMenu()" style="justify-content:flex-start;gap:8px;">🚪 Cerrar sesión</button>
+  </div>
+  <button class="btn btn-ghost" onclick="toggleMobileMenu()" style="width:100%;margin-top:10px;color:var(--text-light);">Cerrar</button>
 </div>
 
 </body>
