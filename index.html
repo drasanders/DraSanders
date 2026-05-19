@@ -6421,7 +6421,7 @@ function showView(name) {
   const navItems = document.querySelectorAll('.nav-item');
   if (map[name] !== undefined) navItems[map[name]]?.classList.add('active');
   if (name === 'citas') { actualizarTituloFecha(); cargarCitasCal(); }
-  if (name === 'finanzas') iniciarFinanzas();
+  if (name === 'finanzas') verificarAccesoFinanzas();
   if (name === 'recursos') cargarRecursos();
 }
 
@@ -6557,6 +6557,79 @@ showView = function(name) {
   }
 };
 
+// ==================== PIN FINANZAS ====================
+let finanzasDesbloqueadas = false;
+
+async function verificarAccesoFinanzas() {
+  // Ya desbloqueado en esta sesión
+  if (finanzasDesbloqueadas) { iniciarFinanzas(); return; }
+
+  // Obtener sesión actual
+  const datos = localStorage.getItem('pediatra_sesion');
+  if (!datos) { showView('dashboard'); return; }
+  const sesion = JSON.parse(datos);
+
+  try {
+    // Verificar si el usuario tiene pin_finanzas en Supabase
+    const r = await fetch(
+      `${SUPA_URL}/rest/v1/usuarios?id=eq.${sesion.id}&select=pin_finanzas`,
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+    );
+    const data = await r.json();
+    const pin = data[0]?.pin_finanzas;
+
+    if (!pin) {
+      // Usuario sin PIN = sin acceso (asistente)
+      document.getElementById('view-finanzas').classList.remove('active');
+      showView('dashboard');
+      showAlert('dash-alert', '🔒 No tienes acceso a Finanzas', 'error');
+      return;
+    }
+
+    // Tiene PIN → mostrar modal
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-alert').innerHTML = '';
+    openModal('modal-pin-finanzas');
+    setTimeout(() => document.getElementById('pin-input').focus(), 200);
+  } catch(e) {
+    openModal('modal-pin-finanzas');
+  }
+}
+
+async function verificarPin() {
+  const pinIngresado = document.getElementById('pin-input').value.trim();
+  if (!pinIngresado) {
+    showAlert('pin-alert', 'Ingresa tu PIN', 'error'); return;
+  }
+
+  const datos = localStorage.getItem('pediatra_sesion');
+  if (!datos) return;
+  const sesion = JSON.parse(datos);
+
+  try {
+    const hashPin = await sha256(pinIngresado);
+    const r = await fetch(
+      `${SUPA_URL}/rest/v1/usuarios?id=eq.${sesion.id}&pin_finanzas=eq.${encodeURIComponent(hashPin)}&select=id`,
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+    );
+    const data = await r.json();
+
+    if (!data.length) {
+      showAlert('pin-alert', '❌ PIN incorrecto', 'error');
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-input').focus();
+      return;
+    }
+
+    // PIN correcto
+    finanzasDesbloqueadas = true;
+    closeModal('modal-pin-finanzas');
+    iniciarFinanzas();
+  } catch(e) {
+    showAlert('pin-alert', 'Error: ' + e.message, 'error');
+  }
+}
+
 </script>
 <!-- ============ MODAL LOTE DE PAGO ============ -->
 <div id="modal-lote-pago" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-lote-pago')">
@@ -6628,6 +6701,23 @@ showView = function(name) {
     <button class="btn btn-ghost" onclick="cerrarSesion();toggleMobileMenu()" style="justify-content:flex-start;gap:8px;">🚪 Cerrar sesión</button>
   </div>
   <button class="btn btn-ghost" onclick="toggleMobileMenu()" style="width:100%;margin-top:10px;color:var(--text-light);">Cerrar</button>
+</div>
+
+<!-- ============ MODAL PIN FINANZAS ============ -->
+<div id="modal-pin-finanzas" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-pin-finanzas')">
+  <div class="modal" style="width:340px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:8px;">🔒</div>
+    <div class="modal-title" style="text-align:center;">Acceso a Finanzas</div>
+    <div style="font-size:13px;color:var(--text-light);font-weight:600;margin-bottom:20px;">Ingresa tu PIN para continuar</div>
+    <div id="pin-alert" style="margin-bottom:12px;"></div>
+    <input id="pin-input" type="password" inputmode="numeric" maxlength="10" placeholder="••••••"
+      class="form-input" style="text-align:center;font-size:28px;letter-spacing:8px;font-weight:800;"
+      onkeydown="if(event.key==='Enter')verificarPin()">
+    <div class="form-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pin-finanzas');showView('dashboard')">Cancelar</button>
+      <button class="btn btn-primary" onclick="verificarPin()">🔓 Entrar</button>
+    </div>
+  </div>
 </div>
 
 </body>
