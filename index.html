@@ -729,6 +729,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
     </div>
 
     <div class="content">
+      <div id="exp-alert" style="margin-bottom:8px;"></div>
 
       <!-- TAB GENERAL -->
       <div id="expcontent-general">
@@ -3813,9 +3814,11 @@ async function guardarConsulta() {
   try {
     await api('POST','consultas',data);
     const msg = esHistorica ? '✅ Nota histórica guardada correctamente' : '✅ Consulta guardada correctamente en el expediente';
-    showAlert('consulta-alert', msg, 'success');
     limpiarConsulta();
     await cargarDashboard();
+    await verPaciente(pacienteConsultaId);
+    showExpTab('consultas');
+    showAlert('exp-alert', msg, 'success');
   } catch(e) {
     showAlert('consulta-alert','Error al guardar: '+e.message,'error');
   }
