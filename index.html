@@ -3167,7 +3167,7 @@ function renderEventosAbsoluto(citas, fechaStr) {
     const durMin = c.duracion || (c.tipo==='municipio'?30:40);
     const height = Math.max(25,(durMin/30)*SLOT_H);
     const p = pacientes.find(p=>p.id===c.paciente_id);
-    const nombre = p?p.nombre:'Paciente';
+    const nombre = p ? p.nombre : (c.nombre_paciente_web || 'Cita web');
     const tipo = c.tipo||'privado';
     const dotClass = `status-${c.estado||'pendiente'}-dot`;
     const pagado = c.monto?`<div style="font-size:10px;font-weight:700;color:var(--green-d);">💰 $${c.monto}</div>`:'';
@@ -7249,11 +7249,13 @@ async function guardarDisponibilidad() {
 }
 
 // Sobreescribir openModal para cargar datos del modal de disponibilidad
-const _openModalOriginal = openModal;
-function openModal(id) {
-  _openModalOriginal(id);
-  if (id === 'modal-disponibilidad') cargarDisponibilidadModal();
-}
+// Hook para modal de disponibilidad — sin redefinir openModal
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[onclick]');
+  if (btn && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('modal-disponibilidad')) {
+    setTimeout(function(){ cargarDisponibilidadModal(); }, 50);
+  }
+});
 
 // Revisar solicitudes pendientes al iniciar
 setTimeout(actualizarBadgeSolicitudes, 2000);
