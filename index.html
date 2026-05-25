@@ -2288,6 +2288,60 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div class="form-label">Paciente</div>
       <div id="ec-paciente-nombre" style="font-weight:700;font-size:14px;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);"></div>
     </div>
+
+    <!-- PANEL WEB: solo visible en citas de origen web sin paciente vinculado -->
+    <div id="ec-web-panel" style="display:none;background:rgba(107,174,198,0.08);border:1.5px solid rgba(107,174,198,0.3);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--blue-d);margin-bottom:4px;">🌐 Cita agendada desde el sitio web</div>
+      <div id="ec-web-datos" style="font-size:12px;color:var(--text-light);margin-bottom:12px;line-height:1.7;"></div>
+
+      <!-- Tabs: buscar / crear -->
+      <div style="display:flex;gap:0;border-bottom:1.5px solid var(--border);margin-bottom:12px;">
+        <div id="ec-tab-buscar" class="ec-web-tab active" onclick="ecWebTab('buscar')" style="padding:7px 16px;font-size:12px;font-weight:800;cursor:pointer;border-bottom:2px solid var(--blue-d);color:var(--blue-d);margin-bottom:-1.5px;">🔍 Buscar existente</div>
+        <div id="ec-tab-crear" class="ec-web-tab" onclick="ecWebTab('crear')" style="padding:7px 16px;font-size:12px;font-weight:800;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-light);margin-bottom:-1.5px;">➕ Crear expediente</div>
+      </div>
+
+      <!-- BUSCAR -->
+      <div id="ec-web-buscar">
+        <div class="search-wrap" style="margin-bottom:8px;">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="ec-buscar-paciente-input" placeholder="Buscar por nombre..." oninput="ecBuscarPaciente()">
+        </div>
+        <div id="ec-buscar-resultados" style="max-height:140px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- CREAR -->
+      <div id="ec-web-crear" style="display:none;">
+        <div id="ec-crear-alert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Nombre completo *</div>
+            <input class="form-input" id="ec-nuevo-nombre" placeholder="Nombre del paciente">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Fecha de nacimiento *</div>
+            <input class="form-input" id="ec-nuevo-nacimiento" type="date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Sexo</div>
+            <select class="form-input" id="ec-nuevo-sexo">
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Teléfono tutor</div>
+            <input class="form-input" id="ec-nuevo-telefono" type="tel" placeholder="961 000 0000">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <div class="form-label">Nombre del tutor</div>
+          <input class="form-input" id="ec-nuevo-tutor" placeholder="Mamá / Papá / Tutor">
+        </div>
+        <button class="btn btn-primary" style="width:100%;" onclick="ecCrearYVincular()">➕ Crear expediente y vincular</button>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <div class="form-label">Fecha</div>
@@ -3292,6 +3346,32 @@ function editarCita(id) {
   document.getElementById('ec-factura').onchange = function() {
     document.getElementById('ec-rfc-group').style.display = this.checked ? 'flex' : 'none';
   };
+  // Mostrar panel web si la cita viene del sitio y no tiene paciente vinculado
+  const webPanel = document.getElementById('ec-web-panel');
+  const esCitaWeb = c.origen === 'web' && !c.paciente_id;
+  webPanel.style.display = esCitaWeb ? '' : 'none';
+
+  if (esCitaWeb) {
+    // Mostrar datos que dejó el paciente en el formulario web
+    const datos = [
+      c.nombre_paciente_web ? '👶 ' + c.nombre_paciente_web : '',
+      c.nombre_tutor_web    ? '👤 Tutor: ' + c.nombre_tutor_web : '',
+      c.telefono_web        ? '📞 ' + c.telefono_web : '',
+      c.fecha_nacimiento_web? '🎂 ' + new Date(c.fecha_nacimiento_web + 'T12:00:00').toLocaleDateString('es-MX') : '',
+      c.motivo              ? '📋 ' + c.motivo : ''
+    ].filter(Boolean).join('<br>');
+    document.getElementById('ec-web-datos').innerHTML = datos;
+
+    // Pre-llenar el form de crear con los datos web
+    document.getElementById('ec-nuevo-nombre').value    = c.nombre_paciente_web || '';
+    document.getElementById('ec-nuevo-nacimiento').value = c.fecha_nacimiento_web || '';
+    document.getElementById('ec-nuevo-telefono').value  = c.telefono_web || '';
+    document.getElementById('ec-nuevo-tutor').value     = c.nombre_tutor_web || '';
+    document.getElementById('ec-buscar-paciente-input').value = '';
+    document.getElementById('ec-buscar-resultados').innerHTML = '';
+    ecWebTab('buscar');
+  }
+
   openModal('modal-editar-cita');
 }
 
@@ -7073,6 +7153,81 @@ async function verificarPin() {
     iniciarFinanzas();
   } catch(e) {
     showAlert('pin-alert', 'Error: ' + e.message, 'error');
+  }
+}
+
+// ==================== CITA WEB — VINCULAR PACIENTE ====================
+
+function ecWebTab(tab) {
+  document.getElementById('ec-web-buscar').style.display = tab === 'buscar' ? '' : 'none';
+  document.getElementById('ec-web-crear').style.display  = tab === 'crear'  ? '' : 'none';
+  const tabBuscar = document.getElementById('ec-tab-buscar');
+  const tabCrear  = document.getElementById('ec-tab-crear');
+  tabBuscar.style.borderBottomColor = tab === 'buscar' ? 'var(--blue-d)' : 'transparent';
+  tabBuscar.style.color             = tab === 'buscar' ? 'var(--blue-d)' : 'var(--text-light)';
+  tabCrear.style.borderBottomColor  = tab === 'crear'  ? 'var(--blue-d)' : 'transparent';
+  tabCrear.style.color              = tab === 'crear'  ? 'var(--blue-d)' : 'var(--text-light)';
+}
+
+function ecBuscarPaciente() {
+  const q = document.getElementById('ec-buscar-paciente-input').value.trim().toLowerCase();
+  const el = document.getElementById('ec-buscar-resultados');
+  if (!q) { el.innerHTML = ''; return; }
+  const resultados = pacientes.filter(p => p.nombre.toLowerCase().includes(q)).slice(0, 8);
+  if (!resultados.length) {
+    el.innerHTML = '<div style="padding:8px;font-size:12px;color:var(--text-light);">Sin resultados</div>';
+    return;
+  }
+  el.innerHTML = resultados.map(p => {
+    const edad = p.fecha_nacimiento ? calcularEdadTexto(new Date(p.fecha_nacimiento + 'T12:00:00')) : '';
+    return `<div onclick="ecVincularPaciente('${p.id}')" style="padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;border:1px solid var(--border);background:var(--white);transition:background 0.15s;"
+      onmouseover="this.style.background='rgba(107,174,198,0.1)'" onmouseout="this.style.background='var(--white)'">
+      <span>${p.nombre}</span>
+      <span style="font-size:11px;color:var(--text-light);">${edad}</span>
+    </div>`;
+  }).join('');
+}
+
+async function ecVincularPaciente(pacienteId) {
+  if (!citaEditandoId) return;
+  try {
+    await api('PATCH', 'citas', {
+      paciente_id: pacienteId,
+      estado_web: 'confirmada',
+      estado: 'confirmada'
+    }, `?id=eq.${citaEditandoId}`);
+    const p = pacientes.find(x => x.id === pacienteId);
+    document.getElementById('ec-paciente-nombre').textContent = p ? p.nombre : 'Paciente vinculado';
+    document.getElementById('ec-web-panel').style.display = 'none';
+    showAlert('citas-alert', '✅ Paciente vinculado y cita confirmada', 'success');
+    await cargarCitasCal();
+  } catch(e) {
+    alert('Error al vincular: ' + e.message);
+  }
+}
+
+async function ecCrearYVincular() {
+  const nombre     = document.getElementById('ec-nuevo-nombre').value.trim();
+  const nacimiento = document.getElementById('ec-nuevo-nacimiento').value;
+  const sexo       = document.getElementById('ec-nuevo-sexo').value;
+  const telefono   = document.getElementById('ec-nuevo-telefono').value.trim();
+  const tutor      = document.getElementById('ec-nuevo-tutor').value.trim();
+  if (!nombre || !nacimiento) {
+    showAlert('ec-crear-alert', 'Nombre y fecha de nacimiento son obligatorios', 'error');
+    return;
+  }
+  try {
+    const nuevo = await api('POST', 'pacientes', {
+      nombre, fecha_nacimiento: nacimiento, sexo,
+      telefono_mama: telefono || null,
+      nombre_mama: tutor || null
+    });
+    await cargarPacientes();
+    const newId = nuevo[0]?.id;
+    if (!newId) throw new Error('No se obtuvo ID del paciente');
+    await ecVincularPaciente(newId);
+  } catch(e) {
+    showAlert('ec-crear-alert', 'Error: ' + e.message, 'error');
   }
 }
 
