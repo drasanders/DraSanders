@@ -793,32 +793,21 @@ textarea.form-input { resize:vertical; min-height:70px; }
   <div id="view-dashboard" class="view active">
     <div class="topbar">
       <div>
-        <div class="page-title">Buenos días, Dra. Sanders 🌸</div>
+        <div class="page-title" id="saludo-dra">Buenos días, Dra. Sanders 🦕</div>
         <div class="page-sub" id="fecha-hoy"></div>
       </div>
-      <button class="btn btn-primary" onclick="showView('pacientes');openModal('modal-nuevo-paciente')">+ Nuevo paciente</button>
     </div>
     <div class="content">
       <div id="dashboard-alert"></div>
       <div class="stats-grid">
-        <div class="stat-card blue" onclick="showView('pacientes')">
-          <span class="stat-icon">👶</span>
-          <div class="stat-value" id="stat-pacientes">—</div>
-          <div class="stat-label">Pacientes registrados</div>
-        </div>
         <div class="stat-card green" onclick="showView('citas')">
           <span class="stat-icon">📅</span>
           <div class="stat-value" id="stat-citas">—</div>
           <div class="stat-label">Citas de hoy</div>
         </div>
-        <div class="stat-card lilac" onclick="showView('nueva-consulta')">
-          <span class="stat-icon">🩺</span>
-          <div class="stat-value" id="stat-consultas">—</div>
-          <div class="stat-label">Consultas este mes</div>
-        </div>
       </div>
 
-      <!-- ULTIMAS CITAS -->
+      <!-- CITAS DE HOY -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">📅 Citas de hoy</div>
@@ -2484,8 +2473,19 @@ async function api(method, table, data = null, params = '') {
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => { verificarSesion(); });
 
+function actualizarSaludo() {
+  const hora = new Date().getHours();
+  let saludo;
+  if (hora >= 5 && hora < 12)       saludo = 'Buenos días';
+  else if (hora >= 12 && hora < 19) saludo = 'Buenas tardes';
+  else                               saludo = 'Buenas noches';
+  const el = document.getElementById('saludo-dra');
+  if (el) el.textContent = saludo + ', Dra. Sanders 🦕';
+}
+
 async function arrancarSistema() {
-  // Fecha
+  // Fecha y saludo dinámico
+  actualizarSaludo();
   const now = new Date();
   const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
   const fechaStr = now.toLocaleDateString('es-MX', opts);
@@ -2520,7 +2520,7 @@ async function cargarPacientes() {
     pacientes = await api('GET', 'pacientes', null, '?order=created_at.desc');
     renderPacientesTabla(pacientes);
     document.getElementById('pacientes-count').textContent = `${pacientes.length} paciente${pacientes.length !== 1 ? 's' : ''} registrado${pacientes.length !== 1 ? 's' : ''}`;
-    document.getElementById('stat-pacientes').textContent = pacientes.length;
+    if(document.getElementById('stat-pacientes')) document.getElementById('stat-pacientes').textContent = pacientes.length;
     poblarSelectPacientes();
   } catch(e) {
     document.getElementById('pacientes-table-wrap').innerHTML = `<div class="alert alert-error">Error al cargar pacientes: ${e.message}</div>`;
@@ -2631,8 +2631,8 @@ async function cargarDashboard() {
     const hoy = new Date();
     const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
     const consultas = await api('GET','consultas',null,`?fecha=gte.${inicio}&select=id`);
-    document.getElementById('stat-consultas').textContent = consultas.length;
-  } catch(e) { document.getElementById('stat-consultas').textContent = '0'; }
+    if(document.getElementById('stat-consultas')) document.getElementById('stat-consultas').textContent = consultas.length;
+  } catch(e) { if(document.getElementById('stat-consultas')) document.getElementById('stat-consultas').textContent = '0'; }
 }
 
 // ==================== CITAS ====================
