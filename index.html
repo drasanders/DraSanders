@@ -234,6 +234,22 @@ textarea.form-input { resize:vertical; min-height:70px; }
 }
 .crec-subtab:hover { color:var(--text); }
 .crec-subtab.active { color:var(--lilac-d); border-bottom-color:var(--lilac-d); }
+/* CHART TOOLTIP */
+.chart-tooltip {
+  position:fixed; z-index:9999; display:none; pointer-events:none;
+  background:white; border-radius:12px;
+  border:1.5px solid var(--border);
+  box-shadow:0 8px 32px rgba(44,40,32,0.18);
+  padding:10px 14px; min-width:170px; max-width:240px;
+  font-family:'Quicksand',sans-serif; font-size:12px;
+  text-transform:uppercase;
+  line-height:1.6;
+}
+.chart-tooltip .tt-fecha { font-size:11px; color:var(--text-light); font-weight:700; margin-bottom:4px; }
+.chart-tooltip .tt-valor { font-size:16px; font-weight:900; color:var(--text); margin-bottom:4px; }
+.chart-tooltip .tt-score { font-size:12px; font-weight:800; }
+.chart-tooltip .tt-cls { font-size:11px; font-weight:700; margin-top:2px; opacity:0.85; }
+.chart-tooltip .tt-divider { border:none; border-top:1px solid var(--border); margin:6px 0; }
 
 /* HISTORIA CLINICA */
 .hc-section {
@@ -5712,20 +5728,30 @@ function showChartTooltip(evt, html) {
 }
 function moveChartTooltip(evt) {
   if (!chartTooltipEl || chartTooltipEl.style.display === 'none') return;
-  const x = evt.clientX;
-  const y = evt.clientY;
-  const tw = chartTooltipEl.offsetWidth;
-  const th = chartTooltipEl.offsetHeight;
-  let left = x - tw/2;
-  let top = y - th - 14;
+  const x = evt.clientX, y = evt.clientY;
+  const tw = chartTooltipEl.offsetWidth, th = chartTooltipEl.offsetHeight;
+  let left = x - tw/2, top = y - th - 16;
   if (left < 8) left = 8;
   if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
-  if (top < 8) top = y + 14;
+  if (top < 8) top = y + 16;
   chartTooltipEl.style.left = left + 'px';
   chartTooltipEl.style.top = top + 'px';
 }
 function hideChartTooltip() {
   if (chartTooltipEl) chartTooltipEl.style.display = 'none';
+}
+
+// Genera HTML rico para el tooltip de gráficas de crecimiento
+function buildTooltipHtml(fecha, valor, yUnit, scoreLabel, scoreVal, clasificacion, color) {
+  const fechaStr = fecha
+    ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})
+    : '';
+  return `<div class="chart-tooltip-inner">
+    ${fechaStr ? `<div class="tt-fecha">📅 ${fechaStr}</div><hr class="tt-divider">` : ''}
+    <div class="tt-valor">${valor} ${yUnit}</div>
+    ${scoreVal !== null && scoreVal !== undefined ? `<div class="tt-score" style="color:${color};">${scoreLabel}: ${scoreVal}</div>` : ''}
+    ${clasificacion ? `<div class="tt-cls" style="color:${color};">▸ ${clasificacion}</div>` : ''}
+  </div>`;
 }
 
 // ==================== CIE-11 ====================
@@ -6473,11 +6499,11 @@ function buildCDCChart(titulo, tabla, puntosPaciente, yUnit, colorPaciente, modo
     const pct = getPercentile(row, p.y, hasBMI);
     const clr = getColor(pct);
     const edadLabel = `${(p.x/12).toFixed(1)} años`;
-    const tooltipHtml = `📅 ${edadLabel}<br>📊 ${p.y} ${yUnit}<br><span style='color:${clr}'>${pct || ''}</span>`;
+    const tooltipHtml = buildTooltipHtml(p.fecha, p.y, yUnit, 'Percentil', pct, clsLabel, clr);
     const cx = xS(p.x).toFixed(1); const cy = yS(p.y).toFixed(1);
-    return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2"
-      style="cursor:pointer"
-      onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,"&#39;")}')"
+    return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2.5"
+      style="cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.25));"
+      onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,"&#39;").replace(/\n/g,\'\')}')"
       onmousemove="moveChartTooltip(event)" onmouseleave="hideChartTooltip()"/>`;
   }).join('');
 
@@ -6528,6 +6554,7 @@ async function iniciarCrecimiento() {
       if (c.peso || c.talla || c.perimetro_cefalico || c.perimetro_braquial) {
         crecPuntosTodos.push({
           meses,
+          fecha: c.fecha,
           peso: c.peso ? parseFloat(c.peso) : null,
           talla: c.talla ? parseFloat(c.talla) : null,
           pc: c.perimetro_cefalico ? parseFloat(c.perimetro_cefalico) : null,
@@ -6588,10 +6615,10 @@ function renderGraficasOMS() {
 
   document.getElementById('crec-content-oms').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-      <div>${buildChart('Peso para la edad (kg)', wfa, puntos.filter(p=>p.peso).map(p=>({x:p.meses,y:parseFloat(p.peso)})), 'meses', 'kg', color, 0, 24)}</div>
-      <div>${buildChart('Talla para la edad (cm)', lfa, puntos.filter(p=>p.talla).map(p=>({x:p.meses,y:parseFloat(p.talla)})), 'meses', 'cm', color, 0, 24)}</div>
-      <div>${buildChart('Perímetro cefálico para la edad (cm)', hca, puntos.filter(p=>p.pc).map(p=>({x:p.meses,y:parseFloat(p.pc)})), 'meses', 'cm', color, 0, 24)}</div>
-      <div>${buildChart('Perímetro braquial para la edad (cm)', muac, puntos.filter(p=>p.pb).map(p=>({x:p.meses,y:parseFloat(p.pb)})), 'meses', 'cm', color, 3, 24)}</div>
+      <div>${buildChart('Peso para la edad (kg)', wfa, puntos.filter(p=>p.peso).map(p=>({x:p.meses,y:parseFloat(p.peso),fecha:p.fecha})), 'meses', 'kg', color, 0, 24)}</div>
+      <div>${buildChart('Talla para la edad (cm)', lfa, puntos.filter(p=>p.talla).map(p=>({x:p.meses,y:parseFloat(p.talla),fecha:p.fecha})), 'meses', 'cm', color, 0, 24)}</div>
+      <div>${buildChart('Perímetro cefálico para la edad (cm)', hca, puntos.filter(p=>p.pc).map(p=>({x:p.meses,y:parseFloat(p.pc),fecha:p.fecha})), 'meses', 'cm', color, 0, 24)}</div>
+      <div>${buildChart('Perímetro braquial para la edad (cm)', muac, puntos.filter(p=>p.pb).map(p=>({x:p.meses,y:parseFloat(p.pb),fecha:p.fecha})), 'meses', 'cm', color, 3, 24)}</div>
     </div>
     <div style="margin-top:20px;">${buildWFLChart(wfl, puntos, color, esMasculino)}</div>
     <div style="margin-top:16px;padding:12px 16px;background:var(--bg);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-light);">
@@ -6624,9 +6651,9 @@ function renderGraficasCDC() {
     }
   });
 
-  const ptsTalla = puntos.filter(p=>p.talla).map(p=>({x:p.meses,y:p.talla}));
-  const ptsPeso  = puntos.filter(p=>p.peso).map(p=>({x:p.meses,y:p.peso}));
-  const ptsIMC   = puntos.filter(p=>p.imc).map(p=>({x:p.meses,y:parseFloat(p.imc.toFixed ? p.imc.toFixed(1) : p.imc)}));
+  const ptsTalla = puntos.filter(p=>p.talla).map(p=>({x:p.meses,y:p.talla,fecha:p.fecha}));
+  const ptsPeso  = puntos.filter(p=>p.peso).map(p=>({x:p.meses,y:p.peso,fecha:p.fecha}));
+  const ptsIMC   = puntos.filter(p=>p.imc).map(p=>({x:p.meses,y:parseFloat(p.imc.toFixed ? p.imc.toFixed(1) : p.imc),fecha:p.fecha}));
 
   const ninoLabel = esMasculino ? 'Niños' : 'Niñas';
 
@@ -6767,49 +6794,49 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
 
   const pacienteDots = filtered.map(p => {
     const z = calcZScore(tabla, p.x, p.y);
-    const zStr = z !== null ? `z: ${z>=0?'+':''}${(Math.round(z*10)/10).toFixed(1)}` : '';
-    const edadLabel = p.x < 2 ? `${Math.round(p.x * 30.4375)} días` : `${p.x.toFixed(1)} meses`;
+    const zR = z !== null ? (Math.round(z*10)/10) : null;
+    const zStr = zR !== null ? `${zR>=0?'+':''}${zR.toFixed(1)}` : null;
     let cls = '', clr = '#3A9E6A';
-    if (z !== null) {
-      if (z < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
-      else if (z < -2) { cls='Bajo'; clr='#E07050'; }
-      else if (z < -1) { cls='Riesgo'; clr='#E8C050'; }
-      else if (z <= 1) { cls='Normal'; clr='#3A9E6A'; }
-      else if (z <= 2) { cls='Alto'; clr='#E07050'; }
-      else             { cls='Muy alto'; clr='#C84A4A'; }
-    }
-    const tooltipHtml = `📅 ${edadLabel}<br>📊 ${p.y} ${yUnit}<br><span style='color:${clr}'>${zStr}${cls ? ' — '+cls : ''}</span>`;
-    const cx = xS(p.x).toFixed(1);
-    const cy = yS(p.y).toFixed(1);
-    return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2" 
-              style="cursor:pointer"
-              onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,'&#39;')}')"
-              onmousemove="moveChartTooltip(event)"
-              onmouseleave="hideChartTooltip()"/>`;
-  }).join('');
-
-  // Build HTML overlay dots (más confiable que SVG para hover)
-  const chartId = 'chart_' + Math.random().toString(36).substr(2,8);
-  const htmlDots = filtered.map(p => {
-    const z = calcZScore(tabla, p.x, p.y);
-    const zR = z !== null ? Math.round(z*10)/10 : null;
-    const edadLabel = p.x < 2 ? `${Math.round(p.x * 30.4375)} días` : `${p.x.toFixed(1)} meses`;
-    let cls = 'Normal', clr = '#3A9E6A';
     if (zR !== null) {
       if (zR < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
-      else if (zR < -2) { cls='Bajo'; clr='#E07050'; }
+      else if (zR < -2) { cls='Bajo peso'; clr='#E07050'; }
       else if (zR < -1) { cls='Riesgo'; clr='#E8C050'; }
       else if (zR <= 1) { cls='Normal'; clr='#3A9E6A'; }
       else if (zR <= 2) { cls='Alto'; clr='#E07050'; }
       else              { cls='Muy alto'; clr='#C84A4A'; }
     }
-    const zSign = zR !== null ? (zR > 0 ? '+' : '') : '';
-    const tooltip = `📅 ${edadLabel} | 📊 ${p.y} ${yUnit}${zR !== null ? ` | z: ${zSign}${zR} — ${cls}` : ''}`;
-    // Position as % of SVG viewBox
+    const ttHtml = buildTooltipHtml(p.fecha, p.y, yUnit, 'Z-score', zStr ? `z ${zStr}` : null, cls, clr);
+    const cx = xS(p.x).toFixed(1);
+    const cy = yS(p.y).toFixed(1);
+    return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2.5"
+              style="cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.25));"
+              onmouseenter="showChartTooltip(event,'${ttHtml.replace(/'/g,'&#39;').replace(/
+/g,'')}')"
+              onmousemove="moveChartTooltip(event)"
+              onmouseleave="hideChartTooltip()"/>`;
+  }).join('');
+
+  // Build HTML overlay dots
+  const chartId = 'chart_' + Math.random().toString(36).substr(2,8);
+  const htmlDots = filtered.map(p => {
+    const z = calcZScore(tabla, p.x, p.y);
+    const zR = z !== null ? Math.round(z*10)/10 : null;
+    let cls = 'Normal', clr = '#3A9E6A';
+    if (zR !== null) {
+      if (zR < -3)      { cls='Desnutrición severa'; clr='#C84A4A'; }
+      else if (zR < -2) { cls='Bajo peso'; clr='#E07050'; }
+      else if (zR < -1) { cls='Riesgo'; clr='#E8C050'; }
+      else if (zR <= 1) { cls='Normal'; clr='#3A9E6A'; }
+      else if (zR <= 2) { cls='Alto'; clr='#E07050'; }
+      else              { cls='Muy alto'; clr='#C84A4A'; }
+    }
+    const zStr = zR !== null ? `z ${zR>=0?'+':''}${zR.toFixed(1)}` : null;
+    const ttHtml = buildTooltipHtml(p.fecha, p.y, yUnit, 'Z-score', zStr, cls, clr);
     const pctX = (parseFloat(xS(p.x)) / W * 100).toFixed(2);
     const pctY = (parseFloat(yS(p.y)) / H * 100).toFixed(2);
-    return `<div style="position:absolute;left:${pctX}%;top:${pctY}%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:${colorPaciente};border:2px solid white;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2);"
-              onmouseenter="showChartTooltip(event,\`${tooltip}\`)"
+    return `<div style="position:absolute;left:${pctX}%;top:${pctY}%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;background:${colorPaciente};border:2.5px solid white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);z-index:3;"
+              onmouseenter="showChartTooltip(event,'${ttHtml.replace(/'/g,'&#39;').replace(/
+/g,'')}')"
               onmousemove="moveChartTooltip(event)"
               onmouseleave="hideChartTooltip()"></div>`;
   }).join('');
@@ -6908,7 +6935,7 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
       else if (z <= 2) { cls='Posible sobrepeso'; clr='#E07050'; }
       else             { cls='Obesidad'; clr='#C84A4A'; }
     }
-    const tooltipHtml = `📏 Talla: ${talla} cm<br>⚖️ Peso: ${peso} kg<br><span style='color:${clr}'>${zStr}${cls ? ' — '+cls : ''}</span>`;
+    const tooltipHtml = buildTooltipHtml(p.fecha, peso+' kg / '+talla+' cm', '', 'Z-score', zStr ? 'z '+zStr : null, cls, clr);
     return `<circle cx="${xS(talla)}" cy="${yS(peso)}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2"
               style="cursor:pointer"
               onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,'&#39;')}')"
@@ -6973,7 +7000,7 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
       else if (z <= 2) { cls='Posible sobrepeso'; clr='#E07050'; }
       else             { cls='Obesidad'; clr='#C84A4A'; }
     }
-    const tooltip = `📏 Talla: ${talla} cm | ⚖️ Peso: ${peso} kg${zStr ? ` | ${zStr} — ${cls}` : ''}`;
+    const tooltip = buildTooltipHtml(p.fecha, peso+' kg / '+talla+' cm', '', 'Z-score', zStr ? 'z '+zStr : null, cls, clr);
     const pctX = (xS(talla) / W * 100).toFixed(2);
     const pctY = (yS(peso) / H * 100).toFixed(2);
     return `<div style="position:absolute;left:${pctX}%;top:${pctY}%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:${colorPaciente};border:2px solid white;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2);"
