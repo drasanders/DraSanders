@@ -5743,15 +5743,20 @@ function hideChartTooltip() {
 
 // Genera HTML rico para el tooltip de gráficas de crecimiento
 function buildTooltipHtml(fecha, valor, yUnit, scoreLabel, scoreVal, clasificacion, color) {
-  const fechaStr = fecha
+  var fechaStr = fecha
     ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})
     : '';
-  return `<div class="chart-tooltip-inner">
-    ${fechaStr ? `<div class="tt-fecha">📅 ${fechaStr}</div><hr class="tt-divider">` : ''}
-    <div class="tt-valor">${valor} ${yUnit}</div>
-    ${scoreVal !== null && scoreVal !== undefined ? `<div class="tt-score" style="color:${color};">${scoreLabel}: ${scoreVal}</div>` : ''}
-    ${clasificacion ? `<div class="tt-cls" style="color:${color};">▸ ${clasificacion}</div>` : ''}
-  </div>`;
+  var h = '<div class="chart-tooltip-inner">';
+  if (fechaStr) h += '<div class="tt-fecha">&#128197; ' + fechaStr + '</div><hr class="tt-divider">';
+  h += '<div class="tt-valor">' + valor + (yUnit ? ' ' + yUnit : '') + '</div>';
+  if (scoreVal !== null && scoreVal !== undefined && scoreVal !== '') {
+    h += '<div class="tt-score" style="color:' + color + ';">' + scoreLabel + ': ' + scoreVal + '</div>';
+  }
+  if (clasificacion) {
+    h += '<div class="tt-cls" style="color:' + color + ';">&#9658; ' + clasificacion + '</div>';
+  }
+  h += '</div>';
+  return h;
 }
 
 // ==================== CIE-11 ====================
@@ -6503,7 +6508,7 @@ function buildCDCChart(titulo, tabla, puntosPaciente, yUnit, colorPaciente, modo
     const cx = xS(p.x).toFixed(1); const cy = yS(p.y).toFixed(1);
     return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2.5"
       style="cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.25));"
-      onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,"&#39;").replace(/\n/g,\'\')}')"
+      onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,"&#39;")}')"
       onmousemove="moveChartTooltip(event)" onmouseleave="hideChartTooltip()"/>`;
   }).join('');
 
@@ -6805,13 +6810,12 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
       else if (zR <= 2) { cls='Alto'; clr='#E07050'; }
       else              { cls='Muy alto'; clr='#C84A4A'; }
     }
-    const ttHtml = buildTooltipHtml(p.fecha, p.y, yUnit, 'Z-score', zStr ? `z ${zStr}` : null, cls, clr);
+    const ttHtml = buildTooltipHtml(p.fecha, p.y, yUnit, 'Z-score', zStr ? 'z ' + zStr : null, cls, clr);
     const cx = xS(p.x).toFixed(1);
     const cy = yS(p.y).toFixed(1);
     return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2.5"
               style="cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.25));"
-              onmouseenter="showChartTooltip(event,'${ttHtml.replace(/'/g,'&#39;').replace(/
-/g,'')}')"
+              onmouseenter="showChartTooltip(event,'${ttHtml.replace(/'/g,'&#39;')}
               onmousemove="moveChartTooltip(event)"
               onmouseleave="hideChartTooltip()"/>`;
   }).join('');
@@ -6830,13 +6834,12 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
       else if (zR <= 2) { cls='Alto'; clr='#E07050'; }
       else              { cls='Muy alto'; clr='#C84A4A'; }
     }
-    const zStr = zR !== null ? `z ${zR>=0?'+':''}${zR.toFixed(1)}` : null;
+    const zStr = zR !== null ? 'z ' + (zR>=0?'+':'') + zR.toFixed(1) : null;
     const ttHtml = buildTooltipHtml(p.fecha, p.y, yUnit, 'Z-score', zStr, cls, clr);
     const pctX = (parseFloat(xS(p.x)) / W * 100).toFixed(2);
     const pctY = (parseFloat(yS(p.y)) / H * 100).toFixed(2);
     return `<div style="position:absolute;left:${pctX}%;top:${pctY}%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;background:${colorPaciente};border:2.5px solid white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);z-index:3;"
-              onmouseenter="showChartTooltip(event,'${ttHtml.replace(/'/g,'&#39;').replace(/
-/g,'')}')"
+              onmouseenter="showChartTooltip(event,'${ttHtml.replace(/'/g,'&#39;')}
               onmousemove="moveChartTooltip(event)"
               onmouseleave="hideChartTooltip()"></div>`;
   }).join('');
