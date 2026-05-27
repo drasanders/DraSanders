@@ -537,6 +537,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
 .cal-event:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
 .cal-event.privado { background:#D4EEF8; border-color:#6BAEC6; }
 .cal-event.municipio { background:#D4F0DC; border-color:#7DBF99; }
+.cal-event.cesarea_parto { background:#EDE8F5; border-color:#9B82CC; }
 .cal-event-time { font-size:10px; opacity:0.8; }
 .cal-event-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cal-event-status {
@@ -2170,6 +2171,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
         <select class="form-input" id="nc-tipo" onchange="actualizarDuracionDefault()">
           <option value="privado">🔵 Privado</option>
           <option value="municipio">🟢 Municipio</option>
+          <option value="cesarea_parto">🟣 Cesárea / Parto</option>
         </select>
       </div>
       <div class="form-group">
@@ -2182,6 +2184,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <option value="45">45 min</option>
           <option value="60">60 min</option>
           <option value="90">90 min</option>
+          <option value="120">120 min (2 h)</option>
+          <option value="150">150 min (2.5 h)</option>
+          <option value="180">180 min (3 h)</option>
         </select>
       </div>
     </div>
@@ -2364,6 +2369,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
         <select class="form-input" id="ec-tipo" onchange="actualizarDuracionEditDefault()">
           <option value="privado">🔵 Privado</option>
           <option value="municipio">🟢 Municipio</option>
+          <option value="cesarea_parto">🟣 Cesárea / Parto</option>
         </select>
       </div>
       <div class="form-group">
@@ -2376,6 +2382,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <option value="45">45 min</option>
           <option value="60">60 min</option>
           <option value="90">90 min</option>
+          <option value="120">120 min (2 h)</option>
+          <option value="150">150 min (2.5 h)</option>
+          <option value="180">180 min (3 h)</option>
         </select>
       </div>
     </div>
@@ -3104,7 +3113,7 @@ async function cargarCitas() {
             return `<tr onclick="verPaciente('${c.paciente_id}')">
               <td><strong>${hora}</strong></td>
               <td>${c.paciente_nombre}</td>
-              <td><span class="badge ${c.tipo==='municipio'?'badge-green':'badge-blue'}">${c.tipo==='municipio'?'Municipio':'Privado'}</span></td>
+              <td><span class="badge ${c.tipo==='municipio'?'badge-green':c.tipo==='cesarea_parto'?'badge-lilac':'badge-blue'}">${c.tipo==='municipio'?'Municipio':c.tipo==='cesarea_parto'?'🟣 Cesárea':'Privado'}</span></td>
               <td>${c.motivo||'—'}</td>
               <td>${badgeEstado(c.estado)}</td>
             </tr>`;
@@ -3252,7 +3261,7 @@ function renderEventosAbsoluto(citas, fechaStr) {
     const dt = new Date(c.fecha_hora.replace(' ','T'));
     const horas = dt.getHours() + dt.getMinutes()/60;
     const top = HEADER_H + (horas-START_H)*SLOT_H*2;
-    const durMin = c.duracion || (c.tipo==='municipio'?30:40);
+    const durMin = c.duracion || (c.tipo==='municipio'?30:c.tipo==='cesarea_parto'?120:40);
     const height = Math.max(25,(durMin/30)*SLOT_H);
     const p = pacientes.find(p=>p.id===c.paciente_id);
     const nombre = p ? p.nombre : (c.nombre_paciente_web || 'Cita web');
@@ -3362,7 +3371,8 @@ function editarCita(id) {
   document.getElementById('ec-duracion').value = c.duracion || (c.tipo === 'municipio' ? 30 : 40);
   // Folio municipio
   const esMunicipio = c.tipo === 'municipio';
-  const folioGroup = document.getElementById('ec-folio-group');
+  const esCesarea   = c.tipo === 'cesarea_parto';
+  const folioGroup  = document.getElementById('ec-folio-group');
   if (folioGroup) folioGroup.style.display = esMunicipio ? '' : 'none';
   document.getElementById('ec-folio').value = c.folio_municipio || '';
   document.getElementById('ec-estado-pago').value = c.estado_pago_municipio || 'pendiente';
@@ -3723,6 +3733,7 @@ async function cargarFinanzas() {
     ]);
 
     // Solo consultas privadas CON pago registrado (cobradas o cortesia)
+    // Privado + cesarea/parto (excluye municipio)
     const cobradas = citas.filter(c => {
       if (c.tipo === 'municipio') return false;
       if (c.metodo_pago === 'cortesia') return true;
@@ -3762,11 +3773,7 @@ async function cargarFinanzas() {
       </div>
       <div class="stat-card blue"><span class="stat-icon">🩺</span>
         <div class="stat-value">${cobradas.filter(c=>c.metodo_pago!=='cortesia').length}</div>
-        <div class="stat-label">Consultas cobradas</div></div>
-      <div class="stat-card" style="background:linear-gradient(135deg,#F0F8FF,#E0F0FF);">
-        <span class="stat-icon">📊</span>
-        <div class="stat-value" style="color:var(--blue-d);font-size:20px;">$${promedio.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
-        <div class="stat-label">Promedio por consulta</div></div>
+        <div class="stat-label">Privado + Cesárea</div></div>
       <div class="stat-card" style="background:linear-gradient(135deg,#FFE8F0,#FFDAE8);">
         <span class="stat-icon">🎁</span>
         <div class="stat-value" style="color:#C04060;">${cortesias.length}</div>
@@ -3830,7 +3837,7 @@ async function cargarFinanzas() {
       tablaEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No hay cobros registrados en este período</p></div>`;
     } else {
       tablaEl.innerHTML = `<table class="data-table">
-        <thead><tr><th>Fecha</th><th>Paciente</th><th>Método</th><th>Monto</th><th>Factura</th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Paciente</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Factura</th></tr></thead>
         <tbody>${cobradas.map(c=>{
           const p=pacientes.find(x=>x.id===c.paciente_id);
           const dt=new Date(c.fecha_hora);
@@ -3839,6 +3846,7 @@ async function cargarFinanzas() {
             <td><div style="font-weight:700;">${dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}</div>
                 <div style="font-size:11px;color:var(--text-light);">${dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</div></td>
             <td style="font-weight:700;">${p?p.nombre:'—'}</td>
+            <td>${c.tipo==='cesarea_parto'?'<span class="badge badge-lilac">🟣 Cesárea</span>':'<span class="badge badge-blue">🔵 Consulta</span>'}</td>
             <td>${metodoLabels[c.metodo_pago||'']||'—'}</td>
             <td style="font-weight:800;color:${esCortesia?'#E07090':'var(--green-d)'};">${esCortesia?'🎁 Cortesía':'$'+parseFloat(c.monto).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
             <td>${c.requiere_factura?`<span class="badge badge-lilac">🧾 ${c.rfc||'Sin RFC'}</span>`:'<span style="color:var(--text-light);font-size:12px;">No</span>'}</td>
@@ -4094,8 +4102,20 @@ function actualizarDuracionDefault() {
   const dur  = document.getElementById('nc-duracion');
   if (!dur) return;
   if (tipo === 'municipio') dur.value = '20';
+  else if (tipo === 'cesarea_parto') dur.value = '120';
   else dur.value = '40';
   const folioGroup = document.getElementById('nc-folio-group');
+  if (folioGroup) folioGroup.style.display = tipo === 'municipio' ? '' : 'none';
+}
+
+function actualizarDuracionEditDefault() {
+  const tipo = document.getElementById('ec-tipo')?.value;
+  const dur  = document.getElementById('ec-duracion');
+  if (!dur) return;
+  if (tipo === 'municipio') dur.value = '20';
+  else if (tipo === 'cesarea_parto') dur.value = '120';
+  else dur.value = '40';
+  const folioGroup = document.getElementById('ec-folio-group');
   if (folioGroup) folioGroup.style.display = tipo === 'municipio' ? '' : 'none';
 }
 
