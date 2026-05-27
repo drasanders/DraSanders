@@ -843,6 +843,8 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <span class="search-icon">🔍</span>
           <input class="search-input" id="search-pacientes" placeholder="Buscar paciente..." oninput="filtrarPacientes()">
         </div>
+        <button class="btn btn-ghost btn-sm" id="btn-sort-az" onclick="sortPacientes('az')" style="font-weight:700;">A → Z</button>
+        <button class="btn btn-ghost btn-sm" id="btn-sort-za" onclick="sortPacientes('za')" style="font-weight:700;">Z → A</button>
         <button class="btn btn-primary" onclick="openModal('modal-nuevo-paciente')">+ Nuevo paciente</button>
       </div>
     </div>
@@ -2518,7 +2520,9 @@ async function cargarTodo() {
 async function cargarPacientes() {
   try {
     pacientes = await api('GET', 'pacientes', null, '?order=created_at.desc');
-    renderPacientesTabla(pacientes);
+    // Ordenar A-Z por defecto al cargar
+    const listaSorted = pacientes.slice().sort((a,b) => a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
+    renderPacientesTabla(listaSorted);
     document.getElementById('pacientes-count').textContent = `${pacientes.length} paciente${pacientes.length !== 1 ? 's' : ''} registrado${pacientes.length !== 1 ? 's' : ''}`;
     if(document.getElementById('stat-pacientes')) document.getElementById('stat-pacientes').textContent = pacientes.length;
     poblarSelectPacientes();
@@ -2574,7 +2578,7 @@ function renderPacientesTabla(lista) {
   document.getElementById('pacientes-table-wrap').innerHTML = `
     <table class="data-table">
       <thead><tr>
-        <th>Paciente</th><th>Edad</th><th>Sexo</th><th>Mamá / Teléfono</th><th>Alergias</th><th></th>
+        <th>Paciente</th><th>Edad</th><th>Sexo</th><th>Alergias</th><th></th>
       </tr></thead>
       <tbody>${lista.map(p => `
         <tr onclick="verPaciente('${p.id}')">
@@ -2589,10 +2593,6 @@ function renderPacientesTabla(lista) {
           </td>
           <td>${p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '—'}</td>
           <td>${p.sexo ? `<span class="badge ${p.sexo==='Masculino'?'badge-blue':'badge-lilac'}">${p.sexo}</span>` : '—'}</td>
-          <td>
-            <div style="font-weight:700;font-size:12px;">${p.nombre_mama || '—'}</div>
-            <div style="font-size:11px;color:var(--blue-d);">${p.telefono_mama || ''}</div>
-          </td>
           <td>${p.alergias ? `<span class="badge badge-red">⚠ ${p.alergias}</span>` : '<span style="color:var(--text-light);font-size:12px;">Ninguna</span>'}</td>
           <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();verPaciente('${p.id}')">Ver →</button>
               <button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="event.stopPropagation();confirmarEliminarPacienteId('${p.id}','${p.nombre}')">🗑</button></td>
@@ -2601,9 +2601,28 @@ function renderPacientesTabla(lista) {
     </table>`;
 }
 
+let pacientesSortDir = 'az'; // orden actual
+
+function sortPacientes(dir) {
+  pacientesSortDir = dir;
+  // Resaltar botón activo
+  document.getElementById('btn-sort-az').style.background = dir === 'az' ? 'var(--blue-l,rgba(107,174,198,0.15))' : '';
+  document.getElementById('btn-sort-az').style.borderColor = dir === 'az' ? 'var(--blue-d)' : '';
+  document.getElementById('btn-sort-az').style.color = dir === 'az' ? 'var(--blue-d)' : '';
+  document.getElementById('btn-sort-za').style.background = dir === 'za' ? 'var(--blue-l,rgba(107,174,198,0.15))' : '';
+  document.getElementById('btn-sort-za').style.borderColor = dir === 'za' ? 'var(--blue-d)' : '';
+  document.getElementById('btn-sort-za').style.color = dir === 'za' ? 'var(--blue-d)' : '';
+  filtrarPacientes();
+}
+
 function filtrarPacientes() {
   const q = document.getElementById('search-pacientes').value.toLowerCase();
-  renderPacientesTabla(pacientes.filter(p => p.nombre.toLowerCase().includes(q)));
+  let lista = pacientes.filter(p => p.nombre.toLowerCase().includes(q));
+  lista = lista.slice().sort((a, b) => {
+    const cmp = a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' });
+    return pacientesSortDir === 'az' ? cmp : -cmp;
+  });
+  renderPacientesTabla(lista);
 }
 
 // ==================== DASHBOARD ====================
@@ -6946,6 +6965,7 @@ function showView(name) {
   const navItems = document.querySelectorAll('.nav-item');
   if (map[name] !== undefined) navItems[map[name]]?.classList.add('active');
   if (name === 'citas') { actualizarTituloFecha(); cargarCitasCal(); }
+  if (name === 'pacientes') { sortPacientes('az'); }
   if (name === 'finanzas') verificarAccesoFinanzas();
   if (name === 'recursos') cargarRecursos();
   if (name === 'solicitudes-web') showView_solicitudesWeb();
