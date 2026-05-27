@@ -28,6 +28,14 @@
   --radius-sm: 12px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
+
+/* Todo en mayusculas excepto inputs de email */
+body, input:not([type=email]), textarea, select, button, .nav-item, .page-title, .page-sub, .panel-title, .form-label, .badge, .stat-label, .btn, td, th, label, .form-input:not([type=email]) {
+  text-transform: uppercase;
+}
+input[type=email], input[type=email]::placeholder {
+  text-transform: lowercase;
+}
 body { font-family:'Quicksand',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
 /* LAYOUT */
