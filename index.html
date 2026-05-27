@@ -3772,8 +3772,11 @@ async function cargarFinanzas() {
         ${diffHTML}
       </div>
       <div class="stat-card blue"><span class="stat-icon">🩺</span>
-        <div class="stat-value">${cobradas.filter(c=>c.metodo_pago!=='cortesia').length}</div>
-        <div class="stat-label">Privado + Cesárea</div></div>
+        <div class="stat-value">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo!=='cesarea_parto').length}</div>
+        <div class="stat-label">Consultas cobradas</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#EDE8F5,#E0D8F0);"><span class="stat-icon">🟣</span>
+        <div class="stat-value" style="color:var(--lilac-d);">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo==='cesarea_parto').length}</div>
+        <div class="stat-label" style="color:var(--lilac-d);">Cesáreas / Partos</div></div>
       <div class="stat-card" style="background:linear-gradient(135deg,#FFE8F0,#FFDAE8);">
         <span class="stat-icon">🎁</span>
         <div class="stat-value" style="color:#C04060;">${cortesias.length}</div>
