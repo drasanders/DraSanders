@@ -1600,20 +1600,35 @@ textarea.form-input { resize:vertical; min-height:70px; }
         <div class="page-title">💰 Finanzas</div>
         <div class="page-sub" id="finanzas-periodo-label"></div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div style="display:flex;background:var(--bg);border-radius:50px;padding:3px;gap:2px;">
-          <button id="btn-fin-hoy" class="btn btn-primary btn-sm" onclick="setFinPeriodo('hoy')" style="border-radius:50px;font-size:12px;">Hoy</button>
-          <button id="btn-fin-semana" class="btn btn-ghost btn-sm" onclick="setFinPeriodo('semana')" style="border-radius:50px;font-size:12px;">Semana</button>
-          <button id="btn-fin-mes" class="btn btn-ghost btn-sm" onclick="setFinPeriodo('mes')" style="border-radius:50px;font-size:12px;">Mes</button>
-          <button id="btn-fin-anio" class="btn btn-ghost btn-sm" onclick="setFinPeriodo('anio')" style="border-radius:50px;font-size:12px;">Año</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <!-- Selector de mes -->
+        <div style="display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:50px;padding:4px 6px;border:1.5px solid var(--border);">
+          <button class="btn btn-ghost btn-sm" onclick="navFinMes(-1)" style="border-radius:50px;padding:4px 10px;">←</button>
+          <span id="fin-mes-label" style="font-size:13px;font-weight:800;min-width:120px;text-align:center;color:var(--text);"></span>
+          <button class="btn btn-ghost btn-sm" onclick="navFinMes(1)" style="border-radius:50px;padding:4px 10px;">→</button>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="navFinanzas(-1)">←</button>
-        <button class="btn btn-ghost btn-sm" onclick="navFinanzas(0)">Hoy</button>
-        <button class="btn btn-ghost btn-sm" onclick="navFinanzas(1)">→</button>
+        <button class="btn btn-ghost btn-sm" onclick="navFinMes(0)" style="font-size:12px;">Mes actual</button>
+        <button id="btn-fin-grafica-anual" class="btn btn-ghost btn-sm" onclick="toggleGraficaAnual()" style="font-size:12px;">📊 Ver año</button>
       </div>
     </div>
     <div class="content">
       <div id="finanzas-alert"></div>
+
+      <!-- GRAFICA ANUAL -->
+      <div id="fin-grafica-anual-panel" style="display:none;margin-bottom:20px;">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📊 Resumen anual <span id="fin-anio-label" style="color:var(--text-light);font-size:13px;"></span></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-ghost btn-sm" onclick="navFinAnio(-1)">← Año anterior</button>
+              <button class="btn btn-ghost btn-sm" onclick="navFinAnio(1)">Año siguiente →</button>
+            </div>
+          </div>
+          <div class="panel-body" id="fin-grafica-anual-content">
+            <div class="loading"><div class="spinner"></div> Cargando...</div>
+          </div>
+        </div>
+      </div>
 
       <!-- PESTAÑAS -->
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;">
@@ -3536,114 +3551,227 @@ function irAExpedienteDesdeCita() {
 }
 
 // ==================== FINANZAS ====================
-let finPeriodo = 'mes';
-let finFecha = new Date();
+// ===== FINANZAS — SISTEMA DE MES =====
+let finMesActual = new Date().getMonth();   // 0–11
+let finAnioActual = new Date().getFullYear();
+let finAnioGrafica = new Date().getFullYear();
+let graficaAnualVisible = false;
 
-function setFinPeriodo(p) {
-  finPeriodo = p;
-  ['hoy','semana','mes','anio'].forEach(x => {
-    const btn = document.getElementById(`btn-fin-${x}`);
-    if (!btn) return;
-    btn.className = `btn btn-sm ${x===p?'btn-primary':'btn-ghost'}`;
-    btn.style.borderRadius = '50px';
-    btn.style.fontSize = '12px';
-  });
-  cargarFinanzas();
-}
-
-function navFinanzas(dir) {
-  if (dir === 0) { finFecha = new Date(); }
-  else {
-    const d = new Date(finFecha);
-    if (finPeriodo==='hoy') d.setDate(d.getDate()+dir);
-    else if (finPeriodo==='semana') d.setDate(d.getDate()+dir*7);
-    else if (finPeriodo==='mes') d.setMonth(d.getMonth()+dir);
-    else if (finPeriodo==='anio') d.setFullYear(d.getFullYear()+dir);
-    finFecha = d;
-  }
-  cargarFinanzas();
-}
-
-function getRango() {
-  const d = new Date(finFecha);
-  let inicio, fin, label;
-  if (finPeriodo==='hoy') {
-    inicio = fin = fechaLocal(d);
-    label = d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  } else if (finPeriodo==='semana') {
-    const ini = new Date(d); ini.setDate(d.getDate()-((d.getDay()+6)%7));
-    const fn = new Date(ini); fn.setDate(ini.getDate()+6);
-    inicio=fechaLocal(ini); fin=fechaLocal(fn);
-    label=`Semana del ${ini.toLocaleDateString('es-MX',{day:'numeric',month:'short'})} al ${fn.toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'})}`;
-  } else if (finPeriodo==='mes') {
-    const ini = new Date(d.getFullYear(),d.getMonth(),1);
-    const fn = new Date(d.getFullYear(),d.getMonth()+1,0);
-    inicio=fechaLocal(ini); fin=fechaLocal(fn);
-    label=d.toLocaleDateString('es-MX',{month:'long',year:'numeric'});
-    label=label.charAt(0).toUpperCase()+label.slice(1);
-  } else {
-    inicio=`${d.getFullYear()}-01-01`; fin=`${d.getFullYear()}-12-31`;
-    label=`Año ${d.getFullYear()}`;
-  }
-  return { inicio, fin, label };
-}
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 function iniciarFinanzas() {
+  finMesActual = new Date().getMonth();
+  finAnioActual = new Date().getFullYear();
+  finAnioGrafica = new Date().getFullYear();
+  actualizarLabelMes();
   showFinTab('privado');
-  setFinPeriodo('mes');
+}
+
+function actualizarLabelMes() {
+  const el = document.getElementById('fin-mes-label');
+  if (el) el.textContent = MESES_ES[finMesActual] + ' ' + finAnioActual;
+  const anioEl = document.getElementById('fin-anio-label');
+  if (anioEl) anioEl.textContent = finAnioGrafica;
+}
+
+function navFinMes(delta) {
+  if (delta === 0) {
+    finMesActual = new Date().getMonth();
+    finAnioActual = new Date().getFullYear();
+  } else {
+    finMesActual += delta;
+    if (finMesActual > 11) { finMesActual = 0; finAnioActual++; }
+    if (finMesActual < 0)  { finMesActual = 11; finAnioActual--; }
+  }
+  actualizarLabelMes();
+  // Recargar la pestaña activa
+  const tabPriv = document.getElementById('fintab-privado');
+  if (tabPriv && tabPriv.style.color !== 'var(--text-light)') cargarFinanzas();
+  else cargarMunicipio();
+}
+
+function navFinAnio(delta) {
+  finAnioGrafica += delta;
+  actualizarLabelMes();
+  renderGraficaAnual();
+}
+
+function toggleGraficaAnual() {
+  graficaAnualVisible = !graficaAnualVisible;
+  document.getElementById('fin-grafica-anual-panel').style.display = graficaAnualVisible ? '' : 'none';
+  document.getElementById('btn-fin-grafica-anual').textContent = graficaAnualVisible ? '✕ Ocultar año' : '📊 Ver año';
+  if (graficaAnualVisible) {
+    finAnioGrafica = finAnioActual;
+    actualizarLabelMes();
+    renderGraficaAnual();
+  }
+}
+
+function getRangoMes(mes, anio) {
+  const inicio = `${anio}-${String(mes+1).padStart(2,'0')}-01`;
+  const fin    = `${anio}-${String(mes+1).padStart(2,'0')}-${new Date(anio,mes+1,0).getDate()}`;
+  return { inicio, fin };
+}
+
+async function renderGraficaAnual() {
+  const el = document.getElementById('fin-grafica-anual-content');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Cargando año...</div>';
+  try {
+    const { inicio, fin } = getRangoMes(0, finAnioGrafica);
+    const finDic = `${finAnioGrafica}-12-31`;
+    const [citasAnio, citasMun] = await Promise.all([
+      api('GET','citas',null,`?fecha_hora=gte.${inicio}T00:00:00&fecha_hora=lte.${finDic}T23:59:59&tipo=neq.municipio&order=fecha_hora.asc`),
+      api('GET','citas',null,`?fecha_hora=gte.${inicio}T00:00:00&fecha_hora=lte.${finDic}T23:59:59&tipo=eq.municipio&order=fecha_hora.asc`)
+    ]);
+
+    // Calcular totales por mes
+    const privPorMes = Array(12).fill(0);
+    const munPorMes  = Array(12).fill(0);
+    const cntPriv    = Array(12).fill(0);
+    const cntMun     = Array(12).fill(0);
+
+    citasAnio.forEach(c => {
+      const m = new Date(c.fecha_hora).getMonth();
+      if (c.monto && parseFloat(c.monto) > 0 && c.metodo_pago !== 'cortesia') {
+        privPorMes[m] += parseFloat(c.monto);
+        cntPriv[m]++;
+      }
+    });
+    citasMun.forEach(c => {
+      const m = new Date(c.fecha_hora).getMonth();
+      munPorMes[m] += parseFloat(c.monto||0);
+      cntMun[m]++;
+    });
+
+    const maxVal = Math.max(...privPorMes.map((v,i) => v + munPorMes[i]), 1);
+    const totalAnioPriv = privPorMes.reduce((a,b)=>a+b,0);
+    const totalAnioMun  = munPorMes.reduce((a,b)=>a+b,0);
+
+    // Resumen anual
+    const resumenHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;">
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
+          <div style="font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total año privado</div>
+          <div style="font-size:22px;font-weight:900;color:var(--blue-d);">$${totalAnioPriv.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
+          <div style="font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total año municipio</div>
+          <div style="font-size:22px;font-weight:900;color:var(--green-d);">$${totalAnioMun.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
+          <div style="font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Gran total</div>
+          <div style="font-size:22px;font-weight:900;color:var(--text);">$${(totalAnioPriv+totalAnioMun).toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+        </div>
+      </div>`;
+
+    // Barras por mes
+    const barsHTML = '<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end;height:180px;margin-bottom:8px;">'
+      + MESES_ES.map((mes, i) => {
+        const privH = Math.round((privPorMes[i]/maxVal)*140);
+        const munH  = Math.round((munPorMes[i]/maxVal)*140);
+        const esMesActual = i === finMesActual && finAnioGrafica === finAnioActual;
+        return `<div style="display:flex;flex-direction:column;align-items:center;height:180px;justify-content:flex-end;cursor:pointer;"
+          onclick="irAlMes(${i},${finAnioGrafica})"
+          title="${mes}: Priv $${privPorMes[i].toLocaleString('es-MX',{minimumFractionDigits:0})} | Mun $${munPorMes[i].toLocaleString('es-MX',{minimumFractionDigits:0})}">
+          <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;">
+            ${privPorMes[i]>0?`<div style="width:80%;background:var(--blue-d);border-radius:4px 4px 0 0;height:${privH}px;opacity:${esMesActual?1:0.75};transition:opacity 0.2s;"></div>`:''}
+            ${munPorMes[i]>0?`<div style="width:80%;background:var(--green-d);border-radius:${privPorMes[i]>0?'0':'4px 4px'} 0 0;height:${munH}px;opacity:${esMesActual?1:0.75};"></div>`:''}
+            ${(privPorMes[i]===0&&munPorMes[i]===0)?`<div style="width:80%;background:var(--border);border-radius:4px 4px 0 0;height:4px;"></div>`:''}
+          </div>
+          <div style="font-size:9px;font-weight:800;color:${esMesActual?'var(--blue-d)':'var(--text-light)'};margin-top:4px;text-align:center;">${mes.slice(0,3).toUpperCase()}</div>
+        </div>`;
+      }).join('') + '</div>';
+
+    const leyendaHTML = `<div style="display:flex;gap:16px;justify-content:center;font-size:12px;font-weight:700;">
+      <span><span style="display:inline-block;width:12px;height:12px;background:var(--blue-d);border-radius:3px;margin-right:4px;"></span>Privado</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:var(--green-d);border-radius:3px;margin-right:4px;"></span>Municipio</span>
+      <span style="color:var(--text-light);">Haz click en una barra para ver ese mes</span>
+    </div>`;
+
+    el.innerHTML = resumenHTML + barsHTML + leyendaHTML;
+  } catch(e) {
+    el.innerHTML = `<div class="alert alert-error">Error: ${e.message}</div>`;
+  }
+}
+
+function irAlMes(mes, anio) {
+  finMesActual = mes;
+  finAnioActual = anio;
+  actualizarLabelMes();
+  // Ocultar gráfica y cargar el mes
+  graficaAnualVisible = false;
+  document.getElementById('fin-grafica-anual-panel').style.display = 'none';
+  document.getElementById('btn-fin-grafica-anual').textContent = '📊 Ver año';
+  cargarFinanzas();
 }
 
 async function cargarFinanzas() {
-  const { inicio, fin, label } = getRango();
+  const { inicio, fin } = getRangoMes(finMesActual, finAnioActual);
   const labelEl = document.getElementById('finanzas-periodo-label');
-  if (labelEl) labelEl.textContent = label;
-  try {
-    const citas = await api('GET','citas',null,
-      `?fecha_hora=gte.${inicio}T00:00:00&fecha_hora=lte.${fin}T23:59:59&order=fecha_hora.desc`);
+  if (labelEl) labelEl.textContent = MESES_ES[finMesActual] + ' ' + finAnioActual;
 
+  // Rango mes anterior para comparativo
+  let mesAnt = finMesActual - 1, anioAnt = finAnioActual;
+  if (mesAnt < 0) { mesAnt = 11; anioAnt--; }
+  const { inicio: iniAnt, fin: finAnt } = getRangoMes(mesAnt, anioAnt);
+
+  try {
+    const [citas, citasAnt] = await Promise.all([
+      api('GET','citas',null,`?fecha_hora=gte.${inicio}T00:00:00&fecha_hora=lte.${fin}T23:59:59&order=fecha_hora.desc`),
+      api('GET','citas',null,`?fecha_hora=gte.${iniAnt}T00:00:00&fecha_hora=lte.${finAnt}T23:59:59`)
+    ]);
+
+    // Solo consultas privadas CON pago registrado (cobradas o cortesia)
     const cobradas = citas.filter(c => {
       if (c.tipo === 'municipio') return false;
       if (c.metodo_pago === 'cortesia') return true;
       return c.monto && parseFloat(c.monto) > 0;
     });
-    const cortesias = cobradas.filter(c => c.metodo_pago === 'cortesia');
-    const total = cobradas.reduce((s,c) => s + parseFloat(c.monto||0), 0);
-    const sinCobro = citas.filter(c => c.tipo !== 'municipio' && !c.metodo_pago && (!c.monto || parseFloat(c.monto) === 0)).length;
-    const facturas = cobradas.filter(c => c.requiere_factura).length;
+    const cobradas_ant = citasAnt.filter(c => {
+      if (c.tipo === 'municipio') return false;
+      if (c.metodo_pago === 'cortesia') return true;
+      return c.monto && parseFloat(c.monto) > 0;
+    });
 
-    const hoy = fechaLocal();
-    const citasHoy = await api('GET','citas',null,`?fecha_hora=gte.${hoy}T00:00:00&fecha_hora=lte.${hoy}T23:59:59`);
-    const totalHoy = citasHoy.filter(c => c.tipo!=='municipio' && c.metodo_pago!=='cortesia' && c.monto && parseFloat(c.monto)>0)
-      .reduce((s,c) => s+parseFloat(c.monto||0), 0);
-    const inicioMes = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`;
-    const finMes = fechaLocal(new Date(new Date().getFullYear(),new Date().getMonth()+1,0));
-    const citasMes = await api('GET','citas',null,`?fecha_hora=gte.${inicioMes}T00:00:00&fecha_hora=lte.${finMes}T23:59:59`);
-    const totalMes = citasMes.filter(c => c.tipo!=='municipio' && c.metodo_pago!=='cortesia' && c.monto && parseFloat(c.monto)>0)
-      .reduce((s,c) => s+parseFloat(c.monto||0), 0);
+    const cortesias = cobradas.filter(c => c.metodo_pago === 'cortesia');
+    const totalMes  = cobradas.filter(c=>c.metodo_pago!=='cortesia').reduce((s,c)=>s+parseFloat(c.monto||0),0);
+    const totalAnt  = cobradas_ant.filter(c=>c.metodo_pago!=='cortesia').reduce((s,c)=>s+parseFloat(c.monto||0),0);
+    const facturas  = cobradas.filter(c => c.requiere_factura).length;
+    const promedio  = cobradas.filter(c=>c.metodo_pago!=='cortesia').length > 0
+      ? totalMes / cobradas.filter(c=>c.metodo_pago!=='cortesia').length : 0;
+
+    // Comparativo vs mes anterior
+    const diff = totalAnt > 0 ? ((totalMes - totalAnt) / totalAnt * 100) : null;
+    const diffHTML = diff !== null
+      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;">
+          <span style="font-size:18px;">${diff >= 0 ? '📈' : '📉'}</span>
+          <span style="font-size:13px;font-weight:800;color:${diff >= 0 ? 'var(--green-d)' : 'var(--peach-d)'};">${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% vs ${MESES_ES[mesAnt]}</span>
+          <span style="font-size:11px;color:var(--text-light);">($${totalAnt.toLocaleString('es-MX',{minimumFractionDigits:0})})</span>
+        </div>`
+      : `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text-light);">Sin datos de ${MESES_ES[mesAnt]}</div>`;
 
     document.getElementById('finanzas-stats').innerHTML = `
       <div class="stat-card green" style="grid-column:span 2;">
         <span class="stat-icon">💰</span>
         <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:36px;line-height:1;color:var(--text);">
-          $${totalHoy.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+          $${totalMes.toLocaleString('es-MX',{minimumFractionDigits:2})}
         </div>
-        <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-top:4px;">Cobrado hoy (privado)</div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-          <span style="font-size:12px;font-weight:600;color:var(--text-light);">Acumulado del mes: </span>
-          <span style="font-size:14px;font-weight:800;color:var(--green-d);">$${totalMes.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-        </div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-top:4px;">Total privado — ${MESES_ES[finMesActual]} ${finAnioActual}</div>
+        ${diffHTML}
       </div>
       <div class="stat-card blue"><span class="stat-icon">🩺</span>
-        <div class="stat-value">${citas.filter(c=>c.tipo!=='municipio').length}</div>
-        <div class="stat-label">Consultas privadas</div></div>
+        <div class="stat-value">${cobradas.filter(c=>c.metodo_pago!=='cortesia').length}</div>
+        <div class="stat-label">Consultas cobradas</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#F0F8FF,#E0F0FF);">
+        <span class="stat-icon">📊</span>
+        <div class="stat-value" style="color:var(--blue-d);font-size:20px;">$${promedio.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
+        <div class="stat-label">Promedio por consulta</div></div>
       <div class="stat-card" style="background:linear-gradient(135deg,#FFE8F0,#FFDAE8);">
         <span class="stat-icon">🎁</span>
         <div class="stat-value" style="color:#C04060;">${cortesias.length}</div>
-        <div class="stat-label" style="color:#903050;">Cortesías</div>
-      </div>
-      <div class="stat-card peach"><span class="stat-icon">📋</span>
-        <div class="stat-value">${sinCobro}</div>
-        <div class="stat-label">Sin registro de pago</div></div>`;
+        <div class="stat-label" style="color:#903050;">Cortesías</div></div>
+`;
 
     const metodoLabels = {efectivo:'💵 Efectivo',transferencia:'📲 Transferencia',tarjeta_debito:'💳 T. Débito',tarjeta_credito:'💳 T. Crédito',cheque:'📝 Cheque',cortesia:'🎁 Cortesía','':'Sin registrar'};
     const metodoColors = {efectivo:'var(--green-d)',transferencia:'var(--blue-d)',tarjeta_debito:'var(--lilac-d)',tarjeta_credito:'var(--peach-d)',cheque:'var(--yellow-d)',cortesia:'#E07090','':'var(--text-light)'};
@@ -3755,13 +3883,15 @@ async function cargarMunicipio() {
   const munStats=document.getElementById('mun-stats');
   if(munStats) munStats.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
   try {
+    const { inicio: munIni, fin: munFin } = getRangoMes(finMesActual, finAnioActual);
     const todas=await api('GET','citas',null,'?tipo=eq.municipio&order=fecha_hora.desc');
+    const delMes=todas.filter(c=>c.fecha_hora&&c.fecha_hora>=munIni&&c.fecha_hora<=munFin+'T23:59:59');
     const pendientes=todas.filter(c=>(c.estado_pago_municipio||'pendiente')==='pendiente');
     const enRelacion=todas.filter(c=>c.estado_pago_municipio==='en_relacion');
     const pagadas=todas.filter(c=>c.estado_pago_municipio==='pagado');
     if(munStats) munStats.innerHTML=`
       <div class="stat-card green"><span class="stat-icon">🏛️</span>
-        <div class="stat-value">${todas.length}</div><div class="stat-label">Total consultas</div></div>
+        <div class="stat-value">${delMes.length}</div><div class="stat-label">Consultas ${MESES_ES[finMesActual]}</div></div>
       <div class="stat-card" style="background:linear-gradient(135deg,#FFF8E0,#FFF3C0);">
         <span class="stat-icon">🟡</span>
         <div class="stat-value" style="color:#B8A84A;">${pendientes.length}</div>
