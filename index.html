@@ -731,6 +731,24 @@ textarea.form-input { resize:vertical; min-height:70px; }
   .mobile-nav { display: none !important; }
 }
 
+
+/* ==================== CHART TOOLTIP ==================== */
+.chart-tooltip {
+  position: fixed;
+  background: rgba(20,20,40,0.95);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 9999;
+  max-width: 290px;
+  line-height: 1.75;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  display: none;
+  font-family: 'Nunito', sans-serif;
+  border: 1px solid rgba(255,255,255,0.12);
+}
 </style>
 </head>
 <body>
@@ -6622,12 +6640,38 @@ function buildCDCChart(titulo, tabla, puntosPaciente, yUnit, colorPaciente, modo
     </div>`;
   }
 
-  const pacienteDots = filtered.map(p => {
+  const pacienteDots = filtered.map((p, idx) => {
     const row = interpolateCDC(tabla, p.x);
     const pct = getPercentile(row, p.y, hasBMI);
     const clr = getColor(pct);
-    const edadLabel = `${(p.x/12).toFixed(1)} años`;
-    const tooltipHtml = `📅 ${edadLabel}<br>📊 ${p.y} ${yUnit}<br><span style='color:${clr}'>${pct || ''}</span>`;
+    // Edad en años y meses legible
+    const anosCompletos = Math.floor(p.x / 12);
+    const mesesResto = Math.round(p.x % 12);
+    const edadLabel = mesesResto > 0
+      ? `${anosCompletos}a ${mesesResto}m`
+      : `${anosCompletos} años`;
+    // Diferencia con punto anterior
+    let difHtml = '';
+    if (idx > 0) {
+      const prev = filtered[idx - 1];
+      const dif = (p.y - prev.y);
+      const anosP = Math.floor(prev.x / 12);
+      const mesesP = Math.round(prev.x % 12);
+      const prevLabel = mesesP > 0 ? `${anosP}a ${mesesP}m` : `${anosP}a`;
+      const difMeses = Math.round(p.x - prev.x);
+      const sign = dif >= 0 ? '+' : '';
+      difHtml = `<br><span style='color:#888;font-size:11px'>Δ desde ${prevLabel}: <b style='color:${dif>=0?"#3A9E6A":"#C84A4A"}'>${sign}${dif.toFixed(1)} ${yUnit}</b> en ${difMeses}m</span>`;
+    }
+    // Clasificación IMC si aplica
+    let clsHtml = '';
+    if (pct) {
+      const num = pct === '<P3' ? 2 : pct === '>P97' ? 98 : parseInt(pct.replace('P',''));
+      if (hasBMI) {
+        let cls = num < 5 ? 'Bajo peso' : num < 85 ? 'Peso saludable' : num < 95 ? 'Sobrepeso' : 'Obesidad';
+        clsHtml = ` — ${cls}`;
+      }
+    }
+    const tooltipHtml = `📅 <b>${edadLabel}</b><br>📊 ${p.y} ${yUnit}<br><span style='color:${clr};font-weight:700'>${pct || ''}${clsHtml}</span>${difHtml}`;
     const cx = xS(p.x).toFixed(1); const cy = yS(p.y).toFixed(1);
     return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2"
       style="cursor:pointer"
@@ -6919,9 +6963,10 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
     }
   }
 
-  const pacienteDots = filtered.map(p => {
+  const pacienteDots = filtered.map((p, idx) => {
     const z = calcZScore(tabla, p.x, p.y);
-    const zStr = z !== null ? `z: ${z>=0?'+':''}${(Math.round(z*10)/10).toFixed(1)}` : '';
+    const zNum = z !== null ? Math.round(z*10)/10 : null;
+    const zStr = zNum !== null ? `z: ${zNum>=0?'+':''}${zNum.toFixed(1)}` : '';
     const edadLabel = p.x < 2 ? `${Math.round(p.x * 30.4375)} días` : `${p.x.toFixed(1)} meses`;
     let cls = '', clr = '#3A9E6A';
     if (z !== null) {
@@ -6932,7 +6977,17 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
       else if (z <= 2) { cls='Alto'; clr='#E07050'; }
       else             { cls='Muy alto'; clr='#C84A4A'; }
     }
-    const tooltipHtml = `📅 ${edadLabel}<br>📊 ${p.y} ${yUnit}<br><span style='color:${clr}'>${zStr}${cls ? ' — '+cls : ''}</span>`;
+    // Diferencia con punto anterior
+    let difHtml = '';
+    if (idx > 0) {
+      const prev = filtered[idx - 1];
+      const dif = p.y - prev.y;
+      const prevLabel = prev.x < 2 ? `${Math.round(prev.x*30.4375)}d` : `${prev.x.toFixed(1)}m`;
+      const difDias = Math.round((p.x - prev.x) * 30.4375);
+      const sign = dif >= 0 ? '+' : '';
+      difHtml = `<br><span style='color:#888;font-size:11px'>Δ desde ${prevLabel}: <b style='color:${dif>=0?"#3A9E6A":"#C84A4A"}'>${sign}${dif.toFixed(1)} ${yUnit}</b> en ${difDias}d</span>`;
+    }
+    const tooltipHtml = `📅 <b>${edadLabel}</b><br>📊 ${p.y} ${yUnit}<br><span style='color:${clr};font-weight:700'>${zStr}${cls ? ' — '+cls : ''}</span>${difHtml}`;
     const cx = xS(p.x).toFixed(1);
     const cy = yS(p.y).toFixed(1);
     return `<circle cx="${cx}" cy="${cy}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2" 
@@ -6944,7 +6999,7 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
 
   // Build HTML overlay dots (más confiable que SVG para hover)
   const chartId = 'chart_' + Math.random().toString(36).substr(2,8);
-  const htmlDots = filtered.map(p => {
+  const htmlDots = filtered.map((p, idx) => {
     const z = calcZScore(tabla, p.x, p.y);
     const zR = z !== null ? Math.round(z*10)/10 : null;
     const edadLabel = p.x < 2 ? `${Math.round(p.x * 30.4375)} días` : `${p.x.toFixed(1)} meses`;
@@ -6958,7 +7013,17 @@ function buildChart(titulo, tabla, puntosPaciente, xLabel, yUnit, colorPaciente,
       else              { cls='Muy alto'; clr='#C84A4A'; }
     }
     const zSign = zR !== null ? (zR > 0 ? '+' : '') : '';
-    const tooltip = `📅 ${edadLabel} | 📊 ${p.y} ${yUnit}${zR !== null ? ` | z: ${zSign}${zR} — ${cls}` : ''}`;
+    // Diferencia con punto anterior
+    let difPart = '';
+    if (idx > 0) {
+      const prev = filtered[idx - 1];
+      const dif = p.y - prev.y;
+      const prevLabel = prev.x < 2 ? `${Math.round(prev.x*30.4375)}d` : `${prev.x.toFixed(1)}m`;
+      const difDias = Math.round((p.x - prev.x) * 30.4375);
+      const sign = dif >= 0 ? '+' : '';
+      difPart = ` | Δ ${prevLabel}: ${sign}${dif.toFixed(1)} ${yUnit} en ${difDias}d`;
+    }
+    const tooltip = `📅 ${edadLabel} | 📊 ${p.y} ${yUnit}${zR !== null ? ` | z: ${zSign}${zR} — ${cls}` : ''}${difPart}`;
     // Position as % of SVG viewBox
     const pctX = (parseFloat(xS(p.x)) / W * 100).toFixed(2);
     const pctY = (parseFloat(yS(p.y)) / H * 100).toFixed(2);
@@ -7038,7 +7103,7 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
     lines += `<text x="${xS(lastRow[0])+5}" y="${yS(lastRow[col])+3}" font-size="8" fill="${lineColors[col-1]}" font-family="Quicksand" font-weight="800">${zLabels[col-1]}</text>`;
   }
 
-  const pacienteDots = puntosWFL.map(p => {
+  const pacienteDots = puntosWFL.map((p, idx) => {
     const talla = parseFloat(p.talla);
     const peso = parseFloat(p.peso);
     const lower = tabla.filter(r => r[0] <= talla).pop();
@@ -7062,7 +7127,19 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
       else if (z <= 2) { cls='Posible sobrepeso'; clr='#E07050'; }
       else             { cls='Obesidad'; clr='#C84A4A'; }
     }
-    const tooltipHtml = `📏 Talla: ${talla} cm<br>⚖️ Peso: ${peso} kg<br><span style='color:${clr}'>${zStr}${cls ? ' — '+cls : ''}</span>`;
+    // Fecha legible si existe
+    const fechaStr = p.fecha ? `📅 ${p.fecha}<br>` : '';
+    // Diferencia con punto anterior
+    let difHtml = '';
+    if (idx > 0) {
+      const prev = puntosWFL[idx - 1];
+      const difTalla = talla - parseFloat(prev.talla);
+      const difPeso = peso - parseFloat(prev.peso);
+      const signT = difTalla >= 0 ? '+' : '';
+      const signP = difPeso >= 0 ? '+' : '';
+      difHtml = `<br><span style='color:#888;font-size:11px'>Δ talla: <b style='color:${difTalla>=0?"#3A9E6A":"#C84A4A"}'>${signT}${difTalla.toFixed(1)} cm</b> | Δ peso: <b style='color:${difPeso>=0?"#3A9E6A":"#C84A4A"}'>${signP}${difPeso.toFixed(2)} kg</b></span>`;
+    }
+    const tooltipHtml = `${fechaStr}📏 Talla: <b>${talla} cm</b><br>⚖️ Peso: <b>${peso} kg</b><br><span style='color:${clr};font-weight:700'>${zStr}${cls ? ' — '+cls : ''}</span>${difHtml}`;
     return `<circle cx="${xS(talla)}" cy="${yS(peso)}" r="5" fill="${colorPaciente}" stroke="white" stroke-width="2"
               style="cursor:pointer"
               onmouseenter="showChartTooltip(event,'${tooltipHtml.replace(/'/g,'&#39;')}')"
