@@ -424,27 +424,132 @@ textarea.form-input { resize:vertical; min-height:70px; }
 .seccion-label.lilac::before { background:linear-gradient(135deg,var(--lilac-d),var(--peach-d)); }
 
 /* VACCINE TABLE */
-.vac-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; }
-.vac-table th {
-  padding:8px 10px; text-align:left;
-  font-size:10px; font-weight:700; letter-spacing:1px;
-  text-transform:uppercase; color:var(--text-light);
-  background:var(--bg); border-bottom:2px solid var(--border);
+/* ── VACUNAS ─────────────────────────────── */
+/* Colores del logo Dra. Sanders */
+:root {
+  --vac-blue:   #A8D8E8;  /* S — azul bebé     */
+  --vac-green:  #B8E0C8;  /* A — verde menta   */
+  --vac-yellow: #E8E0A8;  /* N — amarillo past.*/
+  --vac-peach:  #F5C9A8;  /* D — naranja suave */
+  --vac-pink:   #F0B8C8;  /* E — rosa pastel   */
+  --vac-lilac:  #C8B8E8;  /* R — lila          */
+  /* versiones oscuras para texto */
+  --vac-blue-d:   #5A9AB8;
+  --vac-green-d:  #4A9068;
+  --vac-yellow-d: #8A7830;
+  --vac-peach-d:  #C07838;
+  --vac-pink-d:   #B05878;
+  --vac-lilac-d:  #7858B8;
 }
-.vac-row td { padding:6px 8px; border-bottom:1px solid #F4F4FC; vertical-align:middle; }
-.vac-row:hover td { background:#FAFAFC; }
-.vac-name { font-weight:700; font-size:12px; color:var(--text); white-space:nowrap; }
-.vac-dosis { font-size:11px; color:var(--text-light); font-weight:600; white-space:nowrap; }
-.vac-edad { font-size:11px; color:var(--blue-d); font-weight:700; white-space:nowrap; }
-.vac-extra td { background:#FDFDF8; }
+
+.vac-table {
+  width:100%; border-collapse:separate; border-spacing:0;
+  font-size:12px; margin-bottom:12px;
+  border-radius:12px; overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,0.06);
+}
+.vac-table th {
+  padding:10px 12px; text-align:left;
+  font-size:10px; font-weight:800; letter-spacing:1.2px;
+  text-transform:uppercase; color:white;
+}
+.vac-table thead tr { background:linear-gradient(90deg,#7CBAD0,#9ACAB8,#C4B8D8); }
+.vac-row td {
+  padding:8px 10px; border-bottom:1px solid rgba(0,0,0,0.05);
+  vertical-align:middle;
+}
+.vac-row:last-child td { border-bottom:none; }
+
+/* Color de fondo por vacuna — via clase en el <tr> */
+.vac-bcg    td { background: #EEF7FB; }
+.vac-hepb   td { background: #EEF7FB; }
+.vac-hex    td { background: #EBF6EF; }
+.vac-rota   td { background: #FBF7E8; }
+.vac-neu    td { background: #FEF2E8; }
+.vac-inf    td { background: #FDE8EF; }
+.vac-covid  td { background: #F2EEF8; }
+.vac-srp    td { background: #EEF7FB; }
+.vac-dpt    td { background: #EBF6EF; }
+
+.vac-bcg:hover td,   .vac-hepb:hover td  { background: #D8EEF6; }
+.vac-hex:hover td                         { background: #D6EEE2; }
+.vac-rota:hover td                        { background: #F3EDD4; }
+.vac-neu:hover td                         { background: #FAE5D2; }
+.vac-inf:hover td                         { background: #FAD4E2; }
+.vac-covid:hover td                       { background: #E6DEFA; }
+.vac-srp:hover td                         { background: #D8EEF6; }
+.vac-dpt:hover td                         { background: #D6EEE2; }
+
+/* Vacunas adicionales */
+.vac-extra-var   td { background: #FDE8EF; }
+.vac-extra-hepa  td { background: #EBF6EF; }
+.vac-extra-men   td { background: #F2EEF8; }
+.vac-extra-var:hover  td  { background: #FAD4E2; }
+.vac-extra-hepa:hover td  { background: #D6EEE2; }
+.vac-extra-men:hover  td  { background: #E6DEFA; }
+
+/* Columna nombre con borde de color a la izquierda */
+.vac-name {
+  font-weight:800; font-size:12px; color:var(--text);
+  white-space:nowrap; padding-left:14px !important;
+  position:relative;
+}
+.vac-bcg .vac-name,  .vac-hepb .vac-name  { border-left:4px solid var(--vac-blue);  }
+.vac-hex .vac-name                         { border-left:4px solid var(--vac-green); }
+.vac-rota .vac-name                        { border-left:4px solid var(--vac-yellow);}
+.vac-neu .vac-name                         { border-left:4px solid var(--vac-peach); }
+.vac-inf .vac-name                         { border-left:4px solid var(--vac-pink);  }
+.vac-covid .vac-name                       { border-left:4px solid var(--vac-lilac); }
+.vac-srp .vac-name                         { border-left:4px solid var(--vac-blue);  }
+.vac-dpt .vac-name                         { border-left:4px solid var(--vac-green); }
+.vac-extra-var .vac-name                   { border-left:4px solid var(--vac-pink);  }
+.vac-extra-hepa .vac-name                  { border-left:4px solid var(--vac-green); }
+.vac-extra-men .vac-name                   { border-left:4px solid var(--vac-lilac); }
+
+.vac-dosis { font-size:11px; color:var(--text-light); font-weight:700; white-space:nowrap; }
+
+/* Badge de edad */
+.vac-edad {
+  white-space:nowrap;
+}
+.vac-edad span {
+  display:inline-block; padding:2px 9px; border-radius:20px;
+  font-size:10px; font-weight:800; letter-spacing:0.3px;
+}
+.vac-bcg .vac-edad span,  .vac-hepb .vac-edad span,
+.vac-srp .vac-edad span                              { background:var(--vac-blue);   color:var(--vac-blue-d);   }
+.vac-hex .vac-edad span, .vac-dpt .vac-edad span     { background:var(--vac-green);  color:var(--vac-green-d);  }
+.vac-rota .vac-edad span                             { background:var(--vac-yellow); color:var(--vac-yellow-d); }
+.vac-neu .vac-edad span                              { background:var(--vac-peach);  color:var(--vac-peach-d);  }
+.vac-inf .vac-edad span                              { background:var(--vac-pink);   color:var(--vac-pink-d);   }
+.vac-covid .vac-edad span                            { background:var(--vac-lilac);  color:var(--vac-lilac-d);  }
+.vac-extra-var .vac-edad span                        { background:var(--vac-pink);   color:var(--vac-pink-d);   }
+.vac-extra-hepa .vac-edad span                       { background:var(--vac-green);  color:var(--vac-green-d);  }
+.vac-extra-men .vac-edad span                        { background:var(--vac-lilac);  color:var(--vac-lilac-d);  }
+
 .vac-input {
   width:100%; padding:5px 8px; border-radius:8px;
-  border:1.5px solid var(--border); font-family:'Quicksand',sans-serif;
+  border:1.5px solid rgba(0,0,0,0.1); font-family:'Quicksand',sans-serif;
   font-size:12px; font-weight:600; color:var(--text); outline:none;
-  background:white; transition:border 0.2s;
+  background:rgba(255,255,255,0.7); transition:border 0.2s, background 0.2s;
 }
-.vac-input:focus { border-color:var(--blue-d); }
+.vac-input:focus { border-color:var(--vac-blue-d); background:white; }
 .vac-input[type="date"] { min-width:130px; }
+
+/* Títulos de sección de vacunas */
+.vac-section-title {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 16px; border-radius:12px; margin-bottom:10px; margin-top:18px;
+  font-weight:800; font-size:13px;
+}
+.vac-section-title.basic {
+  background:linear-gradient(90deg,#C8E8F4,#CCE8D8,#D8D4F0);
+  color:#4A6A7A;
+}
+.vac-section-title.extra {
+  background:linear-gradient(90deg,#F4D8E4,#D8E8F0,#E8D8F4);
+  color:#7A4A68;
+}
 
 /* FORMULA CARD */
 .formula-card {
@@ -1376,83 +1481,96 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
       <!-- TAB CRECIMIENTO -->
       <div id="expcontent-vacunas" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--text-main)">💉 Esquema de Vacunación</h3>
-          <button class="btn btn-primary btn-sm" onclick="guardarVacunasTab(this)">💾 Guardar</button>
+        <!-- ENCABEZADO -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 18px;background:linear-gradient(135deg,#C8E8F4,#B8E0C8,#E8D8F4);border-radius:14px;">
+          <div>
+            <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#4A6A7A;">💉 Cartilla de Vacunación</div>
+            <div style="font-size:11px;font-weight:700;color:#6A8A9A;margin-top:2px;">Esquema Nacional de Vacunación PVU 2026</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="guardarVacunasTab(this)" style="background:white;color:var(--blue-d);border:2px solid var(--blue-d);">💾 Guardar</button>
         </div>
 
-        <div class="form-label" style="margin-bottom:10px;">Esquema básico de vacunación (PVU 2026)</div>
+        <!-- ESQUEMA BÁSICO -->
+        <div class="vac-section-title basic">
+          <span style="font-size:18px;">🏥</span>
+          <span>Esquema básico de vacunación (PVU 2026)</span>
+        </div>
         <div style="overflow-x:auto;">
           <table class="vac-table">
             <thead>
               <tr>
-                <th>Vacuna</th>
+                <th style="border-radius:10px 0 0 0;">Vacuna</th>
                 <th>Dosis</th>
                 <th>Edad indicada</th>
                 <th>Fecha aplicada</th>
                 <th>Lote</th>
-                <th>Observaciones</th>
+                <th style="border-radius:0 10px 0 0;">Observaciones</th>
               </tr>
             </thead>
             <tbody>
               <!-- BCG -->
-              <tr class="vac-row"><td class="vac-name">BCG</td><td class="vac-dosis">Única</td><td class="vac-edad">Nacimiento</td><td><input class="vac-input" type="date" id="vac-bcg-fecha"></td><td><input class="vac-input" type="text" id="vac-bcg-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-bcg-obs" placeholder="Notas"></td></tr>
-              <!-- Anti Hepatitis B -->
-              <tr class="vac-row"><td class="vac-name">Anti-Hepatitis B</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">Nacimiento</td><td><input class="vac-input" type="date" id="vac-hepb1-fecha"></td><td><input class="vac-input" type="text" id="vac-hepb1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hepb1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-bcg"><td class="vac-name">🛡️ BCG</td><td class="vac-dosis">Única</td><td class="vac-edad"><span>Nacimiento</span></td><td><input class="vac-input" type="date" id="vac-bcg-fecha"></td><td><input class="vac-input" type="text" id="vac-bcg-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-bcg-obs" placeholder="Notas"></td></tr>
+              <!-- Hepatitis B -->
+              <tr class="vac-hepb"><td class="vac-name">🛡️ Anti-Hepatitis B</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>Nacimiento</span></td><td><input class="vac-input" type="date" id="vac-hepb1-fecha"></td><td><input class="vac-input" type="text" id="vac-hepb1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hepb1-obs" placeholder="Notas"></td></tr>
               <!-- Hexavalente -->
-              <tr class="vac-row"><td class="vac-name" rowspan="4">Hexavalente acelular<br><span style="font-size:10px;color:var(--text-light)">DPTa+HiB+HepB+Polio</span></td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">2 meses</td><td><input class="vac-input" type="date" id="vac-hex1-fecha"></td><td><input class="vac-input" type="text" id="vac-hex1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">4 meses</td><td><input class="vac-input" type="date" id="vac-hex2-fecha"></td><td><input class="vac-input" type="text" id="vac-hex2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex2-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">3ª dosis</td><td class="vac-edad">6 meses</td><td><input class="vac-input" type="date" id="vac-hex3-fecha"></td><td><input class="vac-input" type="text" id="vac-hex3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex3-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">Refuerzo</td><td class="vac-edad">18 meses</td><td><input class="vac-input" type="date" id="vac-hex4-fecha"></td><td><input class="vac-input" type="text" id="vac-hex4-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex4-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-hex"><td class="vac-name" rowspan="4">💚 Hexavalente acelular<br><span style="font-size:10px;color:#6A9A7A;font-weight:600;">DPTa + HiB + HepB + Polio</span></td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>2 meses</span></td><td><input class="vac-input" type="date" id="vac-hex1-fecha"></td><td><input class="vac-input" type="text" id="vac-hex1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-hex"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>4 meses</span></td><td><input class="vac-input" type="date" id="vac-hex2-fecha"></td><td><input class="vac-input" type="text" id="vac-hex2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-hex"><td class="vac-dosis">3ª dosis</td><td class="vac-edad"><span>6 meses</span></td><td><input class="vac-input" type="date" id="vac-hex3-fecha"></td><td><input class="vac-input" type="text" id="vac-hex3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex3-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-hex"><td class="vac-dosis">Refuerzo</td><td class="vac-edad"><span>18 meses</span></td><td><input class="vac-input" type="date" id="vac-hex4-fecha"></td><td><input class="vac-input" type="text" id="vac-hex4-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hex4-obs" placeholder="Notas"></td></tr>
               <!-- Rotavirus -->
-              <tr class="vac-row"><td class="vac-name" rowspan="2">Anti Rotavirus</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">2 meses</td><td><input class="vac-input" type="date" id="vac-rota1-fecha"></td><td><input class="vac-input" type="text" id="vac-rota1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-rota1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">4 meses</td><td><input class="vac-input" type="date" id="vac-rota2-fecha"></td><td><input class="vac-input" type="text" id="vac-rota2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-rota2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-rota"><td class="vac-name" rowspan="2">💛 Anti Rotavirus</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>2 meses</span></td><td><input class="vac-input" type="date" id="vac-rota1-fecha"></td><td><input class="vac-input" type="text" id="vac-rota1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-rota1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-rota"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>4 meses</span></td><td><input class="vac-input" type="date" id="vac-rota2-fecha"></td><td><input class="vac-input" type="text" id="vac-rota2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-rota2-obs" placeholder="Notas"></td></tr>
               <!-- Neumococo -->
-              <tr class="vac-row"><td class="vac-name" rowspan="3">Anti Neumocócica conjugada</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">2 meses</td><td><input class="vac-input" type="date" id="vac-neu1-fecha"></td><td><input class="vac-input" type="text" id="vac-neu1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-neu1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">4 meses</td><td><input class="vac-input" type="date" id="vac-neu2-fecha"></td><td><input class="vac-input" type="text" id="vac-neu2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-neu2-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">Refuerzo</td><td class="vac-edad">12 meses</td><td><input class="vac-input" type="date" id="vac-neu3-fecha"></td><td><input class="vac-input" type="text" id="vac-neu3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-neu3-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-neu"><td class="vac-name" rowspan="3">🧡 Anti Neumocócica conjugada</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>2 meses</span></td><td><input class="vac-input" type="date" id="vac-neu1-fecha"></td><td><input class="vac-input" type="text" id="vac-neu1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-neu1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-neu"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>4 meses</span></td><td><input class="vac-input" type="date" id="vac-neu2-fecha"></td><td><input class="vac-input" type="text" id="vac-neu2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-neu2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-neu"><td class="vac-dosis">Refuerzo</td><td class="vac-edad"><span>12 meses</span></td><td><input class="vac-input" type="date" id="vac-neu3-fecha"></td><td><input class="vac-input" type="text" id="vac-neu3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-neu3-obs" placeholder="Notas"></td></tr>
               <!-- Influenza -->
-              <tr class="vac-row"><td class="vac-name" rowspan="3">Anti Influenza estacional</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">6 meses (temp. invernal)</td><td><input class="vac-input" type="date" id="vac-inf1-fecha"></td><td><input class="vac-input" type="text" id="vac-inf1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-inf1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">7 meses (misma temp.)</td><td><input class="vac-input" type="date" id="vac-inf2-fecha"></td><td><input class="vac-input" type="text" id="vac-inf2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-inf2-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">Anual</td><td class="vac-edad">5 años (anual)</td><td><input class="vac-input" type="date" id="vac-inf3-fecha"></td><td><input class="vac-input" type="text" id="vac-inf3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-inf3-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-inf"><td class="vac-name" rowspan="3">🌸 Anti Influenza estacional</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>6 meses</span></td><td><input class="vac-input" type="date" id="vac-inf1-fecha"></td><td><input class="vac-input" type="text" id="vac-inf1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-inf1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-inf"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>7 meses</span></td><td><input class="vac-input" type="date" id="vac-inf2-fecha"></td><td><input class="vac-input" type="text" id="vac-inf2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-inf2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-inf"><td class="vac-dosis">Anual</td><td class="vac-edad"><span>Anual ≥5a</span></td><td><input class="vac-input" type="date" id="vac-inf3-fecha"></td><td><input class="vac-input" type="text" id="vac-inf3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-inf3-obs" placeholder="Notas"></td></tr>
               <!-- COVID -->
-              <tr class="vac-row"><td class="vac-name" rowspan="2">Anti COVID-19</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">6 meses (temp. invernal)</td><td><input class="vac-input" type="date" id="vac-covid1-fecha"></td><td><input class="vac-input" type="text" id="vac-covid1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-covid1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">7 meses (misma temp.)</td><td><input class="vac-input" type="date" id="vac-covid2-fecha"></td><td><input class="vac-input" type="text" id="vac-covid2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-covid2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-covid"><td class="vac-name" rowspan="2">💜 Anti COVID-19</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>6 meses</span></td><td><input class="vac-input" type="date" id="vac-covid1-fecha"></td><td><input class="vac-input" type="text" id="vac-covid1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-covid1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-covid"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>7 meses</span></td><td><input class="vac-input" type="date" id="vac-covid2-fecha"></td><td><input class="vac-input" type="text" id="vac-covid2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-covid2-obs" placeholder="Notas"></td></tr>
               <!-- SRP -->
-              <tr class="vac-row"><td class="vac-name" rowspan="3">SRP<br><span style="font-size:10px;color:var(--text-light)">Sarampión, Rubéola, Parotiditis</span></td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">12 meses</td><td><input class="vac-input" type="date" id="vac-srp1-fecha"></td><td><input class="vac-input" type="text" id="vac-srp1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-srp1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">18 meses</td><td><input class="vac-input" type="date" id="vac-srp2-fecha"></td><td><input class="vac-input" type="text" id="vac-srp2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-srp2-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row"><td class="vac-dosis">3ª dosis</td><td class="vac-edad">6 años</td><td><input class="vac-input" type="date" id="vac-srp3-fecha"></td><td><input class="vac-input" type="text" id="vac-srp3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-srp3-obs" placeholder="Notas"></td></tr>
-              <!-- DPT refuerzo -->
-              <tr class="vac-row"><td class="vac-name">DPT (refuerzo)</td><td class="vac-dosis">Refuerzo</td><td class="vac-edad">4 años</td><td><input class="vac-input" type="date" id="vac-dpt-fecha"></td><td><input class="vac-input" type="text" id="vac-dpt-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-dpt-obs" placeholder="Notas"></td></tr>
-              <!-- COVID 5 años -->
-              <tr class="vac-row"><td class="vac-name">Anti COVID-19<br><span style="font-size:10px;color:var(--text-light)">Dosis anual</span></td><td class="vac-dosis">Anual</td><td class="vac-edad">5 años</td><td><input class="vac-input" type="date" id="vac-covid3-fecha"></td><td><input class="vac-input" type="text" id="vac-covid3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-covid3-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-srp"><td class="vac-name" rowspan="3">💙 SRP<br><span style="font-size:10px;color:#5A8A9A;font-weight:600;">Sarampión · Rubéola · Parotiditis</span></td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>12 meses</span></td><td><input class="vac-input" type="date" id="vac-srp1-fecha"></td><td><input class="vac-input" type="text" id="vac-srp1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-srp1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-srp"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>18 meses</span></td><td><input class="vac-input" type="date" id="vac-srp2-fecha"></td><td><input class="vac-input" type="text" id="vac-srp2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-srp2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-srp"><td class="vac-dosis">3ª dosis</td><td class="vac-edad"><span>6 años</span></td><td><input class="vac-input" type="date" id="vac-srp3-fecha"></td><td><input class="vac-input" type="text" id="vac-srp3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-srp3-obs" placeholder="Notas"></td></tr>
+              <!-- DPT -->
+              <tr class="vac-dpt"><td class="vac-name">💚 DPT (refuerzo)</td><td class="vac-dosis">Refuerzo</td><td class="vac-edad"><span>4 años</span></td><td><input class="vac-input" type="date" id="vac-dpt-fecha"></td><td><input class="vac-input" type="text" id="vac-dpt-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-dpt-obs" placeholder="Notas"></td></tr>
+              <!-- COVID anual -->
+              <tr class="vac-covid"><td class="vac-name">💜 Anti COVID-19<br><span style="font-size:10px;color:#7858B8;font-weight:600;">Dosis anual</span></td><td class="vac-dosis">Anual</td><td class="vac-edad"><span>≥5 años</span></td><td><input class="vac-input" type="date" id="vac-covid3-fecha"></td><td><input class="vac-input" type="text" id="vac-covid3-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-covid3-obs" placeholder="Notas"></td></tr>
             </tbody>
           </table>
         </div>
 
-        <div class="form-label" style="margin-top:20px;margin-bottom:10px;">Vacunas adicionales</div>
+        <!-- VACUNAS ADICIONALES -->
+        <div class="vac-section-title extra">
+          <span style="font-size:18px;">⭐</span>
+          <span>Vacunas adicionales</span>
+          <span style="font-size:11px;font-weight:600;opacity:0.7;">(no incluidas en PVU)</span>
+        </div>
         <div style="overflow-x:auto;">
           <table class="vac-table">
             <thead>
               <tr>
-                <th>Vacuna</th>
+                <th style="border-radius:10px 0 0 0;">Vacuna</th>
                 <th>Dosis</th>
                 <th>Edad indicada</th>
                 <th>Fecha aplicada</th>
                 <th>Lote</th>
-                <th>Observaciones</th>
+                <th style="border-radius:0 10px 0 0;">Observaciones</th>
               </tr>
             </thead>
             <tbody>
               <!-- Varicela -->
-              <tr class="vac-row vac-extra"><td class="vac-name" rowspan="2">Varicela</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">12 meses</td><td><input class="vac-input" type="date" id="vac-var1-fecha"></td><td><input class="vac-input" type="text" id="vac-var1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-var1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row vac-extra"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">4-6 años</td><td><input class="vac-input" type="date" id="vac-var2-fecha"></td><td><input class="vac-input" type="text" id="vac-var2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-var2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-extra-var"><td class="vac-name" rowspan="2">🌸 Varicela</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>12 meses</span></td><td><input class="vac-input" type="date" id="vac-var1-fecha"></td><td><input class="vac-input" type="text" id="vac-var1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-var1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-extra-var"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>4-6 años</span></td><td><input class="vac-input" type="date" id="vac-var2-fecha"></td><td><input class="vac-input" type="text" id="vac-var2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-var2-obs" placeholder="Notas"></td></tr>
               <!-- Hepatitis A -->
-              <tr class="vac-row vac-extra"><td class="vac-name" rowspan="2">Hepatitis A</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">12 meses</td><td><input class="vac-input" type="date" id="vac-hepa1-fecha"></td><td><input class="vac-input" type="text" id="vac-hepa1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hepa1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row vac-extra"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">18 meses</td><td><input class="vac-input" type="date" id="vac-hepa2-fecha"></td><td><input class="vac-input" type="text" id="vac-hepa2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hepa2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-extra-hepa"><td class="vac-name" rowspan="2">💚 Hepatitis A</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>12 meses</span></td><td><input class="vac-input" type="date" id="vac-hepa1-fecha"></td><td><input class="vac-input" type="text" id="vac-hepa1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hepa1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-extra-hepa"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>18 meses</span></td><td><input class="vac-input" type="date" id="vac-hepa2-fecha"></td><td><input class="vac-input" type="text" id="vac-hepa2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-hepa2-obs" placeholder="Notas"></td></tr>
               <!-- Meningococo -->
-              <tr class="vac-row vac-extra"><td class="vac-name" rowspan="2">Meningococo</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad">9 meses</td><td><input class="vac-input" type="date" id="vac-men1-fecha"></td><td><input class="vac-input" type="text" id="vac-men1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-men1-obs" placeholder="Notas"></td></tr>
-              <tr class="vac-row vac-extra"><td class="vac-dosis">2ª dosis</td><td class="vac-edad">12 meses</td><td><input class="vac-input" type="date" id="vac-men2-fecha"></td><td><input class="vac-input" type="text" id="vac-men2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-men2-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-extra-men"><td class="vac-name" rowspan="2">💜 Meningococo</td><td class="vac-dosis">1ª dosis</td><td class="vac-edad"><span>9 meses</span></td><td><input class="vac-input" type="date" id="vac-men1-fecha"></td><td><input class="vac-input" type="text" id="vac-men1-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-men1-obs" placeholder="Notas"></td></tr>
+              <tr class="vac-extra-men"><td class="vac-dosis">2ª dosis</td><td class="vac-edad"><span>12 meses</span></td><td><input class="vac-input" type="date" id="vac-men2-fecha"></td><td><input class="vac-input" type="text" id="vac-men2-lote" placeholder="Lote"></td><td><input class="vac-input" type="text" id="vac-men2-obs" placeholder="Notas"></td></tr>
             </tbody>
           </table>
         </div>
