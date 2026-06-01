@@ -1931,6 +1931,45 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
           </div>
 
+          <!-- ESTUDIOS COMPLEMENTARIOS -->
+          <div class="soap-section" style="border-left:4px solid #7CB8D4;margin-bottom:12px;">
+            <div class="soap-letter" style="color:#5A9AB8;font-size:17px;">🔬</div>
+            <div class="soap-title" style="color:#5A9AB8;">Estudios complementarios</div>
+            <div class="soap-body">
+              <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:10px;">
+                Registra estudios solicitados o resultados traídos por el paciente
+              </div>
+
+              <!-- Estudios de laboratorio -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <div class="form-label" style="display:flex;align-items:center;gap:6px;">
+                  <span>🩸</span> Laboratorio / Estudios de sangre y orina
+                </div>
+                <textarea class="form-input" id="c-lab" rows="3"
+                  placeholder="Ej: BH — Hb 11.2, Hto 34%, leucocitos 8,200 con fórmula normal. Glucosa 85 mg/dL. Interpretación: anemia leve microcítica..."></textarea>
+              </div>
+
+              <!-- Estudios de imagen -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <div class="form-label" style="display:flex;align-items:center;gap:6px;">
+                  <span>🩻</span> Imagen (Rx, USG, TC, RM, otros)
+                </div>
+                <div id="c-imagenes-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="agregarEstudioImagen()"
+                  style="font-size:12px;">+ Agregar estudio de imagen</button>
+              </div>
+
+              <!-- Otros estudios -->
+              <div class="form-group">
+                <div class="form-label" style="display:flex;align-items:center;gap:6px;">
+                  <span>📄</span> Otros estudios
+                </div>
+                <textarea class="form-input" id="c-otros-estudios" rows="2"
+                  placeholder="Electrocardiograma, espirometría, audiometría, estudios de gabinete, etc."></textarea>
+              </div>
+            </div>
+          </div>
+
           <!-- A: ANÁLISIS / DIAGNÓSTICO -->
           <div class="soap-section" style="border-left:4px solid var(--green-d);">
             <div class="soap-letter" style="color:var(--green-d);">A</div>
@@ -4352,6 +4391,9 @@ async function guardarConsulta() {
     motivo,
     subjetivo: document.getElementById('c-subjetivo').value,
     exploracion: document.getElementById('c-exploracion').value,
+    estudios_lab: document.getElementById('c-lab')?.value || '',
+    estudios_imagenes: JSON.stringify(estudiosImagenes),
+    estudios_otros: document.getElementById('c-otros-estudios')?.value || '',
     diagnosticos_cie11: JSON.stringify(cie11Diagnosticos),
     diagnostico: document.getElementById('c-diagnostico').value,
     tratamiento: document.getElementById('c-tratamiento').value,
@@ -4405,6 +4447,7 @@ function limpiarConsulta() {
   if (interpEl) interpEl.innerHTML = '';
   cie11Diagnosticos = [];
   renderDiagnosticos();
+  limpiarEstudios();
   pacienteConsultaId = null;
   document.getElementById('search-consulta-paciente').value = '';
   document.getElementById('form-consulta-panel').style.display = 'none';
@@ -4910,6 +4953,8 @@ async function guardarConsultaEdit(id) {
   if (peso && talla) imc = (parseFloat(peso) / Math.pow(parseFloat(talla)/100, 2)).toFixed(1);
 
   const data = {
+    fecha: document.getElementById(`edit-fecha-${id}`)?.value || null,
+    hora: document.getElementById(`edit-hora-${id}`)?.value || null,
     peso: peso || null,
     talla: talla || null,
     temperatura: document.getElementById(`edit-temp-${id}`).value || null,
@@ -4933,6 +4978,28 @@ async function guardarConsultaEdit(id) {
       });
       return JSON.stringify(diags);
     })(),
+    estudios_lab: document.getElementById(`edit-lab-${id}`)?.value || '',
+    estudios_imagenes: (() => {
+      // Si el textarea de texto tiene contenido, convertirlo a JSON simple
+      const txt = document.getElementById(`edit-imagenes-texto-${id}`)?.value || '';
+      if (!txt.trim()) return '[]';
+      // Intentar parsear líneas como "tipo: descripcion — resultado"
+      const lines = txt.split('\n').filter(l => l.trim());
+      const imgs = lines.map(line => {
+        const colonIdx = line.indexOf(':');
+        const dashIdx = line.indexOf(' — ');
+        if (colonIdx > 0 && dashIdx > colonIdx) {
+          return {
+            tipo: line.substring(0, colonIdx).trim(),
+            descripcion: line.substring(colonIdx+1, dashIdx).trim(),
+            resultado: line.substring(dashIdx+3).trim()
+          };
+        }
+        return { tipo: '', descripcion: line.trim(), resultado: '' };
+      });
+      return JSON.stringify(imgs);
+    })(),
+    estudios_otros: document.getElementById(`edit-otros-estudios-${id}`)?.value || '',
     diagnostico: document.getElementById(`edit-diagnostico-${id}`).value,
     tratamiento: document.getElementById(`edit-tratamiento-${id}`)?.value || '',
     plan: document.getElementById(`edit-plan-${id}`).value,
@@ -4944,6 +5011,15 @@ async function guardarConsultaEdit(id) {
     const btn = document.getElementById(`btn-save-${id}`);
     btn.textContent = '✅ Guardado';
     btn.style.background = 'var(--green-d)';
+    // Actualizar el header con la nueva fecha/hora sin recargar
+    const nuevaFecha = document.getElementById(`edit-fecha-${id}`)?.value;
+    const nuevaHora = document.getElementById(`edit-hora-${id}`)?.value;
+    if (nuevaFecha) {
+      const fechaLabel = new Date(nuevaFecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      const horaLabel = nuevaHora ? ` — 🕐 ${nuevaHora}` : '';
+      const headerFecha = document.querySelector(`#consulta-body-${id}`)?.closest('[style*="border:1.5px"]')?.querySelector('[style*="font-weight:800"]');
+      if (headerFecha) headerFecha.innerHTML = `${fechaLabel}<span style="color:var(--blue-d);font-size:12px;">${horaLabel}</span>`;
+    }
     setTimeout(() => { btn.textContent = '💾 Guardar cambios'; btn.style.background = ''; }, 2000);
   } catch(e) {
     alert('Error al guardar: ' + e.message);
@@ -5711,6 +5787,74 @@ async function guardarEdicionPaciente() {
 }
 
 
+
+// ==================== ESTUDIOS COMPLEMENTARIOS ====================
+let estudiosImagenes = []; // [{tipo:'', descripcion:'', resultado:''}]
+
+function agregarEstudioImagen() {
+  const idx = estudiosImagenes.length;
+  estudiosImagenes.push({tipo:'', descripcion:'', resultado:''});
+  renderEstudiosImagenes();
+}
+
+function eliminarEstudioImagen(idx) {
+  estudiosImagenes.splice(idx, 1);
+  renderEstudiosImagenes();
+}
+
+function renderEstudiosImagenes() {
+  const cont = document.getElementById('c-imagenes-lista');
+  if (!cont) return;
+  cont.innerHTML = estudiosImagenes.map((e, i) => `
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;position:relative;">
+      <button onclick="eliminarEstudioImagen(${i})" type="button"
+        style="position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-light);">×</button>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px;">
+        <div>
+          <div class="form-label" style="font-size:11px;">Tipo de estudio</div>
+          <select class="form-input" style="font-size:12px;" onchange="estudiosImagenes[${i}].tipo=this.value">
+            <option value="" ${!e.tipo?'selected':''}>Seleccionar...</option>
+            <option value="Radiografía" ${e.tipo==='Radiografía'?'selected':''}>🩻 Radiografía</option>
+            <option value="Ultrasonido" ${e.tipo==='Ultrasonido'?'selected':''}>🔊 Ultrasonido (USG)</option>
+            <option value="Tomografía" ${e.tipo==='Tomografía'?'selected':''}>🧠 Tomografía (TC)</option>
+            <option value="Resonancia magnética" ${e.tipo==='Resonancia magnética'?'selected':''}>🧲 Resonancia (RM)</option>
+            <option value="Ecocardiograma" ${e.tipo==='Ecocardiograma'?'selected':''}>❤️ Ecocardiograma</option>
+            <option value="Otro" ${e.tipo==='Otro'?'selected':''}>📄 Otro</option>
+          </select>
+        </div>
+        <div>
+          <div class="form-label" style="font-size:11px;">Región / Descripción</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: Tórax PA, abdomen, cadera derecha..."
+            oninput="estudiosImagenes[${i}].descripcion=this.value">
+        </div>
+      </div>
+      <div>
+        <div class="form-label" style="font-size:11px;">Hallazgos e interpretación</div>
+        <textarea class="form-input" style="font-size:12px;" rows="2"
+          placeholder="Describe hallazgos, impresión diagnóstica o resultado..."
+          oninput="estudiosImagenes[${i}].resultado=this.value">${e.resultado||''}</textarea>
+      </div>
+    </div>
+  `).join('');
+}
+
+function leerEstudiosParaGuardar() {
+  return {
+    lab: document.getElementById('c-lab')?.value || '',
+    imagenes: JSON.stringify(estudiosImagenes),
+    otros: document.getElementById('c-otros-estudios')?.value || '',
+  };
+}
+
+function limpiarEstudios() {
+  estudiosImagenes = [];
+  const lab = document.getElementById('c-lab');
+  const otros = document.getElementById('c-otros-estudios');
+  if (lab) lab.value = '';
+  if (otros) otros.value = '';
+  renderEstudiosImagenes();
+}
 
 // ==================== CHART TOOLTIP ====================
 let chartTooltipEl = null;
@@ -7263,6 +7407,19 @@ async function cargarConsultasPaciente(id) {
         <!-- BODY EXPANDIBLE -->
         <div id="consulta-body-${c.id}" style="display:none;padding:16px;border-top:1px solid var(--border);background:#FAFAFC;">
 
+          <!-- FECHA Y HORA -->
+          <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;padding:10px 14px;background:white;border-radius:var(--radius-sm);border:1.5px solid var(--border);">
+            <span style="font-size:18px;">📅</span>
+            <div class="form-group" style="margin:0;flex:1;">
+              <div class="form-label">Fecha de consulta</div>
+              <input type="date" class="form-input" id="edit-fecha-${c.id}" value="${c.fecha||''}">
+            </div>
+            <div class="form-group" style="margin:0;width:130px;">
+              <div class="form-label">Hora</div>
+              <input type="time" class="form-input" id="edit-hora-${c.id}" value="${c.hora||''}">
+            </div>
+          </div>
+
           <!-- SIGNOS VITALES -->
           <div class="seccion-label blue" style="font-size:12px;">❤️ Signos vitales</div>
           <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
@@ -7301,6 +7458,44 @@ async function cargarConsultasPaciente(id) {
               <textarea class="form-input" id="edit-exploracion-${c.id}" rows="3">${c.exploracion||''}</textarea>
             </div>
           </div>
+          <!-- ESTUDIOS COMPLEMENTARIOS (edición) -->
+          <div style="border-left:4px solid #7CB8D4;padding-left:14px;margin-bottom:14px;">
+            <div style="font-weight:800;font-size:12px;color:#5A9AB8;margin-bottom:8px;">🔬 Estudios complementarios</div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <div class="form-label" style="font-size:11px;">🩸 Laboratorio / Sangre y orina</div>
+              <textarea class="form-input" id="edit-lab-${c.id}" rows="3"
+                placeholder="BH, QS, EGO, cultivos, otros laboratorios...">${c.estudios_lab||''}</textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <div class="form-label" style="font-size:11px;">🩻 Imagen (Rx, USG, TC, RM, otros)</div>
+              <div id="edit-imagenes-lista-${c.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+                ${(() => {
+                  try {
+                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
+                    return imgs.map((img, i) => `
+                      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;">
+                        <div style="font-size:12px;font-weight:700;color:#5A9AB8;margin-bottom:4px;">${img.tipo||'Imagen'} — ${img.descripcion||''}</div>
+                        <div style="font-size:12px;color:var(--text);">${img.resultado||''}</div>
+                      </div>`).join('');
+                  } catch(e) { return ''; }
+                })()}
+              </div>
+              <textarea class="form-input" id="edit-imagenes-texto-${c.id}" rows="2"
+                placeholder="Agregar / editar estudios de imagen (tipo: descripción — resultado)"
+                style="font-size:11px;">${(() => {
+                  try {
+                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
+                    return imgs.map(img => `${img.tipo||''}: ${img.descripcion||''} — ${img.resultado||''}`).join('\n');
+                  } catch(e) { return c.estudios_imagenes||''; }
+                })()}</textarea>
+            </div>
+            <div class="form-group">
+              <div class="form-label" style="font-size:11px;">📄 Otros estudios</div>
+              <textarea class="form-input" id="edit-otros-estudios-${c.id}" rows="2"
+                placeholder="ECG, espirometría, audiometría...">${c.estudios_otros||''}</textarea>
+            </div>
+          </div>
+
           <div class="form-group" style="margin-bottom:10px;">
             <div class="form-label">Diagnósticos CIE-11</div>
             <div id="edit-cie11-lista-${c.id}" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
