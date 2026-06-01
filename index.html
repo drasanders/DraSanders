@@ -93,6 +93,8 @@ body { font-family:'Quicksand',sans-serif; background:var(--bg); color:var(--tex
 .btn-primary:hover { transform:translateY(-2px); }
 .btn-ghost { background:var(--white); color:var(--text); border:1.5px solid var(--border); }
 .btn-danger { background:#FFE8E8; color:#C84A4A; border:none; }
+.btn-whatsapp { background:linear-gradient(135deg,#25D366,#128C7E); color:white; box-shadow:0 4px 12px rgba(37,211,102,0.3); }
+.btn-whatsapp:hover { transform:translateY(-2px); }
 .btn-sm { padding:6px 14px; font-size:12px; }
 
 /* CONTENT */
@@ -164,7 +166,7 @@ body { font-family:'Quicksand',sans-serif; background:var(--bg); color:var(--tex
 }
 .form-input:focus { border-color:var(--blue-d); background:white; }
 textarea.form-input { resize:vertical; min-height:70px; }
-.form-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+.form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); flex-wrap:wrap; }
 
 /* SEARCH */
 .search-wrap { position:relative; }
@@ -258,49 +260,46 @@ textarea.form-input { resize:vertical; min-height:70px; }
   display:flex; flex-direction:column;
 }
 .soap-header {
-  display:flex; align-items:center; gap:0;
+  display:flex; align-items:center;
   border-bottom:1.5px solid var(--border);
 }
 .soap-letter {
   font-family:'Nunito',sans-serif; font-weight:900; font-size:22px;
   display:flex; align-items:center; justify-content:center;
-  background:var(--bg); padding:10px 14px;
-  flex-shrink:0; min-width:50px;
+  padding:10px 14px; flex-shrink:0; min-width:52px;
   border-right:1px solid var(--border);
 }
 .soap-title {
   font-family:'Nunito',sans-serif; font-weight:800; font-size:13px;
   display:flex; align-items:center; padding:10px 14px;
-  background:var(--bg); color:var(--text); letter-spacing:0.5px;
-  flex:1; word-break:break-word;
+  letter-spacing:0.5px; flex:1;
 }
 .soap-body { padding:16px 18px; }
 
-/* SOAP colores por sección */
 .soap-s { border-left:4px solid var(--lilac-d); }
-.soap-s .soap-header { background:linear-gradient(90deg,#F5F0FF,var(--white)); }
-.soap-s .soap-letter { background:linear-gradient(135deg,#EDE5FF,#F5F0FF); color:var(--lilac-d); }
-.soap-s .soap-title  { background:transparent; color:var(--lilac-d); }
+.soap-s .soap-header { background:linear-gradient(90deg,#F0ECFF,var(--white)); }
+.soap-s .soap-letter { background:linear-gradient(135deg,#E5DCFF,#F0ECFF); color:var(--lilac-d); }
+.soap-s .soap-title  { color:var(--lilac-d); background:transparent; }
 
 .soap-o { border-left:4px solid var(--blue-d); }
-.soap-o .soap-header { background:linear-gradient(90deg,#EDF7FF,var(--white)); }
-.soap-o .soap-letter { background:linear-gradient(135deg,#D8EFFF,#EDF7FF); color:var(--blue-d); }
-.soap-o .soap-title  { background:transparent; color:var(--blue-d); }
+.soap-o .soap-header { background:linear-gradient(90deg,#E5F4FF,var(--white)); }
+.soap-o .soap-letter { background:linear-gradient(135deg,#CCE8FF,#E5F4FF); color:var(--blue-d); }
+.soap-o .soap-title  { color:var(--blue-d); background:transparent; }
 
 .soap-est { border-left:4px solid #7CB8D4; }
 .soap-est .soap-header { background:linear-gradient(90deg,#E8F5FF,var(--white)); }
-.soap-est .soap-letter { background:linear-gradient(135deg,#C8E8F8,#E8F5FF); color:#4A8FAA; }
-.soap-est .soap-title  { background:transparent; color:#4A8FAA; }
+.soap-est .soap-letter { background:linear-gradient(135deg,#C5E5F5,#E8F5FF); color:#4A8FAA; }
+.soap-est .soap-title  { color:#4A8FAA; background:transparent; }
 
 .soap-a { border-left:4px solid var(--green-d); }
-.soap-a .soap-header { background:linear-gradient(90deg,#E8F8EE,var(--white)); }
-.soap-a .soap-letter { background:linear-gradient(135deg,#C8EDD8,#E8F8EE); color:var(--green-d); }
-.soap-a .soap-title  { background:transparent; color:var(--green-d); }
+.soap-a .soap-header { background:linear-gradient(90deg,#E5F5EC,var(--white)); }
+.soap-a .soap-letter { background:linear-gradient(135deg,#C2E8D0,#E5F5EC); color:var(--green-d); }
+.soap-a .soap-title  { color:var(--green-d); background:transparent; }
 
 .soap-p { border-left:4px solid var(--peach-d); }
-.soap-p .soap-header { background:linear-gradient(90deg,#FFF3E8,var(--white)); }
-.soap-p .soap-letter { background:linear-gradient(135deg,#FFE0C0,#FFF3E8); color:var(--peach-d); }
-.soap-p .soap-title  { background:transparent; color:var(--peach-d); }
+.soap-p .soap-header { background:linear-gradient(90deg,#FFF0E5,var(--white)); }
+.soap-p .soap-letter { background:linear-gradient(135deg,#FFDDC2,#FFF0E5); color:var(--peach-d); }
+.soap-p .soap-title  { color:var(--peach-d); background:transparent; }
 
 /* CIE-11 */
 .cie-tag {
@@ -2056,7 +2055,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <div class="soap-section soap-s">
             <div class="soap-header">
               <div class="soap-letter">S</div>
-              <div class="soap-title">Subjetivo — Motivo y antecedentes</div>
+              <div class="soap-title">Subjetivo — Motivo y enfermedad actual</div>
             </div>
             <div class="soap-body">
               <div class="form-group" style="margin-bottom:10px;">
@@ -2085,11 +2084,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
           </div>
 
           <!-- ESTUDIOS COMPLEMENTARIOS -->
-          <div class="soap-section soap-est" style="margin-bottom:12px;">
-            <div class="soap-header">
-              <div class="soap-letter" style="font-size:18px;">🔬</div>
-              <div class="soap-title">Estudios complementarios</div>
-            </div>
+          <div class="soap-section" style="border-left:4px solid #7CB8D4;margin-bottom:12px;">
+            <div class="soap-letter" style="color:#5A9AB8;font-size:17px;">🔬</div>
+            <div class="soap-title" style="color:#5A9AB8;">Estudios complementarios</div>
             <div class="soap-body">
               <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:12px;">
                 Selecciona el tipo de estudio para agregarlo a la nota
@@ -2097,13 +2094,13 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
               <!-- Selector para agregar estudios -->
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-                <select id="est-tipo-selector" class="form-input" style="flex:1;font-size:13px;">
+                <select id="est-tipo-selector" class="form-input" style="flex:1;min-width:180px;font-size:13px;">
                   <option value="">— Seleccionar tipo de estudio —</option>
                   <option value="lab">🩸 Laboratorio (BH, QS, EGO, cultivos...)</option>
                   <option value="imagen">🩻 Imagen (Rx, USG, TC, RM...)</option>
                   <option value="otro">📄 Otro estudio (ECG, espirometría...)</option>
                 </select>
-                <button type="button" class="btn btn-primary btn-sm" onclick="agregarEstudio()" style="white-space:nowrap;flex-shrink:0;">+ Agregar</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="agregarEstudio()" style="white-space:nowrap;">+ Agregar</button>
               </div>
 
               <!-- Lista dinámica de estudios agregados -->
@@ -2507,8 +2504,18 @@ textarea.form-input { resize:vertical; min-height:70px; }
   </div>
 </div>
 <div id="modal-editar-cita" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-editar-cita')">
-  <div class="modal">
-    <div class="modal-title">✏️ Editar cita</div>
+  <div class="modal" style="padding:0;overflow:hidden;">
+
+    <!-- HEADER COLORIDO -->
+    <div style="background:linear-gradient(135deg,var(--blue-d),var(--lilac-d));padding:22px 28px 18px;position:relative;">
+      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;display:flex;align-items:center;gap:10px;">
+        ✏️ Editar cita
+      </div>
+      <div id="ec-paciente-nombre-header" style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);margin-top:4px;"></div>
+      <button onclick="closeModal('modal-editar-cita')" style="position:absolute;top:16px;right:18px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+    </div>
+
+    <div style="padding:22px 28px;overflow-y:auto;max-height:calc(90vh - 90px);">
     <div class="form-group" style="margin-bottom:12px;">
       <div class="form-label">Paciente</div>
       <div id="ec-paciente-nombre" style="font-weight:700;font-size:14px;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);"></div>
@@ -2672,13 +2679,18 @@ textarea.form-input { resize:vertical; min-height:70px; }
       </div>
     </div>
 
-    <div class="form-actions">
-      <button class="btn btn-danger" onclick="eliminarCita()">🗑 Eliminar</button>
-      <button class="btn btn-whatsapp" onclick="confirmarCitaWhatsapp('editar')">💬 WhatsApp</button>
-      <button class="btn btn-ghost" onclick="irAExpedienteDesdeCita()">📋 Abrir expediente</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-editar-cita')">Cancelar</button>
-      <button class="btn btn-primary" onclick="actualizarCita()">💾 Guardar</button>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-danger btn-sm" onclick="eliminarCita()">🗑 Eliminar</button>
+        <button class="btn btn-whatsapp btn-sm" onclick="confirmarCitaWhatsapp('editar')">💬 WhatsApp</button>
+        <button class="btn btn-ghost btn-sm" onclick="irAExpedienteDesdeCita()">📋 Expediente</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar-cita')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="actualizarCita()">💾 Guardar</button>
+      </div>
     </div>
+    </div><!-- /body padding -->
   </div>
 </div>
 
@@ -3578,6 +3590,8 @@ function editarCita(id) {
   citaEditandoId = id;
   const p = pacientes.find(x => x.id === c.paciente_id);
   document.getElementById('ec-paciente-nombre').textContent = p ? p.nombre : 'Paciente';
+  const hdr = document.getElementById('ec-paciente-nombre-header');
+  if (hdr) hdr.textContent = p ? p.nombre : '';
   const dt = new Date(c.fecha_hora);
   document.getElementById('ec-fecha').value = fechaLocal(dt);
   document.getElementById('ec-hora').value = dt.toTimeString().slice(0,5);
@@ -4523,6 +4537,7 @@ async function guardarConsulta() {
   const horaSeleccionada = document.getElementById('c-hora').value || new Date().toTimeString().slice(0,5);
   const esHistorica = fechaSeleccionada < fechaLocal();
 
+  const est = leerEstudiosParaGuardar();
   const data = {
     paciente_id: pacienteConsultaId,
     fecha: fechaSeleccionada,
@@ -4540,6 +4555,9 @@ async function guardarConsulta() {
     motivo,
     subjetivo: document.getElementById('c-subjetivo').value,
     exploracion: document.getElementById('c-exploracion').value,
+    estudios_lab: est.lab,
+    estudios_imagenes: est.imagenes,
+    estudios_otros: est.otros,
     diagnosticos_cie11: JSON.stringify(cie11Diagnosticos),
     diagnostico: document.getElementById('c-diagnostico').value,
     tratamiento: document.getElementById('c-tratamiento').value,
@@ -4547,27 +4565,26 @@ async function guardarConsulta() {
     seguimiento: document.getElementById('c-seguimiento').value,
   };
 
-  // Agregar campos de estudios si existen
-  try {
-    const est = leerEstudiosParaGuardar();
-    data.estudios_lab = est.lab;
-    data.estudios_imagenes = est.imagenes;
-    data.estudios_otros = est.otros;
-  } catch(e) { /* columnas opcionales */ }
-
   try {
     let guardado = false;
+    // Intentar guardar con todos los campos (incluyendo estudios)
     try {
       await api('POST','consultas',data);
       guardado = true;
     } catch(e1) {
-      // Reintentar sin campos de estudios si la BD no los tiene aún
-      const d2 = Object.assign({}, data);
-      delete d2.estudios_lab; delete d2.estudios_imagenes; delete d2.estudios_otros;
+      // Si falla, puede ser por columnas de estudios no existentes en BD
+      // Intentar sin esos campos
+      const dataSinEstudios = Object.assign({}, data);
+      delete dataSinEstudios.estudios_lab;
+      delete dataSinEstudios.estudios_imagenes;
+      delete dataSinEstudios.estudios_otros;
       try {
-        await api('POST','consultas',d2);
+        await api('POST','consultas',dataSinEstudios);
         guardado = true;
-      } catch(e2) { throw new Error(e2.message || e1.message); }
+        console.warn('Guardado sin campos de estudios. Error original:', e1.message);
+      } catch(e2) {
+        throw new Error(e2.message || e1.message);
+      }
     }
     if (guardado) {
       const msg = esHistorica ? '✅ Nota histórica guardada correctamente' : '✅ Consulta guardada correctamente en el expediente';
@@ -5191,6 +5208,25 @@ async function guardarConsultaEdit(id) {
     setTimeout(() => { btn.textContent = '💾 Guardar cambios'; btn.style.background = ''; }, 2000);
   } catch(e) {
     alert('Error al guardar: ' + e.message);
+  }
+}
+
+async function eliminarConsulta(id, fecha) {
+  const fechaLabel = fecha ? new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : 'esta nota';
+  if (!confirm(`🗑 ¿Eliminar la nota del ${fechaLabel}?\n\nEsta acción no se puede deshacer.`)) return;
+  try {
+    await api('DELETE','consultas',null,`?id=eq.${id}`);
+    const card = document.querySelector(`#consulta-body-${id}`)?.closest('[style*="border:1.5px solid var(--border)"]');
+    if (card) {
+      card.style.transition = 'opacity 0.3s,transform 0.3s';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-10px)';
+      setTimeout(() => card.remove(), 300);
+    }
+    await cargarDashboard();
+    showAlert('exp-alert','🗑 Nota eliminada correctamente','success');
+  } catch(e) {
+    alert('Error al eliminar: ' + e.message);
   }
 }
 
@@ -5957,18 +5993,22 @@ async function guardarEdicionPaciente() {
 
 
 // ==================== ESTUDIOS COMPLEMENTARIOS ====================
-let estudiosLista = []; // [{cat:'lab'|'imagen'|'otro', tipo:'', descripcion:'', resultado:''}]
-let estudiosImagenes = []; // alias legacy
+// Cada estudio: { cat: 'lab'|'imagen'|'otro', tipo:'', descripcion:'', resultado:'' }
+let estudiosLista = [];
+
+// Compatibilidad legacy
+let estudiosImagenes = [];
 
 function agregarEstudio() {
   const sel = document.getElementById('est-tipo-selector');
   const cat = sel ? sel.value : '';
-  if (!cat) { if(sel) sel.focus(); return; }
+  if (!cat) { sel && sel.focus(); return; }
   estudiosLista.push({ cat, tipo:'', descripcion:'', resultado:'' });
   renderEstudiosLista();
   if (sel) sel.value = '';
 }
 
+// Mantener compatibilidad legacy si algo llama agregarEstudioImagen
 function agregarEstudioImagen() {
   estudiosLista.push({ cat:'imagen', tipo:'', descripcion:'', resultado:'' });
   renderEstudiosLista();
@@ -5979,31 +6019,29 @@ function eliminarEstudio(idx) {
   renderEstudiosLista();
 }
 
-function eliminarEstudioImagen(idx) {
-  const imgIdxs = estudiosLista.reduce((acc, e, i) => { if(e.cat==='imagen') acc.push(i); return acc; }, []);
-  if (imgIdxs[idx] !== undefined) eliminarEstudio(imgIdxs[idx]);
-}
-
 function renderEstudiosLista() {
   const cont = document.getElementById('c-estudios-lista');
   if (!cont) return;
+
   if (estudiosLista.length === 0) {
-    cont.innerHTML = '<div style="text-align:center;padding:12px 0;font-size:12px;color:var(--text-light);font-weight:600;">No se han agregado estudios — usa el menú de arriba</div>';
+    cont.innerHTML = '<div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text-light);font-weight:600;">No se han agregado estudios aún</div>';
     return;
   }
-  const paleta = {
-    lab:    { bg:'#EDF7FF', border:'#7CB8D4', titulo:'🩸 Laboratorio',   color:'#4A8FAA' },
-    imagen: { bg:'#F5F0FF', border:'var(--lilac-d)', titulo:'🩻 Imagen', color:'var(--lilac-d)' },
-    otro:   { bg:'#F0FFF5', border:'var(--green-d)', titulo:'📄 Otro estudio', color:'var(--green-d)' },
-  };
+
   cont.innerHTML = estudiosLista.map((e, i) => {
-    const p = paleta[e.cat] || paleta.otro;
-    let camposDesc = '';
+    const colores = { lab:'#E8F5FF', imagen:'#F5F0FF', otro:'#F0FFF0' };
+    const coloresB = { lab:'var(--blue-d)', imagen:'var(--lilac-d)', otro:'var(--green-d)' };
+    const titulos = { lab:'🩸 Laboratorio', imagen:'🩻 Imagen', otro:'📄 Otro estudio' };
+    const bg = colores[e.cat] || 'var(--bg)';
+    const bc = coloresB[e.cat] || 'var(--border)';
+    const titulo = titulos[e.cat] || 'Estudio';
+
+    let camposTipo = '';
     if (e.cat === 'imagen') {
-      camposDesc = `
-        <div class="form-group" style="margin-bottom:8px;">
+      camposTipo = `
+        <div>
           <div class="form-label" style="font-size:11px;">Tipo de imagen</div>
-          <select class="form-input" style="font-size:13px;" onchange="estudiosLista[${i}].tipo=this.value">
+          <select class="form-input" style="font-size:12px;" onchange="estudiosLista[${i}].tipo=this.value">
             <option value="" ${!e.tipo?'selected':''}>Seleccionar...</option>
             <option value="Radiografía" ${e.tipo==='Radiografía'?'selected':''}>🩻 Radiografía</option>
             <option value="Ultrasonido" ${e.tipo==='Ultrasonido'?'selected':''}>🔊 Ultrasonido (USG)</option>
@@ -6013,52 +6051,67 @@ function renderEstudiosLista() {
             <option value="Otro" ${e.tipo==='Otro'?'selected':''}>📄 Otro</option>
           </select>
         </div>
-        <div class="form-group" style="margin-bottom:8px;">
-          <div class="form-label" style="font-size:11px;">Región / área del estudio</div>
-          <input class="form-input" style="font-size:13px;" value="${e.descripcion||''}"
-            placeholder="Ej: Tórax PA, abdomen, cadera derecha, cráneo..."
+        <div>
+          <div class="form-label" style="font-size:11px;">Región / área</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: Tórax PA, abdomen, cadera..."
+            oninput="estudiosLista[${i}].descripcion=this.value">
+        </div>`;
+    } else if (e.cat === 'lab') {
+      camposTipo = `
+        <div style="grid-column:1/-1;">
+          <div class="form-label" style="font-size:11px;">Estudio(s) solicitado(s) / resultado</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: BH, QS, EGO, hemocultivo, perfil tiroideo..."
             oninput="estudiosLista[${i}].descripcion=this.value">
         </div>`;
     } else {
-      const ph = e.cat === 'lab'
-        ? 'Ej: BH, QS, EGO, hemocultivo, perfil tiroideo, ferritina...'
-        : 'Ej: Electrocardiograma, espirometría, audiometría, potenciales evocados...';
-      camposDesc = `
-        <div class="form-group" style="margin-bottom:8px;">
-          <div class="form-label" style="font-size:11px;">Estudio(s)</div>
-          <input class="form-input" style="font-size:13px;" value="${e.descripcion||''}"
-            placeholder="${ph}"
+      camposTipo = `
+        <div style="grid-column:1/-1;">
+          <div class="form-label" style="font-size:11px;">Nombre del estudio</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: Electrocardiograma, espirometría, audiometría..."
             oninput="estudiosLista[${i}].descripcion=this.value">
         </div>`;
     }
+
     return `
-    <div style="background:${p.bg};border:1.5px solid ${p.border};border-radius:var(--radius-sm);overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid ${p.border};background:rgba(255,255,255,0.6);">
-        <span style="font-size:12px;font-weight:800;color:${p.color};">${p.titulo}</span>
+    <div style="background:${bg};border:1.5px solid ${bc};border-radius:var(--radius-sm);padding:12px;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:800;color:${bc};">${titulo}</span>
         <button onclick="eliminarEstudio(${i})" type="button"
-          style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-light);line-height:1;padding:0 2px;"
+          style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-light);line-height:1;padding:0 2px;"
           title="Eliminar">×</button>
       </div>
-      <div style="padding:12px 14px;">
-        ${camposDesc}
-        <div class="form-group">
-          <div class="form-label" style="font-size:11px;">Resultado / hallazgos / interpretación</div>
-          <textarea class="form-input" style="font-size:13px;" rows="3"
-            placeholder="Describe el resultado, hallazgos o pendiente..."
-            oninput="estudiosLista[${i}].resultado=this.value">${e.resultado||''}</textarea>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        ${camposTipo}
+      </div>
+      <div>
+        <div class="form-label" style="font-size:11px;">Resultado / hallazgos / interpretación</div>
+        <textarea class="form-input" style="font-size:12px;" rows="2"
+          placeholder="Describe el resultado, hallazgos o lo que se solicitó..."
+          oninput="estudiosLista[${i}].resultado=this.value">${e.resultado||''}</textarea>
       </div>
     </div>`;
   }).join('');
 }
 
 function leerEstudiosParaGuardar() {
-  const labs = estudiosLista.filter(e => e.cat==='lab').map(e => (e.descripcion||'')+(e.resultado?' — '+e.resultado:'')).join('\n');
-  const imgs = estudiosLista.filter(e => e.cat==='imagen').map(e => ({tipo:e.tipo,descripcion:e.descripcion,resultado:e.resultado}));
-  const otros = estudiosLista.filter(e => e.cat==='otro').map(e => (e.descripcion||'')+(e.resultado?' — '+e.resultado:'')).join('\n');
-  return { lab: labs, imagenes: JSON.stringify(imgs), otros: otros };
+  const labs = estudiosLista.filter(e => e.cat === 'lab').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
+  const imgs = estudiosLista.filter(e => e.cat === 'imagen');
+  const otros = estudiosLista.filter(e => e.cat === 'otro').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
+  return {
+    lab: labs,
+    imagenes: JSON.stringify(imgs.map(e => ({ tipo: e.tipo, descripcion: e.descripcion, resultado: e.resultado }))),
+    otros: otros,
+  };
 }
 
+// alias legacy
+function eliminarEstudioImagen(idx) {
+  const imgIdxs = estudiosLista.reduce((acc, e, i) => { if(e.cat==='imagen') acc.push(i); return acc; }, []);
+  if (imgIdxs[idx] !== undefined) eliminarEstudio(imgIdxs[idx]);
+}
 function renderEstudiosImagenes() { renderEstudiosLista(); }
 
 function limpiarEstudios() {
@@ -7612,10 +7665,11 @@ async function cargarConsultasPaciente(id) {
               <div style="font-size:11px;color:var(--text-light);margin-top:2px;">${c.motivo || 'Sin motivo registrado'}</div>
             </div>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;">
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
             ${c.peso ? `<span class="badge badge-blue">⚖ ${c.peso}kg</span>` : ''}
             ${c.talla ? `<span class="badge badge-green">📏 ${c.talla}cm</span>` : ''}
             ${c.temperatura ? `<span class="badge badge-peach">🌡 ${c.temperatura}°C</span>` : ''}
+            <button onclick="event.stopPropagation();eliminarConsulta('${c.id}','${(c.fecha||'').replace(/'/g,'')}')" class="btn btn-danger btn-sm" style="font-size:11px;padding:4px 10px;" title="Eliminar nota">🗑</button>
           </div>
         </div>
 
