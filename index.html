@@ -255,21 +255,52 @@ textarea.form-input { resize:vertical; min-height:70px; }
   background:var(--white); border-radius:var(--radius-sm);
   margin-bottom:14px; overflow:hidden;
   border:1.5px solid var(--border);
-  display:grid; grid-template-columns:36px 100px 1fr;
-  align-items:stretch;
+  display:flex; flex-direction:column;
+}
+.soap-header {
+  display:flex; align-items:center; gap:0;
+  border-bottom:1.5px solid var(--border);
 }
 .soap-letter {
   font-family:'Nunito',sans-serif; font-weight:900; font-size:22px;
   display:flex; align-items:center; justify-content:center;
-  background:var(--bg); padding:12px 0;
-}
-.soap-title {
-  font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
-  display:flex; align-items:center; padding:0 12px;
-  background:var(--bg); color:var(--text); letter-spacing:0.5px;
+  background:var(--bg); padding:10px 14px;
+  flex-shrink:0; min-width:50px;
   border-right:1px solid var(--border);
 }
-.soap-body { padding:14px 16px; }
+.soap-title {
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:13px;
+  display:flex; align-items:center; padding:10px 14px;
+  background:var(--bg); color:var(--text); letter-spacing:0.5px;
+  flex:1; word-break:break-word;
+}
+.soap-body { padding:16px 18px; }
+
+/* SOAP colores por sección */
+.soap-s { border-left:4px solid var(--lilac-d); }
+.soap-s .soap-header { background:linear-gradient(90deg,#F5F0FF,var(--white)); }
+.soap-s .soap-letter { background:linear-gradient(135deg,#EDE5FF,#F5F0FF); color:var(--lilac-d); }
+.soap-s .soap-title  { background:transparent; color:var(--lilac-d); }
+
+.soap-o { border-left:4px solid var(--blue-d); }
+.soap-o .soap-header { background:linear-gradient(90deg,#EDF7FF,var(--white)); }
+.soap-o .soap-letter { background:linear-gradient(135deg,#D8EFFF,#EDF7FF); color:var(--blue-d); }
+.soap-o .soap-title  { background:transparent; color:var(--blue-d); }
+
+.soap-est { border-left:4px solid #7CB8D4; }
+.soap-est .soap-header { background:linear-gradient(90deg,#E8F5FF,var(--white)); }
+.soap-est .soap-letter { background:linear-gradient(135deg,#C8E8F8,#E8F5FF); color:#4A8FAA; }
+.soap-est .soap-title  { background:transparent; color:#4A8FAA; }
+
+.soap-a { border-left:4px solid var(--green-d); }
+.soap-a .soap-header { background:linear-gradient(90deg,#E8F8EE,var(--white)); }
+.soap-a .soap-letter { background:linear-gradient(135deg,#C8EDD8,#E8F8EE); color:var(--green-d); }
+.soap-a .soap-title  { background:transparent; color:var(--green-d); }
+
+.soap-p { border-left:4px solid var(--peach-d); }
+.soap-p .soap-header { background:linear-gradient(90deg,#FFF3E8,var(--white)); }
+.soap-p .soap-letter { background:linear-gradient(135deg,#FFE0C0,#FFF3E8); color:var(--peach-d); }
+.soap-p .soap-title  { background:transparent; color:var(--peach-d); }
 
 /* CIE-11 */
 .cie-tag {
@@ -2022,9 +2053,11 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <div class="seccion-label lilac">📋 Nota clínica — SOAP</div>
 
           <!-- S: SUBJETIVO -->
-          <div class="soap-section" style="border-left:4px solid var(--lilac-d);">
-            <div class="soap-letter" style="color:var(--lilac-d);">S</div>
-            <div class="soap-title">Subjetivo</div>
+          <div class="soap-section soap-s">
+            <div class="soap-header">
+              <div class="soap-letter">S</div>
+              <div class="soap-title">Subjetivo — Motivo y antecedentes</div>
+            </div>
             <div class="soap-body">
               <div class="form-group" style="margin-bottom:10px;">
                 <div class="form-label">Motivo de consulta</div>
@@ -2038,9 +2071,11 @@ textarea.form-input { resize:vertical; min-height:70px; }
           </div>
 
           <!-- O: OBJETIVO -->
-          <div class="soap-section" style="border-left:4px solid var(--blue-d);">
-            <div class="soap-letter" style="color:var(--blue-d);">O</div>
-            <div class="soap-title">Objetivo</div>
+          <div class="soap-section soap-o">
+            <div class="soap-header">
+              <div class="soap-letter">O</div>
+              <div class="soap-title">Objetivo — Exploración física</div>
+            </div>
             <div class="soap-body">
               <div class="form-group">
                 <div class="form-label">Exploración física</div>
@@ -2050,48 +2085,42 @@ textarea.form-input { resize:vertical; min-height:70px; }
           </div>
 
           <!-- ESTUDIOS COMPLEMENTARIOS -->
-          <div class="soap-section" style="border-left:4px solid #7CB8D4;margin-bottom:12px;">
-            <div class="soap-letter" style="color:#5A9AB8;font-size:17px;">🔬</div>
-            <div class="soap-title" style="color:#5A9AB8;">Estudios complementarios</div>
+          <div class="soap-section soap-est" style="margin-bottom:12px;">
+            <div class="soap-header">
+              <div class="soap-letter" style="font-size:18px;">🔬</div>
+              <div class="soap-title">Estudios complementarios</div>
+            </div>
             <div class="soap-body">
-              <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:10px;">
-                Registra estudios solicitados o resultados traídos por el paciente
+              <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:12px;">
+                Selecciona el tipo de estudio para agregarlo a la nota
               </div>
 
-              <!-- Estudios de laboratorio -->
-              <div class="form-group" style="margin-bottom:12px;">
-                <div class="form-label" style="display:flex;align-items:center;gap:6px;">
-                  <span>🩸</span> Laboratorio / Estudios de sangre y orina
-                </div>
-                <textarea class="form-input" id="c-lab" rows="3"
-                  placeholder="Ej: BH — Hb 11.2, Hto 34%, leucocitos 8,200 con fórmula normal. Glucosa 85 mg/dL. Interpretación: anemia leve microcítica..."></textarea>
+              <!-- Selector para agregar estudios -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+                <select id="est-tipo-selector" class="form-input" style="flex:1;font-size:13px;">
+                  <option value="">— Seleccionar tipo de estudio —</option>
+                  <option value="lab">🩸 Laboratorio (BH, QS, EGO, cultivos...)</option>
+                  <option value="imagen">🩻 Imagen (Rx, USG, TC, RM...)</option>
+                  <option value="otro">📄 Otro estudio (ECG, espirometría...)</option>
+                </select>
+                <button type="button" class="btn btn-primary btn-sm" onclick="agregarEstudio()" style="white-space:nowrap;flex-shrink:0;">+ Agregar</button>
               </div>
 
-              <!-- Estudios de imagen -->
-              <div class="form-group" style="margin-bottom:12px;">
-                <div class="form-label" style="display:flex;align-items:center;gap:6px;">
-                  <span>🩻</span> Imagen (Rx, USG, TC, RM, otros)
-                </div>
-                <div id="c-imagenes-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="agregarEstudioImagen()"
-                  style="font-size:12px;">+ Agregar estudio de imagen</button>
-              </div>
+              <!-- Lista dinámica de estudios agregados -->
+              <div id="c-estudios-lista" style="display:flex;flex-direction:column;gap:10px;"></div>
 
-              <!-- Otros estudios -->
-              <div class="form-group">
-                <div class="form-label" style="display:flex;align-items:center;gap:6px;">
-                  <span>📄</span> Otros estudios
-                </div>
-                <textarea class="form-input" id="c-otros-estudios" rows="2"
-                  placeholder="Electrocardiograma, espirometría, audiometría, estudios de gabinete, etc."></textarea>
-              </div>
+              <!-- campos ocultos de compatibilidad -->
+              <textarea id="c-lab" style="display:none;"></textarea>
+              <textarea id="c-otros-estudios" style="display:none;"></textarea>
             </div>
           </div>
 
           <!-- A: ANÁLISIS / DIAGNÓSTICO -->
-          <div class="soap-section" style="border-left:4px solid var(--green-d);">
-            <div class="soap-letter" style="color:var(--green-d);">A</div>
-            <div class="soap-title">Análisis / Diagnóstico</div>
+          <div class="soap-section soap-a">
+            <div class="soap-header">
+              <div class="soap-letter">A</div>
+              <div class="soap-title">Análisis / Diagnóstico</div>
+            </div>
             <div class="soap-body">
               <!-- BUSCADOR CIE-11 -->
               <div class="form-label" style="margin-bottom:6px;">Buscar diagnóstico CIE-11</div>
@@ -2116,9 +2145,11 @@ textarea.form-input { resize:vertical; min-height:70px; }
           </div>
 
           <!-- P: PLAN -->
-          <div class="soap-section" style="border-left:4px solid var(--peach-d);margin-bottom:20px;">
-            <div class="soap-letter" style="color:var(--peach-d);">P</div>
-            <div class="soap-title">Plan</div>
+          <div class="soap-section soap-p" style="margin-bottom:20px;">
+            <div class="soap-header">
+              <div class="soap-letter">P</div>
+              <div class="soap-title">Plan — Tratamiento y seguimiento</div>
+            </div>
             <div class="soap-body">
               <div class="form-group" style="margin-bottom:10px;">
                 <div class="form-label">Tratamiento / Medicamentos</div>
@@ -4509,9 +4540,6 @@ async function guardarConsulta() {
     motivo,
     subjetivo: document.getElementById('c-subjetivo').value,
     exploracion: document.getElementById('c-exploracion').value,
-    estudios_lab: document.getElementById('c-lab')?.value || '',
-    estudios_imagenes: JSON.stringify(estudiosImagenes),
-    estudios_otros: document.getElementById('c-otros-estudios')?.value || '',
     diagnosticos_cie11: JSON.stringify(cie11Diagnosticos),
     diagnostico: document.getElementById('c-diagnostico').value,
     tratamiento: document.getElementById('c-tratamiento').value,
@@ -4519,17 +4547,39 @@ async function guardarConsulta() {
     seguimiento: document.getElementById('c-seguimiento').value,
   };
 
+  // Agregar campos de estudios si existen
   try {
-    await api('POST','consultas',data);
-    const msg = esHistorica ? '✅ Nota histórica guardada correctamente' : '✅ Consulta guardada correctamente en el expediente';
-    const idPaciente = pacienteConsultaId;
-    limpiarConsulta();
-    consultaOrigen = null;
-    await cargarDashboard();
-    await verPacienteEnTab(idPaciente, 'consultas');
-    showAlert('exp-alert', msg, 'success');
+    const est = leerEstudiosParaGuardar();
+    data.estudios_lab = est.lab;
+    data.estudios_imagenes = est.imagenes;
+    data.estudios_otros = est.otros;
+  } catch(e) { /* columnas opcionales */ }
+
+  try {
+    let guardado = false;
+    try {
+      await api('POST','consultas',data);
+      guardado = true;
+    } catch(e1) {
+      // Reintentar sin campos de estudios si la BD no los tiene aún
+      const d2 = Object.assign({}, data);
+      delete d2.estudios_lab; delete d2.estudios_imagenes; delete d2.estudios_otros;
+      try {
+        await api('POST','consultas',d2);
+        guardado = true;
+      } catch(e2) { throw new Error(e2.message || e1.message); }
+    }
+    if (guardado) {
+      const msg = esHistorica ? '✅ Nota histórica guardada correctamente' : '✅ Consulta guardada correctamente en el expediente';
+      const idPaciente = pacienteConsultaId;
+      limpiarConsulta();
+      consultaOrigen = null;
+      await cargarDashboard();
+      await verPacienteEnTab(idPaciente, 'consultas');
+      showAlert('exp-alert', msg, 'success');
+    }
   } catch(e) {
-    showAlert('consulta-alert','Error al guardar: '+e.message,'error');
+    showAlert('consulta-alert','❌ Error al guardar: '+e.message,'error');
   }
 }
 
@@ -5907,30 +5957,53 @@ async function guardarEdicionPaciente() {
 
 
 // ==================== ESTUDIOS COMPLEMENTARIOS ====================
-let estudiosImagenes = []; // [{tipo:'', descripcion:'', resultado:''}]
+let estudiosLista = []; // [{cat:'lab'|'imagen'|'otro', tipo:'', descripcion:'', resultado:''}]
+let estudiosImagenes = []; // alias legacy
+
+function agregarEstudio() {
+  const sel = document.getElementById('est-tipo-selector');
+  const cat = sel ? sel.value : '';
+  if (!cat) { if(sel) sel.focus(); return; }
+  estudiosLista.push({ cat, tipo:'', descripcion:'', resultado:'' });
+  renderEstudiosLista();
+  if (sel) sel.value = '';
+}
 
 function agregarEstudioImagen() {
-  const idx = estudiosImagenes.length;
-  estudiosImagenes.push({tipo:'', descripcion:'', resultado:''});
-  renderEstudiosImagenes();
+  estudiosLista.push({ cat:'imagen', tipo:'', descripcion:'', resultado:'' });
+  renderEstudiosLista();
+}
+
+function eliminarEstudio(idx) {
+  estudiosLista.splice(idx, 1);
+  renderEstudiosLista();
 }
 
 function eliminarEstudioImagen(idx) {
-  estudiosImagenes.splice(idx, 1);
-  renderEstudiosImagenes();
+  const imgIdxs = estudiosLista.reduce((acc, e, i) => { if(e.cat==='imagen') acc.push(i); return acc; }, []);
+  if (imgIdxs[idx] !== undefined) eliminarEstudio(imgIdxs[idx]);
 }
 
-function renderEstudiosImagenes() {
-  const cont = document.getElementById('c-imagenes-lista');
+function renderEstudiosLista() {
+  const cont = document.getElementById('c-estudios-lista');
   if (!cont) return;
-  cont.innerHTML = estudiosImagenes.map((e, i) => `
-    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;position:relative;">
-      <button onclick="eliminarEstudioImagen(${i})" type="button"
-        style="position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-light);">×</button>
-      <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px;">
-        <div>
-          <div class="form-label" style="font-size:11px;">Tipo de estudio</div>
-          <select class="form-input" style="font-size:12px;" onchange="estudiosImagenes[${i}].tipo=this.value">
+  if (estudiosLista.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:12px 0;font-size:12px;color:var(--text-light);font-weight:600;">No se han agregado estudios — usa el menú de arriba</div>';
+    return;
+  }
+  const paleta = {
+    lab:    { bg:'#EDF7FF', border:'#7CB8D4', titulo:'🩸 Laboratorio',   color:'#4A8FAA' },
+    imagen: { bg:'#F5F0FF', border:'var(--lilac-d)', titulo:'🩻 Imagen', color:'var(--lilac-d)' },
+    otro:   { bg:'#F0FFF5', border:'var(--green-d)', titulo:'📄 Otro estudio', color:'var(--green-d)' },
+  };
+  cont.innerHTML = estudiosLista.map((e, i) => {
+    const p = paleta[e.cat] || paleta.otro;
+    let camposDesc = '';
+    if (e.cat === 'imagen') {
+      camposDesc = `
+        <div class="form-group" style="margin-bottom:8px;">
+          <div class="form-label" style="font-size:11px;">Tipo de imagen</div>
+          <select class="form-input" style="font-size:13px;" onchange="estudiosLista[${i}].tipo=this.value">
             <option value="" ${!e.tipo?'selected':''}>Seleccionar...</option>
             <option value="Radiografía" ${e.tipo==='Radiografía'?'selected':''}>🩻 Radiografía</option>
             <option value="Ultrasonido" ${e.tipo==='Ultrasonido'?'selected':''}>🔊 Ultrasonido (USG)</option>
@@ -5940,38 +6013,62 @@ function renderEstudiosImagenes() {
             <option value="Otro" ${e.tipo==='Otro'?'selected':''}>📄 Otro</option>
           </select>
         </div>
-        <div>
-          <div class="form-label" style="font-size:11px;">Región / Descripción</div>
-          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
-            placeholder="Ej: Tórax PA, abdomen, cadera derecha..."
-            oninput="estudiosImagenes[${i}].descripcion=this.value">
+        <div class="form-group" style="margin-bottom:8px;">
+          <div class="form-label" style="font-size:11px;">Región / área del estudio</div>
+          <input class="form-input" style="font-size:13px;" value="${e.descripcion||''}"
+            placeholder="Ej: Tórax PA, abdomen, cadera derecha, cráneo..."
+            oninput="estudiosLista[${i}].descripcion=this.value">
+        </div>`;
+    } else {
+      const ph = e.cat === 'lab'
+        ? 'Ej: BH, QS, EGO, hemocultivo, perfil tiroideo, ferritina...'
+        : 'Ej: Electrocardiograma, espirometría, audiometría, potenciales evocados...';
+      camposDesc = `
+        <div class="form-group" style="margin-bottom:8px;">
+          <div class="form-label" style="font-size:11px;">Estudio(s)</div>
+          <input class="form-input" style="font-size:13px;" value="${e.descripcion||''}"
+            placeholder="${ph}"
+            oninput="estudiosLista[${i}].descripcion=this.value">
+        </div>`;
+    }
+    return `
+    <div style="background:${p.bg};border:1.5px solid ${p.border};border-radius:var(--radius-sm);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid ${p.border};background:rgba(255,255,255,0.6);">
+        <span style="font-size:12px;font-weight:800;color:${p.color};">${p.titulo}</span>
+        <button onclick="eliminarEstudio(${i})" type="button"
+          style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-light);line-height:1;padding:0 2px;"
+          title="Eliminar">×</button>
+      </div>
+      <div style="padding:12px 14px;">
+        ${camposDesc}
+        <div class="form-group">
+          <div class="form-label" style="font-size:11px;">Resultado / hallazgos / interpretación</div>
+          <textarea class="form-input" style="font-size:13px;" rows="3"
+            placeholder="Describe el resultado, hallazgos o pendiente..."
+            oninput="estudiosLista[${i}].resultado=this.value">${e.resultado||''}</textarea>
         </div>
       </div>
-      <div>
-        <div class="form-label" style="font-size:11px;">Hallazgos e interpretación</div>
-        <textarea class="form-input" style="font-size:12px;" rows="2"
-          placeholder="Describe hallazgos, impresión diagnóstica o resultado..."
-          oninput="estudiosImagenes[${i}].resultado=this.value">${e.resultado||''}</textarea>
-      </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function leerEstudiosParaGuardar() {
-  return {
-    lab: document.getElementById('c-lab')?.value || '',
-    imagenes: JSON.stringify(estudiosImagenes),
-    otros: document.getElementById('c-otros-estudios')?.value || '',
-  };
+  const labs = estudiosLista.filter(e => e.cat==='lab').map(e => (e.descripcion||'')+(e.resultado?' — '+e.resultado:'')).join('\n');
+  const imgs = estudiosLista.filter(e => e.cat==='imagen').map(e => ({tipo:e.tipo,descripcion:e.descripcion,resultado:e.resultado}));
+  const otros = estudiosLista.filter(e => e.cat==='otro').map(e => (e.descripcion||'')+(e.resultado?' — '+e.resultado:'')).join('\n');
+  return { lab: labs, imagenes: JSON.stringify(imgs), otros: otros };
 }
 
+function renderEstudiosImagenes() { renderEstudiosLista(); }
+
 function limpiarEstudios() {
+  estudiosLista = [];
   estudiosImagenes = [];
   const lab = document.getElementById('c-lab');
   const otros = document.getElementById('c-otros-estudios');
   if (lab) lab.value = '';
   if (otros) otros.value = '';
-  renderEstudiosImagenes();
+  renderEstudiosLista();
 }
 
 // ==================== CHART TOOLTIP ====================
