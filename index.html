@@ -928,6 +928,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
   <div class="nav-item" onclick="showView('citas')"><span class="nav-icon">📅</span> Agenda</div>
   <div class="nav-item" onclick="showView('finanzas')"><span class="nav-icon">💰</span> Finanzas</div>
   <div class="nav-item" onclick="showView('recursos')"><span class="nav-icon">📚</span> Recursos</div>
+  <div class="nav-item" onclick="showView('medicamentos')"><span class="nav-icon">💊</span> Medicamentos</div>
   <div class="nav-item" onclick="showView('solicitudes-web')" id="nav-solicitudes-web"><span class="nav-icon">🌐</span> Citas web <span id="badge-sol" style="display:none;background:#E07050;color:white;font-size:10px;font-weight:800;padding:2px 7px;border-radius:50px;margin-left:4px;">0</span></div>
   <div class="sidebar-bottom">
     <div style="margin-bottom:10px;" id="conn-indicator">
@@ -1870,6 +1871,167 @@ textarea.form-input { resize:vertical; min-height:70px; }
     </div>
   </div>
 
+  <!-- ============ MEDICAMENTOS ============ -->
+  <div id="view-medicamentos" class="view">
+    <div class="topbar">
+      <div>
+        <div class="page-title">💊 Catálogo de medicamentos</div>
+        <div class="page-sub">Base de datos para autocompletar tratamientos</div>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalNuevoMed()">+ Agregar medicamento</button>
+    </div>
+    <div class="content">
+      <div id="meds-alert"></div>
+
+      <!-- BUSCADOR + FILTRO -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center;">
+        <div class="search-wrap" style="flex:1;min-width:220px;">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="meds-search" placeholder="Buscar por nombre, presentación..." oninput="filtrarMeds()">
+        </div>
+        <select class="form-input" id="meds-filtro-cat" style="width:180px;" onchange="filtrarMeds()">
+          <option value="">Todas las categorías</option>
+          <option value="analgesico">💊 Analgésico / Antipirético</option>
+          <option value="antibiotico">🦠 Antibiótico</option>
+          <option value="antiviral">🧬 Antiviral</option>
+          <option value="antiinflamatorio">🔥 Antiinflamatorio</option>
+          <option value="broncodilatador">🫁 Broncodilatador</option>
+          <option value="antialergico">🌿 Antialérgico / Antihistamínico</option>
+          <option value="gastrointestinal">🤢 Gastrointestinal</option>
+          <option value="vitamina">🍊 Vitaminas / Suplementos</option>
+          <option value="vacuna">💉 Vacuna / Biológico</option>
+          <option value="dermatologico">🧴 Dermatológico</option>
+          <option value="otro">📄 Otro</option>
+        </select>
+      </div>
+
+      <!-- TABLA -->
+      <div class="panel">
+        <div class="panel-body" style="padding:0;overflow-x:auto;">
+          <table class="data-table" id="meds-table">
+            <thead>
+              <tr>
+                <th>Nombre genérico</th>
+                <th>Nombre comercial</th>
+                <th>Presentación</th>
+                <th>Concentración</th>
+                <th>Vía</th>
+                <th>Categoría</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="meds-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-light);">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVO / EDITAR MEDICAMENTO -->
+  <div id="modal-nuevo-med" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-nuevo-med')">
+    <div class="modal" style="width:600px;">
+      <div class="modal-title" id="modal-med-titulo">💊 Nuevo medicamento</div>
+      <input type="hidden" id="med-edit-id">
+
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-group">
+          <div class="form-label">Nombre genérico *</div>
+          <input class="form-input" id="med-nombre-gen" placeholder="Ej: Paracetamol">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Nombre comercial</div>
+          <input class="form-input" id="med-nombre-com" placeholder="Ej: Tempra, Tylenol">
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-group">
+          <div class="form-label">Presentación *</div>
+          <select class="form-input" id="med-presentacion">
+            <option value="">Seleccionar...</option>
+            <option value="Tableta">Tableta</option>
+            <option value="Cápsula">Cápsula</option>
+            <option value="Jarabe">Jarabe</option>
+            <option value="Suspensión">Suspensión</option>
+            <option value="Gotas">Gotas</option>
+            <option value="Ampolleta">Ampolleta</option>
+            <option value="Solución inyectable">Solución inyectable</option>
+            <option value="Crema">Crema</option>
+            <option value="Ungüento">Ungüento</option>
+            <option value="Óvulo">Óvulo</option>
+            <option value="Supositorio">Supositorio</option>
+            <option value="Parche">Parche</option>
+            <option value="Spray nasal">Spray nasal</option>
+            <option value="Spray bronquial">Spray bronquial</option>
+            <option value="Polvo para reconstituir">Polvo para reconstituir</option>
+            <option value="Sobre">Sobre</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Concentración / Dosis</div>
+          <input class="form-input" id="med-concentracion" placeholder="Ej: 500mg, 250mg/5ml, 10mg/kg">
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-group">
+          <div class="form-label">Vía de administración</div>
+          <select class="form-input" id="med-via">
+            <option value="">Seleccionar...</option>
+            <option value="Oral">Oral</option>
+            <option value="IV">IV (intravenosa)</option>
+            <option value="IM">IM (intramuscular)</option>
+            <option value="SC">SC (subcutánea)</option>
+            <option value="Tópica">Tópica</option>
+            <option value="Inhalatoria">Inhalatoria</option>
+            <option value="Rectal">Rectal</option>
+            <option value="Nasal">Nasal</option>
+            <option value="Ótica">Ótica</option>
+            <option value="Oftálmica">Oftálmica</option>
+            <option value="Sublingual">Sublingual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Categoría</div>
+          <select class="form-input" id="med-categoria">
+            <option value="analgesico">💊 Analgésico / Antipirético</option>
+            <option value="antibiotico">🦠 Antibiótico</option>
+            <option value="antiviral">🧬 Antiviral</option>
+            <option value="antiinflamatorio">🔥 Antiinflamatorio</option>
+            <option value="broncodilatador">🫁 Broncodilatador</option>
+            <option value="antialergico">🌿 Antialérgico / Antihistamínico</option>
+            <option value="gastrointestinal">🤢 Gastrointestinal</option>
+            <option value="vitamina">🍊 Vitaminas / Suplementos</option>
+            <option value="vacuna">💉 Vacuna / Biológico</option>
+            <option value="dermatologico">🧴 Dermatológico</option>
+            <option value="otro">📄 Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Indicaciones / Para qué se usa</div>
+        <textarea class="form-input" id="med-indicaciones" rows="2"
+          placeholder="Ej: Fiebre, dolor leve-moderado, cefalea..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <div class="form-label">Notas / Observaciones</div>
+        <textarea class="form-input" id="med-notas" rows="2"
+          placeholder="Dosis pediátrica, precauciones, contraindicaciones principales..."></textarea>
+      </div>
+
+      <div id="modal-med-alert"></div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeModal('modal-nuevo-med')">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarMedicamento()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ RECURSOS ============ -->
   <div id="view-recursos" class="view">
     <div class="topbar">
@@ -2148,9 +2310,12 @@ textarea.form-input { resize:vertical; min-height:70px; }
               <div class="soap-title">Plan — Tratamiento y seguimiento</div>
             </div>
             <div class="soap-body">
-              <div class="form-group" style="margin-bottom:10px;">
+              <div class="form-group" style="margin-bottom:10px;position:relative;">
                 <div class="form-label">Tratamiento / Medicamentos</div>
-                <textarea class="form-input" id="c-tratamiento" rows="3" placeholder="Medicamento, dosis, vía, frecuencia, duración..."></textarea>
+                <textarea class="form-input" id="c-tratamiento" rows="3"
+                  placeholder="Escribe el medicamento... (aparecerán sugerencias)"
+                  oninput="onTratamientoInput(this,'ac-tratamiento-nuevo')"></textarea>
+                <div id="ac-tratamiento-nuevo" style="display:none;position:absolute;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:220px;overflow-y:auto;"></div>
               </div>
               <div class="form-group" style="margin-bottom:10px;">
                 <div class="form-label">Indicaciones y recomendaciones</div>
@@ -2761,6 +2926,8 @@ async function cargarTodo() {
   await cargarPacientes();
   await cargarDashboard();
   await cargarCitas();
+  // Pre-cargar medicamentos para autocomplete
+  cargarMedicamentos().catch(()=>{});
   // Pre-cargar calendario para que esté listo al entrar
   actualizarTituloFecha();
   await cargarCitasCal();
@@ -5172,7 +5339,28 @@ async function guardarConsultaEdit(id) {
       });
       return JSON.stringify(diags);
     })(),
-    ...leerEstudiosEdit(id),
+    estudios_lab: document.getElementById(`edit-lab-${id}`)?.value || '',
+    estudios_imagenes: (() => {
+      // Si el textarea de texto tiene contenido, convertirlo a JSON simple
+      const txt = document.getElementById(`edit-imagenes-texto-${id}`)?.value || '';
+      if (!txt.trim()) return '[]';
+      // Intentar parsear líneas como "tipo: descripcion — resultado"
+      const lines = txt.split('\n').filter(l => l.trim());
+      const imgs = lines.map(line => {
+        const colonIdx = line.indexOf(':');
+        const dashIdx = line.indexOf(' — ');
+        if (colonIdx > 0 && dashIdx > colonIdx) {
+          return {
+            tipo: line.substring(0, colonIdx).trim(),
+            descripcion: line.substring(colonIdx+1, dashIdx).trim(),
+            resultado: line.substring(dashIdx+3).trim()
+          };
+        }
+        return { tipo: '', descripcion: line.trim(), resultado: '' };
+      });
+      return JSON.stringify(imgs);
+    })(),
+    estudios_otros: document.getElementById(`edit-otros-estudios-${id}`)?.value || '',
     diagnostico: document.getElementById(`edit-diagnostico-${id}`).value,
     tratamiento: document.getElementById(`edit-tratamiento-${id}`)?.value || '',
     plan: document.getElementById(`edit-plan-${id}`).value,
@@ -7723,19 +7911,42 @@ async function cargarConsultasPaciente(id) {
               <textarea class="form-input" id="edit-exploracion-${c.id}" rows="3">${c.exploracion||''}</textarea>
             </div>
           </div>
-          <!-- ESTUDIOS COMPLEMENTARIOS (edición dinámica) -->
+          <!-- ESTUDIOS COMPLEMENTARIOS (edición) -->
           <div style="border-left:4px solid #7CB8D4;padding-left:14px;margin-bottom:14px;">
             <div style="font-weight:800;font-size:12px;color:#5A9AB8;margin-bottom:8px;">🔬 Estudios complementarios</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-              <select id="est-tipo-selector-${c.id}" class="form-input" style="flex:1;min-width:180px;font-size:13px;">
-                <option value="">— Seleccionar tipo de estudio —</option>
-                <option value="lab">🩸 Laboratorio (BH, QS, EGO, cultivos...)</option>
-                <option value="imagen">🩻 Imagen (Rx, USG, TC, RM...)</option>
-                <option value="otro">📄 Otro estudio (ECG, espirometría...)</option>
-              </select>
-              <button type="button" class="btn btn-primary btn-sm" onclick="agregarEstudioEdit('${c.id}')" style="white-space:nowrap;">+ Agregar</button>
+            <div class="form-group" style="margin-bottom:10px;">
+              <div class="form-label" style="font-size:11px;">🩸 Laboratorio / Sangre y orina</div>
+              <textarea class="form-input" id="edit-lab-${c.id}" rows="3"
+                placeholder="BH, QS, EGO, cultivos, otros laboratorios...">${c.estudios_lab||''}</textarea>
             </div>
-            <div id="edit-estudios-lista-${c.id}" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <div class="form-label" style="font-size:11px;">🩻 Imagen (Rx, USG, TC, RM, otros)</div>
+              <div id="edit-imagenes-lista-${c.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+                ${(() => {
+                  try {
+                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
+                    return imgs.map((img, i) => `
+                      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;">
+                        <div style="font-size:12px;font-weight:700;color:#5A9AB8;margin-bottom:4px;">${img.tipo||'Imagen'} — ${img.descripcion||''}</div>
+                        <div style="font-size:12px;color:var(--text);">${img.resultado||''}</div>
+                      </div>`).join('');
+                  } catch(e) { return ''; }
+                })()}
+              </div>
+              <textarea class="form-input" id="edit-imagenes-texto-${c.id}" rows="2"
+                placeholder="Agregar / editar estudios de imagen (tipo: descripción — resultado)"
+                style="font-size:11px;">${(() => {
+                  try {
+                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
+                    return imgs.map(img => `${img.tipo||''}: ${img.descripcion||''} — ${img.resultado||''}`).join('\n');
+                  } catch(e) { return c.estudios_imagenes||''; }
+                })()}</textarea>
+            </div>
+            <div class="form-group">
+              <div class="form-label" style="font-size:11px;">📄 Otros estudios</div>
+              <textarea class="form-input" id="edit-otros-estudios-${c.id}" rows="2"
+                placeholder="ECG, espirometría, audiometría...">${c.estudios_otros||''}</textarea>
+            </div>
           </div>
 
           <div class="form-group" style="margin-bottom:10px;">
@@ -7763,9 +7974,11 @@ async function cargarConsultasPaciente(id) {
             <textarea class="form-input" id="edit-diagnostico-${c.id}" rows="2">${c.diagnostico||''}</textarea>
           </div>
           <div class="form-row" style="margin-bottom:10px;">
-            <div class="form-group">
+            <div class="form-group" style="position:relative;">
               <div class="form-label">Tratamiento</div>
-              <textarea class="form-input" id="edit-tratamiento-${c.id}" rows="3">${c.tratamiento||''}</textarea>
+              <textarea class="form-input" id="edit-tratamiento-${c.id}" rows="3"
+                oninput="onTratamientoInput(this,'ac-trat-edit-${c.id}')">${c.tratamiento||''}</textarea>
+              <div id="ac-trat-edit-${c.id}" style="display:none;position:absolute;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:220px;overflow-y:auto;"></div>
             </div>
             <div class="form-group">
               <div class="form-label">Plan / indicaciones</div>
@@ -7780,144 +7993,9 @@ async function cargarConsultasPaciente(id) {
         </div>
       </div>`;
     }).join('');
-    // Inicializar listas de estudios en cada formulario de edición
-    consultas.forEach(c => inicializarEstudiosEdit(c));
   } catch(e) {
     document.getElementById('detalle-consultas').innerHTML = `<div class="alert alert-error">Error al cargar consultas</div>`;
   }
-}
-
-// ==================== ESTUDIOS EN EDICIÓN ====================
-// Mapa: id_consulta -> array de estudios
-const estudiosEditMap = {};
-
-function inicializarEstudiosEdit(c) {
-  const id = c.id;
-  estudiosEditMap[id] = [];
-  // Cargar labs (texto plano, una línea = un estudio)
-  if (c.estudios_lab) {
-    c.estudios_lab.split('\n').filter(l => l.trim()).forEach(linea => {
-      const partes = linea.split(' — ');
-      estudiosEditMap[id].push({ cat:'lab', tipo:'', descripcion: partes[0]||'', resultado: partes[1]||'' });
-    });
-  }
-  // Cargar imágenes (JSON)
-  try {
-    const imgs = JSON.parse(c.estudios_imagenes || '[]');
-    imgs.forEach(img => {
-      estudiosEditMap[id].push({ cat:'imagen', tipo: img.tipo||'', descripcion: img.descripcion||'', resultado: img.resultado||'' });
-    });
-  } catch(e) { /* ignorar */ }
-  // Cargar otros (texto plano)
-  if (c.estudios_otros) {
-    c.estudios_otros.split('\n').filter(l => l.trim()).forEach(linea => {
-      const partes = linea.split(' — ');
-      estudiosEditMap[id].push({ cat:'otro', tipo:'', descripcion: partes[0]||'', resultado: partes[1]||'' });
-    });
-  }
-  renderEstudiosListaEdit(id);
-}
-
-function agregarEstudioEdit(id) {
-  const sel = document.getElementById(`est-tipo-selector-${id}`);
-  const cat = sel ? sel.value : '';
-  if (!cat) { if(sel) sel.focus(); return; }
-  if (!estudiosEditMap[id]) estudiosEditMap[id] = [];
-  estudiosEditMap[id].push({ cat, tipo:'', descripcion:'', resultado:'' });
-  renderEstudiosListaEdit(id);
-  if (sel) sel.value = '';
-}
-
-function eliminarEstudioEdit(id, idx) {
-  if (estudiosEditMap[id]) {
-    estudiosEditMap[id].splice(idx, 1);
-    renderEstudiosListaEdit(id);
-  }
-}
-
-function renderEstudiosListaEdit(id) {
-  const cont = document.getElementById(`edit-estudios-lista-${id}`);
-  if (!cont) return;
-  const lista = estudiosEditMap[id] || [];
-  if (lista.length === 0) {
-    cont.innerHTML = '<div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text-light);font-weight:600;">No se han agregado estudios</div>';
-    return;
-  }
-  const colores = { lab:'#E8F5FF', imagen:'#F5F0FF', otro:'#F0FFF0' };
-  const coloresB = { lab:'var(--blue-d)', imagen:'var(--lilac-d)', otro:'var(--green-d)' };
-  const titulos = { lab:'🩸 Laboratorio', imagen:'🩻 Imagen', otro:'📄 Otro estudio' };
-
-  cont.innerHTML = lista.map((e, i) => {
-    const bg = colores[e.cat] || 'var(--bg)';
-    const bc = coloresB[e.cat] || 'var(--border)';
-    const titulo = titulos[e.cat] || 'Estudio';
-
-    let camposTipo = '';
-    if (e.cat === 'imagen') {
-      const opciones = ['Radiografía','Ultrasonido','Tomografía','Resonancia magnética','Ecocardiograma','Otro'];
-      camposTipo = `
-        <div>
-          <div class="form-label" style="font-size:11px;">Tipo de imagen</div>
-          <select class="form-input" style="font-size:12px;" onchange="estudiosEditMap['${id}'][${i}].tipo=this.value">
-            <option value="">Seleccionar...</option>
-            ${opciones.map(o=>`<option value="${o}" ${e.tipo===o?'selected':''}>${o}</option>`).join('')}
-          </select>
-        </div>
-        <div>
-          <div class="form-label" style="font-size:11px;">Región / área</div>
-          <input class="form-input" style="font-size:12px;" value="${(e.descripcion||'').replace(/"/g,'&quot;')}"
-            placeholder="Ej: Tórax PA, abdomen..."
-            oninput="estudiosEditMap['${id}'][${i}].descripcion=this.value">
-        </div>`;
-    } else if (e.cat === 'lab') {
-      camposTipo = `
-        <div style="grid-column:1/-1;">
-          <div class="form-label" style="font-size:11px;">Estudio(s) / resultado</div>
-          <input class="form-input" style="font-size:12px;" value="${(e.descripcion||'').replace(/"/g,'&quot;')}"
-            placeholder="Ej: BH, QS, EGO, hemocultivo..."
-            oninput="estudiosEditMap['${id}'][${i}].descripcion=this.value">
-        </div>`;
-    } else {
-      camposTipo = `
-        <div style="grid-column:1/-1;">
-          <div class="form-label" style="font-size:11px;">Nombre del estudio</div>
-          <input class="form-input" style="font-size:12px;" value="${(e.descripcion||'').replace(/"/g,'&quot;')}"
-            placeholder="Ej: Electrocardiograma, espirometría..."
-            oninput="estudiosEditMap['${id}'][${i}].descripcion=this.value">
-        </div>`;
-    }
-
-    return `
-    <div style="background:${bg};border:1.5px solid ${bc};border-radius:var(--radius-sm);padding:12px;position:relative;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-size:12px;font-weight:800;color:${bc};">${titulo}</span>
-        <button onclick="eliminarEstudioEdit('${id}',${i})" type="button"
-          style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-light);line-height:1;padding:0 2px;"
-          title="Eliminar">×</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-        ${camposTipo}
-      </div>
-      <div>
-        <div class="form-label" style="font-size:11px;">Resultado / hallazgos</div>
-        <textarea class="form-input" style="font-size:12px;" rows="2"
-          placeholder="Resultado, hallazgos o lo que se solicitó..."
-          oninput="estudiosEditMap['${id}'][${i}].resultado=this.value">${e.resultado||''}</textarea>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function leerEstudiosEdit(id) {
-  const lista = estudiosEditMap[id] || [];
-  const labs = lista.filter(e => e.cat === 'lab').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
-  const imgs = lista.filter(e => e.cat === 'imagen');
-  const otros = lista.filter(e => e.cat === 'otro').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
-  return {
-    estudios_lab: labs,
-    estudios_imagenes: JSON.stringify(imgs.map(e => ({ tipo: e.tipo, descripcion: e.descripcion, resultado: e.resultado }))),
-    estudios_otros: otros,
-  };
 }
 
 // ==================== UI HELPERS ====================
@@ -7925,13 +8003,14 @@ function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(`view-${name}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const map = { dashboard:0, pacientes:1, citas:2, finanzas:3, recursos:4, 'solicitudes-web':5, 'detalle-paciente':1, 'nueva-consulta':6 };
+  const map = { dashboard:0, pacientes:1, citas:2, finanzas:3, recursos:4, 'solicitudes-web':5, 'detalle-paciente':1, 'nueva-consulta':6, medicamentos:7 };
   const navItems = document.querySelectorAll('.nav-item');
   if (map[name] !== undefined) navItems[map[name]]?.classList.add('active');
   if (name === 'citas') { actualizarTituloFecha(); cargarCitasCal(); }
   if (name === 'pacientes') { sortPacientes('az'); }
   if (name === 'finanzas') verificarAccesoFinanzas();
   if (name === 'recursos') cargarRecursos();
+  if (name === 'medicamentos') cargarMedicamentos();
   if (name === 'solicitudes-web') showView_solicitudesWeb();
 }
 
@@ -8419,6 +8498,213 @@ document.addEventListener('click', function(e) {
 });
 
 // Revisar solicitudes pendientes al iniciar
+
+// ==================== MEDICAMENTOS ====================
+let todosLosMeds = [];   // caché para autocomplete y tabla
+
+async function cargarMedicamentos() {
+  const tbody = document.getElementById('meds-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-light);">Cargando...</td></tr>';
+  try {
+    todosLosMeds = await api('GET','medicamentos',null,'?order=nombre_generico.asc');
+    renderMedsTabla(todosLosMeds);
+  } catch(e) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#C84A4A;">Error al cargar. ¿Ya creaste la tabla en Supabase?</td></tr>';
+  }
+}
+
+const CATS_MEDS = {
+  analgesico:'💊 Analgésico', antibiotico:'🦠 Antibiótico', antiviral:'🧬 Antiviral',
+  antiinflamatorio:'🔥 Antiinflamatorio', broncodilatador:'🫁 Broncodilatador',
+  antialergico:'🌿 Antialérgico', gastrointestinal:'🤢 Gastrointestinal',
+  vitamina:'🍊 Vitaminas', vacuna:'💉 Vacuna', dermatologico:'🧴 Dermatológico', otro:'📄 Otro'
+};
+
+function renderMedsTabla(lista) {
+  const tbody = document.getElementById('meds-tbody');
+  if (!tbody) return;
+  if (!lista || lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-light);">No hay medicamentos. Agrega el primero con el botón de arriba.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(m => `
+    <tr>
+      <td><strong>${m.nombre_generico||'—'}</strong></td>
+      <td style="color:var(--text-light)">${m.nombre_comercial||'—'}</td>
+      <td>${m.presentacion||'—'}</td>
+      <td>${m.concentracion||'—'}</td>
+      <td>${m.via||'—'}</td>
+      <td><span class="badge badge-blue" style="font-size:10px;">${CATS_MEDS[m.categoria]||m.categoria||'—'}</span></td>
+      <td style="text-align:right;">
+        <button class="btn btn-ghost btn-sm" onclick="editarMed(${m.id})" style="margin-right:4px;">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarMed(${m.id},'${(m.nombre_generico||'').replace(/'/g,"\\'")}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filtrarMeds() {
+  const q = (document.getElementById('meds-search')?.value || '').toLowerCase();
+  const cat = document.getElementById('meds-filtro-cat')?.value || '';
+  const filtrados = todosLosMeds.filter(m => {
+    const matchQ = !q ||
+      (m.nombre_generico||'').toLowerCase().includes(q) ||
+      (m.nombre_comercial||'').toLowerCase().includes(q) ||
+      (m.presentacion||'').toLowerCase().includes(q) ||
+      (m.concentracion||'').toLowerCase().includes(q);
+    const matchCat = !cat || m.categoria === cat;
+    return matchQ && matchCat;
+  });
+  renderMedsTabla(filtrados);
+}
+
+function abrirModalNuevoMed() {
+  document.getElementById('modal-med-titulo').textContent = '💊 Nuevo medicamento';
+  document.getElementById('med-edit-id').value = '';
+  ['med-nombre-gen','med-nombre-com','med-concentracion','med-indicaciones','med-notas'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('med-presentacion').value = '';
+  document.getElementById('med-via').value = '';
+  document.getElementById('med-categoria').value = 'analgesico';
+  document.getElementById('modal-med-alert').innerHTML = '';
+  openModal('modal-nuevo-med');
+}
+
+function editarMed(id) {
+  const m = todosLosMeds.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('modal-med-titulo').textContent = '✏️ Editar medicamento';
+  document.getElementById('med-edit-id').value = id;
+  document.getElementById('med-nombre-gen').value = m.nombre_generico||'';
+  document.getElementById('med-nombre-com').value = m.nombre_comercial||'';
+  document.getElementById('med-presentacion').value = m.presentacion||'';
+  document.getElementById('med-concentracion').value = m.concentracion||'';
+  document.getElementById('med-via').value = m.via||'';
+  document.getElementById('med-categoria').value = m.categoria||'otro';
+  document.getElementById('med-indicaciones').value = m.indicaciones||'';
+  document.getElementById('med-notas').value = m.notas||'';
+  document.getElementById('modal-med-alert').innerHTML = '';
+  openModal('modal-nuevo-med');
+}
+
+async function guardarMedicamento() {
+  const nombreGen = document.getElementById('med-nombre-gen').value.trim();
+  const presentacion = document.getElementById('med-presentacion').value;
+  if (!nombreGen || !presentacion) {
+    showAlert('modal-med-alert','⚠️ Nombre genérico y presentación son obligatorios','error'); return;
+  }
+  const data = {
+    nombre_generico: nombreGen,
+    nombre_comercial: document.getElementById('med-nombre-com').value.trim() || null,
+    presentacion,
+    concentracion: document.getElementById('med-concentracion').value.trim() || null,
+    via: document.getElementById('med-via').value || null,
+    categoria: document.getElementById('med-categoria').value || 'otro',
+    indicaciones: document.getElementById('med-indicaciones').value.trim() || null,
+    notas: document.getElementById('med-notas').value.trim() || null,
+  };
+  const editId = document.getElementById('med-edit-id').value;
+  try {
+    if (editId) {
+      await api('PATCH','medicamentos',data,`?id=eq.${editId}`);
+    } else {
+      await api('POST','medicamentos',data,'');
+    }
+    closeModal('modal-nuevo-med');
+    await cargarMedicamentos();
+  } catch(e) {
+    showAlert('modal-med-alert','❌ Error al guardar: ' + e.message,'error');
+  }
+}
+
+async function eliminarMed(id, nombre) {
+  if (!confirm(`¿Eliminar "${nombre}" del catálogo?`)) return;
+  try {
+    await api('DELETE','medicamentos',null,`?id=eq.${id}`);
+    await cargarMedicamentos();
+  } catch(e) {
+    alert('Error al eliminar: ' + e.message);
+  }
+}
+
+// ==================== AUTOCOMPLETE TRATAMIENTO ====================
+// Detecta la última línea que está escribiendo el usuario
+function getUltimaPalabra(textarea) {
+  const val = textarea.value;
+  const pos = textarea.selectionStart;
+  const hasta = val.substring(0, pos);
+  const lineas = hasta.split('\n');
+  return lineas[lineas.length - 1].trim();
+}
+
+function onTratamientoInput(textarea, dropId) {
+  const query = getUltimaPalabra(textarea);
+  const drop = document.getElementById(dropId);
+  if (!drop) return;
+  if (!query || query.length < 2) { drop.style.display = 'none'; return; }
+
+  const q = query.toLowerCase();
+  const sugerencias = todosLosMeds.filter(m =>
+    (m.nombre_generico||'').toLowerCase().includes(q) ||
+    (m.nombre_comercial||'').toLowerCase().includes(q)
+  ).slice(0, 8);
+
+  if (sugerencias.length === 0) { drop.style.display = 'none'; return; }
+
+  drop.innerHTML = sugerencias.map(m => {
+    const com  = (m.nombre_comercial || '').toUpperCase();
+    const gen  = (m.nombre_generico  || '').toUpperCase();
+    const pres = (m.presentacion     || '').toUpperCase();
+    const conc = (m.concentracion    || '').toUpperCase();
+    const via  = (m.via              || '').toUpperCase();
+
+    // Formato: TEMPRA(PARACETAMOL)(GOTAS 100MG/1ML)
+    let linea = com || gen;
+    if (com && gen) linea = `${com}(${gen})`;
+    const presConc = [pres, conc].filter(Boolean).join(' ');
+    if (presConc) linea += `(${presConc})`;
+    if (via)      linea += ` VIA ${via}`;
+
+    return `<div onclick="seleccionarMed(this,'${textarea.id}','${dropId}')"
+      data-linea="${linea.replace(/"/g,'&quot;')}"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;"
+      onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='white'">
+      <span style="color:var(--blue-d);">${com || gen}</span>
+      ${com ? `<span style="color:var(--text-light);font-size:11px;"> · ${gen}</span>` : ''}
+      <br>
+      <span style="color:var(--text-light);font-size:11px;">${pres} ${conc}${via ? ' · VÍA '+via : ''}</span>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+
+function seleccionarMed(item, textareaId, dropId) {
+  const textarea = document.getElementById(textareaId);
+  const drop = document.getElementById(dropId);
+  if (!textarea) return;
+
+  const linea = item.dataset.linea;
+  const val = textarea.value;
+  const pos = textarea.selectionStart;
+  const hasta = val.substring(0, pos);
+  const lineas = hasta.split('\n');
+  lineas[lineas.length - 1] = linea;  // reemplaza la línea actual
+  const resto = val.substring(pos);
+  const restoDesdeNuevaLinea = resto.startsWith('\n') ? resto : (resto ? '\n' + resto : '');
+  textarea.value = lineas.join('\n') + restoDesdeNuevaLinea;
+  drop.style.display = 'none';
+  textarea.focus();
+}
+
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('[id^="ac-trat"]').forEach(drop => {
+    if (!drop.contains(e.target) && e.target.tagName !== 'TEXTAREA') {
+      drop.style.display = 'none';
+    }
+  });
+});
+
 setTimeout(actualizarBadgeSolicitudes, 2000);
 
 
