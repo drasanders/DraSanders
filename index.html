@@ -5172,28 +5172,7 @@ async function guardarConsultaEdit(id) {
       });
       return JSON.stringify(diags);
     })(),
-    estudios_lab: document.getElementById(`edit-lab-${id}`)?.value || '',
-    estudios_imagenes: (() => {
-      // Si el textarea de texto tiene contenido, convertirlo a JSON simple
-      const txt = document.getElementById(`edit-imagenes-texto-${id}`)?.value || '';
-      if (!txt.trim()) return '[]';
-      // Intentar parsear líneas como "tipo: descripcion — resultado"
-      const lines = txt.split('\n').filter(l => l.trim());
-      const imgs = lines.map(line => {
-        const colonIdx = line.indexOf(':');
-        const dashIdx = line.indexOf(' — ');
-        if (colonIdx > 0 && dashIdx > colonIdx) {
-          return {
-            tipo: line.substring(0, colonIdx).trim(),
-            descripcion: line.substring(colonIdx+1, dashIdx).trim(),
-            resultado: line.substring(dashIdx+3).trim()
-          };
-        }
-        return { tipo: '', descripcion: line.trim(), resultado: '' };
-      });
-      return JSON.stringify(imgs);
-    })(),
-    estudios_otros: document.getElementById(`edit-otros-estudios-${id}`)?.value || '',
+    ...leerEstudiosEdit(id),
     diagnostico: document.getElementById(`edit-diagnostico-${id}`).value,
     tratamiento: document.getElementById(`edit-tratamiento-${id}`)?.value || '',
     plan: document.getElementById(`edit-plan-${id}`).value,
@@ -7744,42 +7723,19 @@ async function cargarConsultasPaciente(id) {
               <textarea class="form-input" id="edit-exploracion-${c.id}" rows="3">${c.exploracion||''}</textarea>
             </div>
           </div>
-          <!-- ESTUDIOS COMPLEMENTARIOS (edición) -->
+          <!-- ESTUDIOS COMPLEMENTARIOS (edición dinámica) -->
           <div style="border-left:4px solid #7CB8D4;padding-left:14px;margin-bottom:14px;">
             <div style="font-weight:800;font-size:12px;color:#5A9AB8;margin-bottom:8px;">🔬 Estudios complementarios</div>
-            <div class="form-group" style="margin-bottom:10px;">
-              <div class="form-label" style="font-size:11px;">🩸 Laboratorio / Sangre y orina</div>
-              <textarea class="form-input" id="edit-lab-${c.id}" rows="3"
-                placeholder="BH, QS, EGO, cultivos, otros laboratorios...">${c.estudios_lab||''}</textarea>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+              <select id="est-tipo-selector-${c.id}" class="form-input" style="flex:1;min-width:180px;font-size:13px;">
+                <option value="">— Seleccionar tipo de estudio —</option>
+                <option value="lab">🩸 Laboratorio (BH, QS, EGO, cultivos...)</option>
+                <option value="imagen">🩻 Imagen (Rx, USG, TC, RM...)</option>
+                <option value="otro">📄 Otro estudio (ECG, espirometría...)</option>
+              </select>
+              <button type="button" class="btn btn-primary btn-sm" onclick="agregarEstudioEdit('${c.id}')" style="white-space:nowrap;">+ Agregar</button>
             </div>
-            <div class="form-group" style="margin-bottom:10px;">
-              <div class="form-label" style="font-size:11px;">🩻 Imagen (Rx, USG, TC, RM, otros)</div>
-              <div id="edit-imagenes-lista-${c.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
-                ${(() => {
-                  try {
-                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
-                    return imgs.map((img, i) => `
-                      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;">
-                        <div style="font-size:12px;font-weight:700;color:#5A9AB8;margin-bottom:4px;">${img.tipo||'Imagen'} — ${img.descripcion||''}</div>
-                        <div style="font-size:12px;color:var(--text);">${img.resultado||''}</div>
-                      </div>`).join('');
-                  } catch(e) { return ''; }
-                })()}
-              </div>
-              <textarea class="form-input" id="edit-imagenes-texto-${c.id}" rows="2"
-                placeholder="Agregar / editar estudios de imagen (tipo: descripción — resultado)"
-                style="font-size:11px;">${(() => {
-                  try {
-                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
-                    return imgs.map(img => `${img.tipo||''}: ${img.descripcion||''} — ${img.resultado||''}`).join('\n');
-                  } catch(e) { return c.estudios_imagenes||''; }
-                })()}</textarea>
-            </div>
-            <div class="form-group">
-              <div class="form-label" style="font-size:11px;">📄 Otros estudios</div>
-              <textarea class="form-input" id="edit-otros-estudios-${c.id}" rows="2"
-                placeholder="ECG, espirometría, audiometría...">${c.estudios_otros||''}</textarea>
-            </div>
+            <div id="edit-estudios-lista-${c.id}" style="display:flex;flex-direction:column;gap:10px;"></div>
           </div>
 
           <div class="form-group" style="margin-bottom:10px;">
@@ -7824,9 +7780,144 @@ async function cargarConsultasPaciente(id) {
         </div>
       </div>`;
     }).join('');
+    // Inicializar listas de estudios en cada formulario de edición
+    consultas.forEach(c => inicializarEstudiosEdit(c));
   } catch(e) {
     document.getElementById('detalle-consultas').innerHTML = `<div class="alert alert-error">Error al cargar consultas</div>`;
   }
+}
+
+// ==================== ESTUDIOS EN EDICIÓN ====================
+// Mapa: id_consulta -> array de estudios
+const estudiosEditMap = {};
+
+function inicializarEstudiosEdit(c) {
+  const id = c.id;
+  estudiosEditMap[id] = [];
+  // Cargar labs (texto plano, una línea = un estudio)
+  if (c.estudios_lab) {
+    c.estudios_lab.split('\n').filter(l => l.trim()).forEach(linea => {
+      const partes = linea.split(' — ');
+      estudiosEditMap[id].push({ cat:'lab', tipo:'', descripcion: partes[0]||'', resultado: partes[1]||'' });
+    });
+  }
+  // Cargar imágenes (JSON)
+  try {
+    const imgs = JSON.parse(c.estudios_imagenes || '[]');
+    imgs.forEach(img => {
+      estudiosEditMap[id].push({ cat:'imagen', tipo: img.tipo||'', descripcion: img.descripcion||'', resultado: img.resultado||'' });
+    });
+  } catch(e) { /* ignorar */ }
+  // Cargar otros (texto plano)
+  if (c.estudios_otros) {
+    c.estudios_otros.split('\n').filter(l => l.trim()).forEach(linea => {
+      const partes = linea.split(' — ');
+      estudiosEditMap[id].push({ cat:'otro', tipo:'', descripcion: partes[0]||'', resultado: partes[1]||'' });
+    });
+  }
+  renderEstudiosListaEdit(id);
+}
+
+function agregarEstudioEdit(id) {
+  const sel = document.getElementById(`est-tipo-selector-${id}`);
+  const cat = sel ? sel.value : '';
+  if (!cat) { if(sel) sel.focus(); return; }
+  if (!estudiosEditMap[id]) estudiosEditMap[id] = [];
+  estudiosEditMap[id].push({ cat, tipo:'', descripcion:'', resultado:'' });
+  renderEstudiosListaEdit(id);
+  if (sel) sel.value = '';
+}
+
+function eliminarEstudioEdit(id, idx) {
+  if (estudiosEditMap[id]) {
+    estudiosEditMap[id].splice(idx, 1);
+    renderEstudiosListaEdit(id);
+  }
+}
+
+function renderEstudiosListaEdit(id) {
+  const cont = document.getElementById(`edit-estudios-lista-${id}`);
+  if (!cont) return;
+  const lista = estudiosEditMap[id] || [];
+  if (lista.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text-light);font-weight:600;">No se han agregado estudios</div>';
+    return;
+  }
+  const colores = { lab:'#E8F5FF', imagen:'#F5F0FF', otro:'#F0FFF0' };
+  const coloresB = { lab:'var(--blue-d)', imagen:'var(--lilac-d)', otro:'var(--green-d)' };
+  const titulos = { lab:'🩸 Laboratorio', imagen:'🩻 Imagen', otro:'📄 Otro estudio' };
+
+  cont.innerHTML = lista.map((e, i) => {
+    const bg = colores[e.cat] || 'var(--bg)';
+    const bc = coloresB[e.cat] || 'var(--border)';
+    const titulo = titulos[e.cat] || 'Estudio';
+
+    let camposTipo = '';
+    if (e.cat === 'imagen') {
+      const opciones = ['Radiografía','Ultrasonido','Tomografía','Resonancia magnética','Ecocardiograma','Otro'];
+      camposTipo = `
+        <div>
+          <div class="form-label" style="font-size:11px;">Tipo de imagen</div>
+          <select class="form-input" style="font-size:12px;" onchange="estudiosEditMap['${id}'][${i}].tipo=this.value">
+            <option value="">Seleccionar...</option>
+            ${opciones.map(o=>`<option value="${o}" ${e.tipo===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div class="form-label" style="font-size:11px;">Región / área</div>
+          <input class="form-input" style="font-size:12px;" value="${(e.descripcion||'').replace(/"/g,'&quot;')}"
+            placeholder="Ej: Tórax PA, abdomen..."
+            oninput="estudiosEditMap['${id}'][${i}].descripcion=this.value">
+        </div>`;
+    } else if (e.cat === 'lab') {
+      camposTipo = `
+        <div style="grid-column:1/-1;">
+          <div class="form-label" style="font-size:11px;">Estudio(s) / resultado</div>
+          <input class="form-input" style="font-size:12px;" value="${(e.descripcion||'').replace(/"/g,'&quot;')}"
+            placeholder="Ej: BH, QS, EGO, hemocultivo..."
+            oninput="estudiosEditMap['${id}'][${i}].descripcion=this.value">
+        </div>`;
+    } else {
+      camposTipo = `
+        <div style="grid-column:1/-1;">
+          <div class="form-label" style="font-size:11px;">Nombre del estudio</div>
+          <input class="form-input" style="font-size:12px;" value="${(e.descripcion||'').replace(/"/g,'&quot;')}"
+            placeholder="Ej: Electrocardiograma, espirometría..."
+            oninput="estudiosEditMap['${id}'][${i}].descripcion=this.value">
+        </div>`;
+    }
+
+    return `
+    <div style="background:${bg};border:1.5px solid ${bc};border-radius:var(--radius-sm);padding:12px;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:800;color:${bc};">${titulo}</span>
+        <button onclick="eliminarEstudioEdit('${id}',${i})" type="button"
+          style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-light);line-height:1;padding:0 2px;"
+          title="Eliminar">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        ${camposTipo}
+      </div>
+      <div>
+        <div class="form-label" style="font-size:11px;">Resultado / hallazgos</div>
+        <textarea class="form-input" style="font-size:12px;" rows="2"
+          placeholder="Resultado, hallazgos o lo que se solicitó..."
+          oninput="estudiosEditMap['${id}'][${i}].resultado=this.value">${e.resultado||''}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function leerEstudiosEdit(id) {
+  const lista = estudiosEditMap[id] || [];
+  const labs = lista.filter(e => e.cat === 'lab').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
+  const imgs = lista.filter(e => e.cat === 'imagen');
+  const otros = lista.filter(e => e.cat === 'otro').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
+  return {
+    estudios_lab: labs,
+    estudios_imagenes: JSON.stringify(imgs.map(e => ({ tipo: e.tipo, descripcion: e.descripcion, resultado: e.resultado }))),
+    estudios_otros: otros,
+  };
 }
 
 // ==================== UI HELPERS ====================
