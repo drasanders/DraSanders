@@ -5626,9 +5626,13 @@ function limpiarMCHAT() {
 // ==================== PESTAÑA VACUNAS ====================
 async function cargarVacunasTab() {
   if (!pacienteActual) return;
+  // Limpiar SIEMPRE los campos antes de cargar, para no mostrar datos del paciente anterior
+  const todosIds = Object.keys(obtenerVacunas ? {} : {});
+  // Limpiar todos los inputs de vacunas usando la misma lista de IDs que obtenerVacunas()
+  document.querySelectorAll('[id^="vac-"]').forEach(el => { el.value = ''; });
   try {
     const res = await api('GET','historia_clinica',null,`?paciente_id=eq.${pacienteActual.id}`);
-    if (!res.length) return;
+    if (!res.length) return; // No hay historia, campos ya limpios — correcto
     const h = res[0];
     if (h.apnp_vacunas) {
       try {
