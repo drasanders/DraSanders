@@ -1034,6 +1034,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div style="display:flex;gap:8px;">
         <button class="btn btn-danger btn-sm" onclick="confirmarEliminarPaciente()">🗑 Eliminar</button>
         <button class="btn btn-ghost btn-sm" id="btn-whatsapp-mama">💬 WhatsApp mamá</button>
+        <button class="btn btn-ghost btn-sm" onclick="openNotaNacimiento()" style="border-color:var(--lilac);color:var(--lilac-d);">🏥 Nota de Nacimiento</button>
         <button class="btn btn-primary btn-sm" onclick="openNuevaConsultaParaPaciente()">+ Nueva consulta</button>
       </div>
     </div>
@@ -1047,7 +1048,6 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div class="exp-tab" onclick="showExpTab('crecimiento')" id="exptab-crecimiento">📈 Crecimiento</div>
       <div class="exp-tab" onclick="showExpTab('desarrollo')" id="exptab-desarrollo">🧠 Desarrollo</div>
       <div class="exp-tab" onclick="showExpTab('mchat')" id="exptab-mchat">🔍 M-CHAT-R/F</div>
-      <div class="exp-tab" onclick="showExpTab('parto')" id="exptab-parto">🏥 Nota de Parto</div>
     </div>
 
     <div class="content">
@@ -6215,7 +6215,7 @@ function cargarFormulas(formulas) {
 
 // ==================== EXP TABS ====================
 function showExpTab(tab) {
-  ['general','historia','crecimiento','desarrollo','mchat','consultas','vacunas','parto'].forEach(t => {
+  ['general','historia','crecimiento','desarrollo','mchat','consultas','vacunas'].forEach(t => {
     const content = document.getElementById(`expcontent-${t}`);
     const tabEl = document.getElementById(`exptab-${t}`);
     if (content) content.style.display = t === tab ? '' : 'none';
@@ -6227,7 +6227,6 @@ function showExpTab(tab) {
   if (tab === 'desarrollo') iniciarDesarrollo();
   if (tab === 'mchat') iniciarMCHAT();
   if (tab === 'vacunas') cargarVacunasTab();
-  if (tab === 'parto') cargarNotaParto();
 }
 
 // ==================== HISTORIA CLINICA ====================
@@ -8214,12 +8213,57 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
 async function cargarConsultasPaciente(id) {
   document.getElementById('detalle-consultas').innerHTML = '<div class="loading"><div class="spinner"></div> Cargando historial...</div>';
   try {
-    const consultas = await api('GET','consultas',null,`?paciente_id=eq.${id}&order=fecha.desc`);
-    if (!consultas.length) {
+    const [consultas, notaNac] = await Promise.all([
+      api('GET','consultas',null,`?paciente_id=eq.${id}&order=fecha.desc`),
+      api('GET','nota_parto',null,`?paciente_id=eq.${id}`).catch(()=>[]),
+    ]);
+
+    // Card de nota de nacimiento (siempre al inicio si existe)
+    let notaNacHTML = '';
+    if (notaNac && notaNac.length) {
+      const nn = notaNac[0];
+      const fechaNac = nn.fecha_hora_nacimiento
+        ? new Date(nn.fecha_hora_nacimiento).toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+        : 'Fecha no registrada';
+      const tipoParto = nn.tipo_parto || '';
+      const apgar = (nn.apgar_1 || nn.apgar_5) ? `APGAR ${nn.apgar_1||'?'}/${nn.apgar_5||'?'}` : '';
+      const pesoNac = nn.peso_nacer ? `${nn.peso_nacer} kg` : '';
+      notaNacHTML = `
+      <div style="border:2px solid #C8A8E8;border-radius:var(--radius-sm);margin-bottom:10px;overflow:hidden;">
+        <!-- HEADER -->
+        <div onclick="toggleNacimientoCard()" id="nn-card-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:linear-gradient(135deg,#F5EEFF,#EDE8FF);transition:background 0.15s;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span id="nn-card-icon" style="font-size:12px;color:#9B6AC8;">▶</span>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:#C8A8E8;color:#5A3A8A;font-size:10px;font-weight:800;padding:2px 8px;border-radius:50px;letter-spacing:0.5px;">🏥 NOTA DE NACIMIENTO</span>
+              </div>
+              <div style="font-weight:800;font-size:13px;margin-top:3px;">${fechaNac}</div>
+              <div style="font-size:11px;color:var(--text-light);margin-top:2px;">${tipoParto}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+            ${pesoNac ? `<span class="badge" style="background:#EDE8FF;color:#7A4AB8;border:1px solid #C8A8E8;">⚖ ${pesoNac}</span>` : ''}
+            ${apgar ? `<span class="badge" style="background:#EDE8FF;color:#7A4AB8;border:1px solid #C8A8E8;">${apgar}</span>` : ''}
+            <button onclick="event.stopPropagation();openNotaNacimiento()" class="btn btn-sm" style="font-size:11px;padding:4px 10px;background:#C8A8E8;color:#5A3A8A;border:none;">✏️ Editar</button>
+          </div>
+        </div>
+        <!-- BODY EXPANDIBLE -->
+        <div id="nn-card-body" style="display:none;padding:16px;border-top:1px solid #C8A8E8;background:#FAF7FF;">
+          ${nn.txt_antecedentes_maternos ? `<div style="margin-bottom:14px;"><div style="font-weight:800;font-size:11px;color:#9B6AC8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">1. Antecedentes Maternos</div><div style="font-size:12px;white-space:pre-wrap;">${nn.txt_antecedentes_maternos}</div></div>` : ''}
+          ${nn.txt_atencion_nacimiento ? `<div style="margin-bottom:14px;"><div style="font-weight:800;font-size:11px;color:#9B6AC8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">2. Atención del Nacimiento</div><div style="font-size:12px;white-space:pre-wrap;">${nn.txt_atencion_nacimiento}</div></div>` : ''}
+          ${nn.txt_exploracion_fisica ? `<div style="margin-bottom:14px;"><div style="font-weight:800;font-size:11px;color:#9B6AC8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">3. Exploración Física</div><div style="font-size:12px;white-space:pre-wrap;">${nn.txt_exploracion_fisica}</div></div>` : ''}
+          ${nn.txt_evolucion_estancia ? `<div style="margin-bottom:14px;"><div style="font-weight:800;font-size:11px;color:#9B6AC8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">4. Evolución en Estancia</div><div style="font-size:12px;white-space:pre-wrap;">${nn.txt_evolucion_estancia}</div></div>` : ''}
+          ${nn.txt_indicaciones_alta ? `<div style="margin-bottom:14px;"><div style="font-weight:800;font-size:11px;color:#9B6AC8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">5. Indicaciones de Alta</div><div style="font-size:12px;white-space:pre-wrap;">${nn.txt_indicaciones_alta}</div></div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    if (!consultas.length && !notaNacHTML) {
       document.getElementById('detalle-consultas').innerHTML = `<div class="empty-state"><div class="empty-icon">🩺</div><p>No hay consultas registradas aún</p></div>`;
       return;
     }
-    document.getElementById('detalle-consultas').innerHTML = consultas.map(c => {
+    document.getElementById('detalle-consultas').innerHTML = notaNacHTML + (consultas.length ? consultas.map(c => {
       const fecha = new Date(c.fecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       const horaDisplay = c.hora ? ` — 🕐 ${c.hora}` : '';
       const imc = c.peso && c.talla ? (parseFloat(c.peso)/Math.pow(parseFloat(c.talla)/100,2)).toFixed(1) : (c.imc || '—');
@@ -8377,10 +8421,19 @@ async function cargarConsultasPaciente(id) {
           <button id="btn-save-${c.id}" class="btn btn-primary btn-sm" onclick="guardarConsultaEdit('${c.id}')">💾 Guardar cambios</button>
         </div>
       </div>`;
-    }).join('');
+    }).join('') : '');
   } catch(e) {
     document.getElementById('detalle-consultas').innerHTML = `<div class="alert alert-error">Error al cargar consultas</div>`;
   }
+}
+
+function toggleNacimientoCard() {
+  const body = document.getElementById('nn-card-body');
+  const icon = document.getElementById('nn-card-icon');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  icon.textContent = open ? '▼' : '▶';
 }
 
 // ==================== UI HELPERS ====================
@@ -9092,6 +9145,78 @@ document.addEventListener('click', function(e) {
 
 setTimeout(actualizarBadgeSolicitudes, 2000);
 
+// ==================== NOTA DE NACIMIENTO ====================
+const NN_FIELDS = ['nn-antecedentes-maternos','nn-atencion-nacimiento','nn-exploracion-fisica','nn-evolucion-estancia','nn-indicaciones-alta'];
+
+function limpiarModalNacimiento() {
+  NN_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('nacimiento-ultima-act').textContent = '';
+}
+
+async function openNotaNacimiento() {
+  if (!pacienteActual) return;
+  limpiarModalNacimiento();
+  openModal('modal-nota-nacimiento');
+  // Cargar datos si ya existe
+  try {
+    const res = await api('GET','nota_parto',null,`?paciente_id=eq.${pacienteActual.id}`);
+    if (!res.length) return;
+    const p = res[0];
+    const mapa = {
+      'nn-antecedentes-maternos': p.txt_antecedentes_maternos,
+      'nn-atencion-nacimiento':   p.txt_atencion_nacimiento,
+      'nn-exploracion-fisica':    p.txt_exploracion_fisica,
+      'nn-evolucion-estancia':    p.txt_evolucion_estancia,
+      'nn-indicaciones-alta':     p.txt_indicaciones_alta,
+    };
+    Object.entries(mapa).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val != null) el.value = val;
+    });
+    if (p.ultima_actualizacion) {
+      const f = new Date(p.ultima_actualizacion).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+      document.getElementById('nacimiento-ultima-act').textContent = `Guardado: ${f}`;
+    }
+  } catch(e) {}
+}
+
+async function guardarNotaNacimiento(btn) {
+  if (!pacienteActual) return;
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+  const data = {
+    paciente_id: pacienteActual.id,
+    txt_antecedentes_maternos: getVal('nn-antecedentes-maternos'),
+    txt_atencion_nacimiento:   getVal('nn-atencion-nacimiento'),
+    txt_exploracion_fisica:    getVal('nn-exploracion-fisica'),
+    txt_evolucion_estancia:    getVal('nn-evolucion-estancia'),
+    txt_indicaciones_alta:     getVal('nn-indicaciones-alta'),
+    ultima_actualizacion: new Date().toISOString(),
+  };
+  try {
+    const existing = await api('GET','nota_parto',null,`?paciente_id=eq.${pacienteActual.id}`);
+    if (existing.length) {
+      await api('PATCH','nota_parto',data,`?paciente_id=eq.${pacienteActual.id}`);
+    } else {
+      await api('POST','nota_parto',data);
+    }
+    const ahora = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+    document.getElementById('nacimiento-ultima-act').textContent = `Guardado: ${ahora}`;
+    btn.textContent = '✅ Guardado'; btn.style.background = 'var(--green-d)';
+    // Recargar lista de consultas si está visible para mostrar la nota
+    if (document.getElementById('expcontent-consultas').style.display !== 'none') {
+      cargarConsultasPaciente(pacienteActual.id);
+    }
+    setTimeout(() => {
+      btn.textContent = orig; btn.style.background = ''; btn.disabled = false;
+      closeModal('modal-nota-nacimiento');
+    }, 1200);
+  } catch(e) {
+    btn.textContent = '❌ Error'; btn.disabled = false;
+    alert('Error al guardar: ' + e.message);
+  }
+}
+
 // ==================== NOTA DE PARTO ====================
 async function cargarNotaParto() {
   if (!pacienteActual) return;
@@ -9317,6 +9442,52 @@ async function guardarNotaParto(btn) {
     <div class="form-actions" style="margin-top:16px;">
       <button class="btn btn-ghost" onclick="closeModal('modal-pin-finanzas');showView('dashboard')">Cancelar</button>
       <button class="btn btn-primary" onclick="verificarPin()">🔓 Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL NOTA DE NACIMIENTO ============ -->
+<div id="modal-nota-nacimiento" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-nota-nacimiento')">
+  <div class="modal" style="width:96%;max-width:1100px;height:92vh;display:flex;flex-direction:column;">
+
+    <!-- HEADER FIJO -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:2px solid var(--border);flex-shrink:0;">
+      <div class="modal-title" style="font-size:17px;">🏥 Nota de Nacimiento</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="nacimiento-ultima-act" style="font-size:11px;color:var(--text-light);font-weight:600;"></span>
+        <button class="btn btn-primary" onclick="guardarNotaNacimiento(this)">💾 Guardar</button>
+        <button class="modal-close" onclick="closeModal('modal-nota-nacimiento')" style="margin-left:4px;">✕</button>
+      </div>
+    </div>
+
+    <!-- BODY SCROLLABLE -->
+    <div style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:0;">
+
+      <div class="hc-section">
+        <div class="hc-section-title">1. Antecedentes Maternos</div>
+        <textarea class="form-input" id="nn-antecedentes-maternos" style="width:100%;min-height:130px;resize:vertical;" placeholder="Escribe aquí los antecedentes maternos..."></textarea>
+      </div>
+
+      <div class="hc-section">
+        <div class="hc-section-title">2. Atención del Nacimiento</div>
+        <textarea class="form-input" id="nn-atencion-nacimiento" style="width:100%;min-height:130px;resize:vertical;" placeholder="Escribe aquí los datos de la atención del nacimiento..."></textarea>
+      </div>
+
+      <div class="hc-section">
+        <div class="hc-section-title">3. Exploración Física</div>
+        <textarea class="form-input" id="nn-exploracion-fisica" style="width:100%;min-height:130px;resize:vertical;" placeholder="Escribe aquí los hallazgos de la exploración física..."></textarea>
+      </div>
+
+      <div class="hc-section">
+        <div class="hc-section-title">4. Evolución en su Estancia</div>
+        <textarea class="form-input" id="nn-evolucion-estancia" style="width:100%;min-height:130px;resize:vertical;" placeholder="Escribe aquí la evolución durante la estancia..."></textarea>
+      </div>
+
+      <div class="hc-section" style="border-bottom:none;">
+        <div class="hc-section-title">5. Indicaciones de Alta</div>
+        <textarea class="form-input" id="nn-indicaciones-alta" style="width:100%;min-height:130px;resize:vertical;" placeholder="Escribe aquí las indicaciones de alta..."></textarea>
+      </div>
+
     </div>
   </div>
 </div>
