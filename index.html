@@ -1047,6 +1047,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div class="exp-tab" onclick="showExpTab('crecimiento')" id="exptab-crecimiento">📈 Crecimiento</div>
       <div class="exp-tab" onclick="showExpTab('desarrollo')" id="exptab-desarrollo">🧠 Desarrollo</div>
       <div class="exp-tab" onclick="showExpTab('mchat')" id="exptab-mchat">🔍 M-CHAT-R/F</div>
+      <div class="exp-tab" onclick="showExpTab('parto')" id="exptab-parto">🏥 Nota de Parto</div>
     </div>
 
     <div class="content">
@@ -1189,79 +1190,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
             </div>
 
-            <!-- SECCION 2: APNP -->
+            <!-- SECCION 2: APP -->
             <div class="hc-section">
-              <div class="hc-section-title">2. Antecedentes Personales No Patológicos</div>
-
-              <!-- ALIMENTACION EXPANDIDA -->
-              <div class="hc-subsection-title">🍼 Alimentación</div>
-
-              <div class="form-group" style="margin-bottom:14px;">
-                <div class="form-label">Tipo de lactancia</div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-                  <label class="radio-option" onclick="toggleFormula('exclusiva')">
-                    <input type="radio" name="lactancia" value="exclusiva" id="lact-exclusiva"> Lactancia materna exclusiva
-                  </label>
-                  <label class="radio-option" onclick="toggleFormula('mixta')">
-                    <input type="radio" name="lactancia" value="mixta" id="lact-mixta"> Mixta
-                  </label>
-                  <label class="radio-option" onclick="toggleFormula('sucedaneo')">
-                    <input type="radio" name="lactancia" value="sucedaneo" id="lact-sucedaneo"> Sucedáneo de leche (fórmula)
-                  </label>
-                </div>
-              </div>
-
-              <!-- CAMPOS FORMULA (solo aparecen si mixta o sucedáneo) -->
-              <div id="formula-fields" style="display:none;margin-bottom:14px;">
-                <div id="formula-lista"></div>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="agregarFormula()" style="margin-top:6px;">+ Agregar fórmula</button>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <div class="form-label">Alimentación complementaria — fecha de inicio</div>
-                  <input class="form-input" id="hc-apnp-ac-inicio" type="date">
-                </div>
-                <div class="form-group">
-                  <div class="form-label">Método de alimentación complementaria</div>
-                  <select class="form-input" id="hc-apnp-ac-metodo">
-                    <option value="">Seleccionar...</option>
-                    <option>Mixto</option>
-                    <option>BLW (Baby Led Weaning)</option>
-                    <option>BLISS (Baby Led Introduction to Solids)</option>
-                    <option>Progresión de texturas</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:18px;">
-                <div class="form-label">Notas de alimentación complementaria</div>
-                <textarea class="form-input" id="hc-apnp-ablactacion" rows="2" placeholder="Alimentos introducidos, tolerancia, alergias alimentarias observadas..."></textarea>
-              </div>
-                <div class="form-group">
-                  <div class="form-label">Higiene personal</div>
-                  <textarea class="form-input" id="hc-apnp-higiene" rows="2" placeholder="Baño diario, cepillado dental..."></textarea>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <div class="form-label">Vivienda y condiciones socioeconómicas</div>
-                  <textarea class="form-input" id="hc-apnp-vivienda" rows="2" placeholder="Casa propia, servicios básicos, hacinamiento..."></textarea>
-                </div>
-                <div class="form-group">
-                  <div class="form-label">Convivencia con animales</div>
-                  <input class="form-input" id="hc-apnp-animales" placeholder="Perros, gatos, aves...">
-                </div>
-              </div>
-
-              <div class="form-group" style="margin-top:12px;">
-                <div class="form-label">Otros</div>
-                <textarea class="form-input" id="hc-apnp-otros" rows="2" placeholder="Actividad física, hábitos de sueño..."></textarea>
-              </div>
-            </div>
-
-            <!-- SECCION 3: APP -->
-            <div class="hc-section">
-              <div class="hc-section-title">3. Antecedentes Personales Patológicos</div>
+              <div class="hc-section-title">2. Antecedentes Personales Patológicos</div>
               <div class="form-row">
                 <div class="form-group">
                   <div class="form-label">Enfermedades previas</div>
@@ -1298,9 +1229,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
               </div>
             </div>
 
-            <!-- SECCION 4: PERINATALES -->
+            <!-- SECCION 3: PERINATALES -->
             <div class="hc-section">
-              <div class="hc-section-title">4. Antecedentes Perinatales</div>
+              <div class="hc-section-title">3. Antecedentes Perinatales</div>
               <div class="form-row-3">
                 <div class="form-group">
                   <div class="form-label">Tipo de parto</div>
@@ -1334,6 +1265,95 @@ textarea.form-input { resize:vertical; min-height:70px; }
               <div class="form-group">
                 <div class="form-label">Complicaciones perinatales</div>
                 <textarea class="form-input" id="hc-ap-complicaciones" rows="2" placeholder="Ictericia, asfixia, ingreso a UCIN..."></textarea>
+              </div>
+            </div>
+
+            <!-- SECCION 4: ALIMENTACION -->
+            <div class="hc-section">
+              <div class="hc-section-title">4. Alimentación</div>
+
+              <!-- TIPO DE LACTANCIA -->
+              <div class="hc-subsection-title">🤱 Lactancia</div>
+              <div class="form-group" style="margin-bottom:14px;">
+                <div class="form-label">Tipo de lactancia</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+                  <label class="radio-option" onclick="toggleLactancia('materna')">
+                    <input type="radio" name="lactancia" value="materna" id="lact-materna"> Materna exclusiva
+                  </label>
+                  <label class="radio-option" onclick="toggleLactancia('mixta')">
+                    <input type="radio" name="lactancia" value="mixta" id="lact-mixta"> Mixta
+                  </label>
+                  <label class="radio-option" onclick="toggleLactancia('formula')">
+                    <input type="radio" name="lactancia" value="formula" id="lact-formula"> Fórmula exclusiva
+                  </label>
+                </div>
+              </div>
+
+              <!-- CAMPOS LACTANCIA MATERNA -->
+              <div id="lactancia-materna-fields" style="display:none;margin-bottom:14px;background:var(--bg);border-radius:var(--radius-sm);padding:14px;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <div class="form-label">Inicio de lactancia materna</div>
+                    <input class="form-input" id="lact-materna-inicio" placeholder="Ej. Desde el nacimiento, 1er día de vida...">
+                  </div>
+                  <div class="form-group">
+                    <div class="form-label">Suspensión <span style="color:var(--text-light);font-weight:500;">(meses, dejar vacío si continúa)</span></div>
+                    <input class="form-input" id="lact-materna-fin" placeholder="Ej. 6 meses, 1 año, aún continúa...">
+                  </div>
+                </div>
+              </div>
+
+              <!-- LISTA DE FORMULAS -->
+              <div id="formula-fields" style="display:none;margin-bottom:14px;">
+                <div class="hc-subsection-title" style="margin-top:0;">🍼 Fórmulas</div>
+                <div id="formula-lista"></div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="agregarFormula()" style="margin-top:8px;">+ Agregar fórmula</button>
+              </div>
+
+              <!-- ALIMENTACION COMPLEMENTARIA -->
+              <div class="hc-subsection-title">🥣 Alimentación complementaria</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Mes de inicio</div>
+                  <input class="form-input" id="hc-apnp-ac-inicio" placeholder="Ej. 6 meses, 5 meses y medio...">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Método</div>
+                  <select class="form-input" id="hc-apnp-ac-metodo">
+                    <option value="">Seleccionar...</option>
+                    <option>Mixto</option>
+                    <option>BLW (Baby Led Weaning)</option>
+                    <option>BLISS (Baby Led Introduction to Solids)</option>
+                    <option>Progresión de texturas</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:18px;">
+                <div class="form-label">Notas de alimentación complementaria</div>
+                <textarea class="form-input" id="hc-apnp-ablactacion" rows="2" placeholder="Alimentos introducidos, tolerancia, alergias observadas..."></textarea>
+              </div>
+
+              <!-- OTROS APNP -->
+              <div class="hc-subsection-title">🏠 Antecedentes no patológicos</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Higiene personal</div>
+                  <textarea class="form-input" id="hc-apnp-higiene" rows="2" placeholder="Baño diario, cepillado dental..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Vivienda y condiciones socioeconómicas</div>
+                  <textarea class="form-input" id="hc-apnp-vivienda" rows="2" placeholder="Casa propia, servicios básicos, hacinamiento..."></textarea>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Convivencia con animales</div>
+                  <input class="form-input" id="hc-apnp-animales" placeholder="Perros, gatos, aves...">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Otros</div>
+                  <input class="form-input" id="hc-apnp-otros" placeholder="Actividad física, hábitos de sueño...">
+                </div>
               </div>
             </div>
 
@@ -1720,6 +1740,341 @@ textarea.form-input { resize:vertical; min-height:70px; }
           </div>
           <div class="panel-body" id="detalle-consultas">
             <div class="loading"><div class="spinner"></div> Cargando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB NOTA DE PARTO -->
+      <div id="expcontent-parto" style="display:none;">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🏥 Nota de Atención del Parto / Nacimiento</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span id="parto-ultima-actualizacion" style="font-size:11px;color:var(--text-light);font-weight:600;"></span>
+              <button class="btn btn-primary btn-sm" onclick="guardarNotaParto(this)">💾 Guardar</button>
+            </div>
+          </div>
+          <div class="panel-body">
+
+            <!-- SECCION 1: ANTECEDENTES MATERNOS -->
+            <div class="hc-section">
+              <div class="hc-section-title">1. Antecedentes Maternos</div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <div class="form-label">Edad materna</div>
+                  <input class="form-input" id="parto-madre-edad" placeholder="Ej. 28 años" type="number">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Gesta / Para / Cesárea / Aborto</div>
+                  <input class="form-input" id="parto-madre-gpca" placeholder="G2 P1 C0 A0">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Grupo sanguíneo materno</div>
+                  <select class="form-input" id="parto-madre-sangre">
+                    <option value="">Seleccionar...</option>
+                    <option>O+</option><option>O-</option><option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+                    <option>Desconocido</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <div class="form-label">Semanas de gestación</div>
+                  <input class="form-input" id="parto-sdg" placeholder="38.5 SDG" type="number" step="0.5" min="20" max="42">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Control prenatal</div>
+                  <select class="form-input" id="parto-prenatal">
+                    <option value="">Seleccionar...</option>
+                    <option>Adecuado (≥5 consultas)</option>
+                    <option>Inadecuado (&lt;5 consultas)</option>
+                    <option>Sin control prenatal</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Número de consultas prenatales</div>
+                  <input class="form-input" id="parto-num-consultas" placeholder="Ej. 7" type="number" min="0">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Patologías durante el embarazo</div>
+                  <textarea class="form-input" id="parto-patologias-embarazo" rows="2" placeholder="Diabetes gestacional, preeclampsia, infecciones, amenaza de aborto..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Medicamentos durante el embarazo</div>
+                  <textarea class="form-input" id="parto-medicamentos-embarazo" rows="2" placeholder="Ácido fólico, hierro, otros..."></textarea>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Serología materna</div>
+                  <textarea class="form-input" id="parto-serologia" rows="2" placeholder="VIH, VDRL, hepatitis B, toxoplasmosis, rubéola..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Ultrasonidos prenatales</div>
+                  <textarea class="form-input" id="parto-ultrasonidos" rows="2" placeholder="Hallazgos relevantes, semanas realizados..."></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Otros antecedentes maternos relevantes</div>
+                <textarea class="form-input" id="parto-antecedentes-otros" rows="2" placeholder="Enfermedades crónicas, cirugías previas, alergias..."></textarea>
+              </div>
+            </div>
+
+            <!-- SECCION 2: ATENCION DEL NACIMIENTO -->
+            <div class="hc-section">
+              <div class="hc-section-title">2. Atención del Nacimiento</div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <div class="form-label">Fecha y hora de nacimiento</div>
+                  <input class="form-input" id="parto-fecha-hora" type="datetime-local">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Tipo de parto</div>
+                  <select class="form-input" id="parto-tipo">
+                    <option value="">Seleccionar...</option>
+                    <option>Eutócico (vaginal espontáneo)</option>
+                    <option>Cesárea programada</option>
+                    <option>Cesárea urgente</option>
+                    <option>Instrumentado — fórceps</option>
+                    <option>Instrumentado — ventosa</option>
+                    <option>Parto en casa</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Indicación de cesárea (si aplica)</div>
+                  <input class="form-input" id="parto-indicacion-cesarea" placeholder="DCP, sufrimiento fetal, presentación...">
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <div class="form-label">Presentación fetal</div>
+                  <select class="form-input" id="parto-presentacion">
+                    <option value="">Seleccionar...</option>
+                    <option>Cefálica</option>
+                    <option>Pélvica</option>
+                    <option>Transversa</option>
+                    <option>Podálica</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Líquido amniótico</div>
+                  <select class="form-input" id="parto-liquido-amniotico">
+                    <option value="">Seleccionar...</option>
+                    <option>Claro</option>
+                    <option>Meconial fluido</option>
+                    <option>Meconial espeso</option>
+                    <option>Hemático</option>
+                    <option>Oligohidramnios</option>
+                    <option>Polihidramnios</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Ruptura de membranas</div>
+                  <select class="form-input" id="parto-ruptura-membranas">
+                    <option value="">Seleccionar...</option>
+                    <option>Espontánea al momento del parto</option>
+                    <option>Espontánea prematura (&lt;37 SDG)</option>
+                    <option>Artificial (amniotomía)</option>
+                    <option>Membranas íntegras al nacimiento</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <div class="form-label">APGAR al minuto</div>
+                  <input class="form-input" id="parto-apgar-1" placeholder="7" type="number" min="0" max="10">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">APGAR a los 5 minutos</div>
+                  <input class="form-input" id="parto-apgar-5" placeholder="9" type="number" min="0" max="10">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">APGAR a los 10 minutos (si aplica)</div>
+                  <input class="form-input" id="parto-apgar-10" placeholder="10" type="number" min="0" max="10">
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <div class="form-label">Peso al nacer (kg)</div>
+                  <input class="form-input" id="parto-peso" placeholder="3.2" type="number" step="0.001" min="0.3" max="6">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Talla al nacer (cm)</div>
+                  <input class="form-input" id="parto-talla" placeholder="49" type="number" step="0.1">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Perímetro cefálico (cm)</div>
+                  <input class="form-input" id="parto-pc" placeholder="34" type="number" step="0.1">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Reanimación neonatal</div>
+                  <select class="form-input" id="parto-reanimacion">
+                    <option value="">Seleccionar...</option>
+                    <option>No requirió (pasos iniciales)</option>
+                    <option>VPP (ventilación presión positiva)</option>
+                    <option>VPP + masaje cardíaco</option>
+                    <option>Intubación endotraqueal</option>
+                    <option>Adrenalina / medicamentos</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Profilaxis al nacimiento</div>
+                  <textarea class="form-input" id="parto-profilaxis" rows="2" placeholder="Vitamina K 1mg IM, ungüento oftálmico, hepatitis B..."></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Descripción de la atención del nacimiento</div>
+                <textarea class="form-input" id="parto-descripcion-atencion" rows="3" placeholder="Descripción del procedimiento, personal presente, incidencias relevantes..."></textarea>
+              </div>
+            </div>
+
+            <!-- SECCION 3: EXPLORACION FISICA -->
+            <div class="hc-section">
+              <div class="hc-section-title">3. Exploración Física al Nacimiento</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Estado general</div>
+                  <textarea class="form-input" id="parto-ef-general" rows="2" placeholder="Neonato a término / pretérmino, activo, reactivo, llanto vigoroso..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Piel y faneras</div>
+                  <textarea class="form-input" id="parto-ef-piel" rows="2" placeholder="Color, vérnix, lanugo, manchas, lesiones..."></textarea>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Cabeza y cara</div>
+                  <textarea class="form-input" id="parto-ef-cabeza" rows="2" placeholder="Fontanelas, suturas, facies, dismorfias..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Ojos, oídos, nariz y boca</div>
+                  <textarea class="form-input" id="parto-ef-oofn" rows="2" placeholder="Reflejo rojo, pabellones auriculares, paladar, frenillo..."></textarea>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Cuello y tórax</div>
+                  <textarea class="form-input" id="parto-ef-cuello-torax" rows="2" placeholder="Movilidad, clavículas, simetría torácica, campos pulmonares..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Cardiovascular</div>
+                  <textarea class="form-input" id="parto-ef-cardio" rows="2" placeholder="Ruidos cardíacos, FC, pulsos, llenado capilar..."></textarea>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Abdomen</div>
+                  <textarea class="form-input" id="parto-ef-abdomen" rows="2" placeholder="Globoso, blando, cordón umbilical, hígado, bazo..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Genitales y región anal</div>
+                  <textarea class="form-input" id="parto-ef-genitales" rows="2" placeholder="Acorde al sexo, testículos, ano permeable..."></textarea>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Extremidades y columna</div>
+                  <textarea class="form-input" id="parto-ef-extremidades" rows="2" placeholder="Simétricas, Ortolani/Barlow, reflejo de Moro, columna íntegra..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Sistema nervioso / reflejos</div>
+                  <textarea class="form-input" id="parto-ef-neurologico" rows="2" placeholder="Tono muscular, reflejos primitivos, succión, prensión..."></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Clasificación del recién nacido</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-edad" value="RNAT"> RNAT (≥37 SDG)</label>
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-edad" value="RNPT"> RNPT (&lt;37 SDG)</label>
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-edad" value="RNPostT"> RN Postérmino (≥42 SDG)</label>
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-edad" value="RNMBP"> RNMBP (&lt;1500g)</label>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-peso" value="AEG"> AEG (adecuado para EG)</label>
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-peso" value="GEG"> GEG (grande para EG)</label>
+                  <label class="radio-option"><input type="radio" name="parto-clasificacion-peso" value="PEG"> PEG (pequeño para EG)</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCION 4: EVOLUCION EN ESTANCIA -->
+            <div class="hc-section">
+              <div class="hc-section-title">4. Evolución en su Estancia</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Fecha de ingreso</div>
+                  <input class="form-input" id="parto-fecha-ingreso" type="date">
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Fecha de egreso / alta</div>
+                  <input class="form-input" id="parto-fecha-egreso" type="date">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:14px;">
+                <div class="form-label">Evolución clínica durante la estancia</div>
+                <textarea class="form-input" id="parto-evolucion" rows="4" placeholder="Describir evolución por día, complicaciones presentadas, procedimientos realizados, estado del paciente al alta..."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Estudios de laboratorio / gabinete</div>
+                  <textarea class="form-input" id="parto-estudios" rows="3" placeholder="BHC, glucosa, bilirrubinas, USG transfontanelar, ECG, cultivos..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Tratamiento durante la estancia</div>
+                  <textarea class="form-input" id="parto-tratamiento-estancia" rows="3" placeholder="Medicamentos, dosis, vía, duración..."></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Diagnósticos durante la estancia</div>
+                <textarea class="form-input" id="parto-diagnosticos" rows="2" placeholder="Ictericia neonatal, hipoglucemia, taquipnea transitoria..."></textarea>
+              </div>
+            </div>
+
+            <!-- SECCION 5: INDICACIONES DE ALTA -->
+            <div class="hc-section" style="border-bottom:none;">
+              <div class="hc-section-title">5. Indicaciones de Alta</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Condición al alta</div>
+                  <select class="form-input" id="parto-condicion-alta">
+                    <option value="">Seleccionar...</option>
+                    <option>Buenas condiciones generales</option>
+                    <option>Condiciones regulares, con seguimiento</option>
+                    <option>Alta voluntaria</option>
+                    <option>Alta por mejoría con tratamiento</option>
+                    <option>Referido a unidad de mayor nivel</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Peso al alta (kg)</div>
+                  <input class="form-input" id="parto-peso-alta" placeholder="3.1" type="number" step="0.001" min="0.3" max="6">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:14px;">
+                <div class="form-label">Indicaciones y recomendaciones al alta</div>
+                <textarea class="form-input" id="parto-indicaciones" rows="4" placeholder="Lactancia materna exclusiva, signos de alarma, cuidados del cordón umbilical, baño, cita de seguimiento..."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="form-label">Medicamentos al alta</div>
+                  <textarea class="form-input" id="parto-medicamentos-alta" rows="3" placeholder="Vitamina D 400 UI/día, hierro, otros..."></textarea>
+                </div>
+                <div class="form-group">
+                  <div class="form-label">Cita de seguimiento</div>
+                  <textarea class="form-input" id="parto-cita-seguimiento" rows="3" placeholder="Primera cita en 3-5 días para revisión y control de peso..."></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Observaciones adicionales</div>
+                <textarea class="form-input" id="parto-observaciones-alta" rows="2" placeholder="Información adicional relevante para el seguimiento..."></textarea>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -5626,13 +5981,9 @@ function limpiarMCHAT() {
 // ==================== PESTAÑA VACUNAS ====================
 async function cargarVacunasTab() {
   if (!pacienteActual) return;
-  // Limpiar SIEMPRE los campos antes de cargar, para no mostrar datos del paciente anterior
-  const todosIds = Object.keys(obtenerVacunas ? {} : {});
-  // Limpiar todos los inputs de vacunas usando la misma lista de IDs que obtenerVacunas()
-  document.querySelectorAll('[id^="vac-"]').forEach(el => { el.value = ''; });
   try {
     const res = await api('GET','historia_clinica',null,`?paciente_id=eq.${pacienteActual.id}`);
-    if (!res.length) return; // No hay historia, campos ya limpios — correcto
+    if (!res.length) return;
     const h = res[0];
     if (h.apnp_vacunas) {
       try {
@@ -5759,17 +6110,39 @@ function obtenerVacunas() {
   return result;
 }
 
-// ==================== LACTANCIA TOGGLE ====================
+// ==================== LACTANCIA & FORMULA ====================
 let formulaCount = 0;
 
-function toggleFormula(tipo) {
-  const campos = document.getElementById('formula-fields');
-  if (tipo === 'mixta' || tipo === 'sucedaneo') {
-    campos.style.display = '';
+function toggleLactancia(tipo) {
+  // Mostrar/ocultar campos de lactancia materna
+  const maternaFields = document.getElementById('lactancia-materna-fields');
+  const formulaFields = document.getElementById('formula-fields');
+  if (tipo === 'materna') {
+    maternaFields.style.display = '';
+    formulaFields.style.display = 'none';
+  } else if (tipo === 'mixta') {
+    maternaFields.style.display = '';
+    formulaFields.style.display = '';
+    if (formulaCount === 0) agregarFormula();
+  } else if (tipo === 'formula') {
+    maternaFields.style.display = 'none';
+    formulaFields.style.display = '';
     if (formulaCount === 0) agregarFormula();
   } else {
-    campos.style.display = 'none';
+    maternaFields.style.display = 'none';
+    formulaFields.style.display = 'none';
   }
+}
+
+// Alias para compatibilidad con código que llame toggleFormula
+function toggleFormula(tipo) {
+  // Mapeo de valores viejos a nuevos
+  const mapa = { exclusiva: 'materna', mixta: 'mixta', sucedaneo: 'formula' };
+  const nuevoTipo = mapa[tipo] || tipo;
+  // Marcar el radio correcto
+  const radio = document.getElementById(`lact-${nuevoTipo}`);
+  if (radio) radio.checked = true;
+  toggleLactancia(nuevoTipo);
 }
 
 function agregarFormula(data = {}) {
@@ -5783,28 +6156,24 @@ function agregarFormula(data = {}) {
       <div class="formula-num">🍼 Fórmula ${id}</div>
       <button type="button" class="btn-remove" onclick="eliminarFormula(${id})">✕ Quitar</button>
     </div>
-    <div class="form-row-3">
+    <div class="form-row">
       <div class="form-group">
-        <div class="form-label">Marca / nombre</div>
-        <input class="form-input" id="formula-${id}-marca" placeholder="Similac, NAN, Enfamil..." value="${data.marca||''}">
+        <div class="form-label">Tipo / Marca</div>
+        <input class="form-input" id="formula-${id}-marca" placeholder="Similac, NAN, Enfamil, S-26..." value="${data.marca||''}">
       </div>
       <div class="form-group">
-        <div class="form-label">Onzas por toma</div>
-        <input class="form-input" id="formula-${id}-onzas" type="number" min="1" max="16" placeholder="4" value="${data.onzas||''}">
-      </div>
-      <div class="form-group">
-        <div class="form-label">Frecuencia</div>
-        <input class="form-input" id="formula-${id}-frecuencia" placeholder="Cada 3 horas" value="${data.frecuencia||''}">
+        <div class="form-label">Descripción / Indicación</div>
+        <input class="form-input" id="formula-${id}-descripcion" placeholder="Ej. Etapa 1, anticólico, para prematuros..." value="${data.descripcion||''}">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <div class="form-label">Fecha de inicio</div>
-        <input class="form-input" id="formula-${id}-inicio" type="date" value="${data.inicio||''}">
+        <div class="form-label">Inicio <span style="color:var(--text-light);font-weight:500;">(meses o descripción)</span></div>
+        <input class="form-input" id="formula-${id}-inicio" placeholder="Ej. Al nacer, 1 mes, 6 meses..." value="${data.inicio||''}">
       </div>
       <div class="form-group">
-        <div class="form-label">Fecha de fin <span style="color:var(--text-light);font-weight:500;">(dejar vacío si aún la usa)</span></div>
-        <input class="form-input" id="formula-${id}-fin" type="date" value="${data.fin||''}">
+        <div class="form-label">Fin <span style="color:var(--text-light);font-weight:500;">(dejar vacío si continúa)</span></div>
+        <input class="form-input" id="formula-${id}-fin" placeholder="Ej. 6 meses, 1 año, aún continúa..." value="${data.fin||''}">
       </div>
     </div>`;
   document.getElementById('formula-lista').appendChild(div);
@@ -5828,11 +6197,10 @@ function obtenerFormulas() {
   document.querySelectorAll('.formula-card').forEach(card => {
     const id = card.id.replace('formula-card-','');
     formulas.push({
-      marca: document.getElementById(`formula-${id}-marca`)?.value || '',
-      onzas: document.getElementById(`formula-${id}-onzas`)?.value || '',
-      frecuencia: document.getElementById(`formula-${id}-frecuencia`)?.value || '',
-      inicio: document.getElementById(`formula-${id}-inicio`)?.value || '',
-      fin: document.getElementById(`formula-${id}-fin`)?.value || '',
+      marca:       document.getElementById(`formula-${id}-marca`)?.value || '',
+      descripcion: document.getElementById(`formula-${id}-descripcion`)?.value || '',
+      inicio:      document.getElementById(`formula-${id}-inicio`)?.value || '',
+      fin:         document.getElementById(`formula-${id}-fin`)?.value || '',
     });
   });
   return formulas;
@@ -5847,7 +6215,7 @@ function cargarFormulas(formulas) {
 
 // ==================== EXP TABS ====================
 function showExpTab(tab) {
-  ['general','historia','crecimiento','desarrollo','mchat','consultas','vacunas'].forEach(t => {
+  ['general','historia','crecimiento','desarrollo','mchat','consultas','vacunas','parto'].forEach(t => {
     const content = document.getElementById(`expcontent-${t}`);
     const tabEl = document.getElementById(`exptab-${t}`);
     if (content) content.style.display = t === tab ? '' : 'none';
@@ -5859,6 +6227,7 @@ function showExpTab(tab) {
   if (tab === 'desarrollo') iniciarDesarrollo();
   if (tab === 'mchat') iniciarMCHAT();
   if (tab === 'vacunas') cargarVacunasTab();
+  if (tab === 'parto') cargarNotaParto();
 }
 
 // ==================== HISTORIA CLINICA ====================
@@ -5908,7 +6277,17 @@ async function cargarHistoriaClinica(pacienteId) {
     // Cargar lactancia
     if (h.apnp_lactancia) {
       const radio = document.getElementById(`lact-${h.apnp_lactancia}`);
-      if (radio) { radio.checked = true; toggleFormula(h.apnp_lactancia); }
+      if (radio) { radio.checked = true; }
+      toggleLactancia(h.apnp_lactancia);
+    }
+    // Cargar campos de lactancia materna
+    if (h.apnp_lact_materna_inicio) {
+      const el = document.getElementById('lact-materna-inicio');
+      if (el) el.value = h.apnp_lact_materna_inicio;
+    }
+    if (h.apnp_lact_materna_fin) {
+      const el = document.getElementById('lact-materna-fin');
+      if (el) el.value = h.apnp_lact_materna_fin;
     }
     if (h.apnp_formulas) {
       try {
@@ -5969,6 +6348,8 @@ async function guardarHistoriaClinica(btn) {
     ahf_hermanos: document.getElementById('hc-hermanos').value,
     ahf_enfermedades_familiares: document.getElementById('hc-enfermedades-familiares').value,
     apnp_lactancia: document.querySelector('input[name="lactancia"]:checked')?.value || '',
+    apnp_lact_materna_inicio: getVal('lact-materna-inicio'),
+    apnp_lact_materna_fin: getVal('lact-materna-fin'),
     apnp_formulas: JSON.stringify(obtenerFormulas()),
     apnp_ac_inicio: getVal('hc-apnp-ac-inicio'),
     apnp_ac_metodo: getVal('hc-apnp-ac-metodo'),
@@ -8710,6 +9091,144 @@ document.addEventListener('click', function(e) {
 });
 
 setTimeout(actualizarBadgeSolicitudes, 2000);
+
+// ==================== NOTA DE PARTO ====================
+async function cargarNotaParto() {
+  if (!pacienteActual) return;
+  // Limpiar campos
+  document.querySelectorAll('[id^="parto-"]').forEach(el => {
+    if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = '';
+  });
+  document.querySelectorAll('input[name="parto-clasificacion-edad"], input[name="parto-clasificacion-peso"]').forEach(r => r.checked = false);
+  document.getElementById('parto-ultima-actualizacion').textContent = '';
+  try {
+    const res = await api('GET','nota_parto',null,`?paciente_id=eq.${pacienteActual.id}`);
+    if (!res.length) return;
+    const p = res[0];
+    const campos = {
+      'parto-madre-edad': p.madre_edad, 'parto-madre-gpca': p.madre_gpca,
+      'parto-madre-sangre': p.madre_sangre, 'parto-sdg': p.sdg,
+      'parto-prenatal': p.prenatal, 'parto-num-consultas': p.num_consultas_prenatales,
+      'parto-patologias-embarazo': p.patologias_embarazo, 'parto-medicamentos-embarazo': p.medicamentos_embarazo,
+      'parto-serologia': p.serologia, 'parto-ultrasonidos': p.ultrasonidos,
+      'parto-antecedentes-otros': p.antecedentes_otros,
+      'parto-fecha-hora': p.fecha_hora_nacimiento,
+      'parto-tipo': p.tipo_parto, 'parto-indicacion-cesarea': p.indicacion_cesarea,
+      'parto-presentacion': p.presentacion_fetal, 'parto-liquido-amniotico': p.liquido_amniotico,
+      'parto-ruptura-membranas': p.ruptura_membranas,
+      'parto-apgar-1': p.apgar_1, 'parto-apgar-5': p.apgar_5, 'parto-apgar-10': p.apgar_10,
+      'parto-peso': p.peso_nacer, 'parto-talla': p.talla_nacer, 'parto-pc': p.pc_nacer,
+      'parto-reanimacion': p.reanimacion, 'parto-profilaxis': p.profilaxis,
+      'parto-descripcion-atencion': p.descripcion_atencion,
+      'parto-ef-general': p.ef_general, 'parto-ef-piel': p.ef_piel,
+      'parto-ef-cabeza': p.ef_cabeza, 'parto-ef-oofn': p.ef_oofn,
+      'parto-ef-cuello-torax': p.ef_cuello_torax, 'parto-ef-cardio': p.ef_cardio,
+      'parto-ef-abdomen': p.ef_abdomen, 'parto-ef-genitales': p.ef_genitales,
+      'parto-ef-extremidades': p.ef_extremidades, 'parto-ef-neurologico': p.ef_neurologico,
+      'parto-fecha-ingreso': p.fecha_ingreso, 'parto-fecha-egreso': p.fecha_egreso,
+      'parto-evolucion': p.evolucion, 'parto-estudios': p.estudios,
+      'parto-tratamiento-estancia': p.tratamiento_estancia, 'parto-diagnosticos': p.diagnosticos,
+      'parto-condicion-alta': p.condicion_alta, 'parto-peso-alta': p.peso_alta,
+      'parto-indicaciones': p.indicaciones_alta, 'parto-medicamentos-alta': p.medicamentos_alta,
+      'parto-cita-seguimiento': p.cita_seguimiento, 'parto-observaciones-alta': p.observaciones_alta,
+    };
+    Object.entries(campos).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val != null) el.value = val;
+    });
+    // Radios clasificacion
+    if (p.clasificacion_edad) {
+      const r = document.querySelector(`input[name="parto-clasificacion-edad"][value="${p.clasificacion_edad}"]`);
+      if (r) r.checked = true;
+    }
+    if (p.clasificacion_peso) {
+      const r = document.querySelector(`input[name="parto-clasificacion-peso"][value="${p.clasificacion_peso}"]`);
+      if (r) r.checked = true;
+    }
+    if (p.ultima_actualizacion) {
+      const fecha = new Date(p.ultima_actualizacion).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      document.getElementById('parto-ultima-actualizacion').textContent = `Última actualización: ${fecha}`;
+    }
+  } catch(e) { console.log('Sin nota de parto previa'); }
+}
+
+async function guardarNotaParto(btn) {
+  if (!pacienteActual) return;
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Guardando...';
+  btn.disabled = true;
+  const data = {
+    paciente_id: pacienteActual.id,
+    madre_edad: getVal('parto-madre-edad'),
+    madre_gpca: getVal('parto-madre-gpca'),
+    madre_sangre: getVal('parto-madre-sangre'),
+    sdg: getVal('parto-sdg'),
+    prenatal: getVal('parto-prenatal'),
+    num_consultas_prenatales: getVal('parto-num-consultas'),
+    patologias_embarazo: getVal('parto-patologias-embarazo'),
+    medicamentos_embarazo: getVal('parto-medicamentos-embarazo'),
+    serologia: getVal('parto-serologia'),
+    ultrasonidos: getVal('parto-ultrasonidos'),
+    antecedentes_otros: getVal('parto-antecedentes-otros'),
+    fecha_hora_nacimiento: getVal('parto-fecha-hora'),
+    tipo_parto: getVal('parto-tipo'),
+    indicacion_cesarea: getVal('parto-indicacion-cesarea'),
+    presentacion_fetal: getVal('parto-presentacion'),
+    liquido_amniotico: getVal('parto-liquido-amniotico'),
+    ruptura_membranas: getVal('parto-ruptura-membranas'),
+    apgar_1: getVal('parto-apgar-1'),
+    apgar_5: getVal('parto-apgar-5'),
+    apgar_10: getVal('parto-apgar-10'),
+    peso_nacer: getVal('parto-peso'),
+    talla_nacer: getVal('parto-talla'),
+    pc_nacer: getVal('parto-pc'),
+    reanimacion: getVal('parto-reanimacion'),
+    profilaxis: getVal('parto-profilaxis'),
+    descripcion_atencion: getVal('parto-descripcion-atencion'),
+    ef_general: getVal('parto-ef-general'),
+    ef_piel: getVal('parto-ef-piel'),
+    ef_cabeza: getVal('parto-ef-cabeza'),
+    ef_oofn: getVal('parto-ef-oofn'),
+    ef_cuello_torax: getVal('parto-ef-cuello-torax'),
+    ef_cardio: getVal('parto-ef-cardio'),
+    ef_abdomen: getVal('parto-ef-abdomen'),
+    ef_genitales: getVal('parto-ef-genitales'),
+    ef_extremidades: getVal('parto-ef-extremidades'),
+    ef_neurologico: getVal('parto-ef-neurologico'),
+    clasificacion_edad: document.querySelector('input[name="parto-clasificacion-edad"]:checked')?.value || '',
+    clasificacion_peso: document.querySelector('input[name="parto-clasificacion-peso"]:checked')?.value || '',
+    fecha_ingreso: getVal('parto-fecha-ingreso'),
+    fecha_egreso: getVal('parto-fecha-egreso'),
+    evolucion: getVal('parto-evolucion'),
+    estudios: getVal('parto-estudios'),
+    tratamiento_estancia: getVal('parto-tratamiento-estancia'),
+    diagnosticos: getVal('parto-diagnosticos'),
+    condicion_alta: getVal('parto-condicion-alta'),
+    peso_alta: getVal('parto-peso-alta'),
+    indicaciones_alta: getVal('parto-indicaciones'),
+    medicamentos_alta: getVal('parto-medicamentos-alta'),
+    cita_seguimiento: getVal('parto-cita-seguimiento'),
+    observaciones_alta: getVal('parto-observaciones-alta'),
+    ultima_actualizacion: new Date().toISOString(),
+  };
+  try {
+    const existing = await api('GET','nota_parto',null,`?paciente_id=eq.${pacienteActual.id}`);
+    if (existing.length) {
+      await api('PATCH','nota_parto',data,`?paciente_id=eq.${pacienteActual.id}`);
+    } else {
+      await api('POST','nota_parto',data);
+    }
+    const ahora = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('parto-ultima-actualizacion').textContent = `Última actualización: ${ahora}`;
+    btn.textContent = '✅ Guardado';
+    btn.style.background = 'var(--green-d)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = '❌ Error';
+    btn.disabled = false;
+    alert('Error al guardar nota de parto: ' + e.message);
+  }
+}
 
 
 </script>
