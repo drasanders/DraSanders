@@ -6376,8 +6376,14 @@ async function guardarHistoriaClinica(btn) {
     ultima_actualizacion: new Date().toISOString(),
   };
 
+  // Limpiar nulos/undefined para no mandar columnas que no existen
+  Object.keys(data).forEach(k => { if (data[k] === undefined || data[k] === null) delete data[k]; });
+
+  const btn_orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
+
   try {
-    // Upsert: si existe la actualiza, si no la crea
     const existing = await api('GET','historia_clinica',null,`?paciente_id=eq.${pacienteActual.id}`);
     if (existing.length) {
       await api('PATCH','historia_clinica',data,`?paciente_id=eq.${pacienteActual.id}`);
@@ -6388,9 +6394,13 @@ async function guardarHistoriaClinica(btn) {
     document.getElementById('hc-ultima-actualizacion').textContent = `Última actualización: ${ahora}`;
     btn.textContent = '✅ Guardado';
     btn.style.background = 'var(--green-d)';
-    setTimeout(() => { btn.textContent = '💾 Guardar'; btn.style.background = ''; }, 2000);
+    setTimeout(() => { btn.textContent = btn_orig; btn.style.background = ''; btn.disabled = false; }, 2000);
   } catch(e) {
-    alert('Error al guardar historia clínica: ' + e.message);
+    btn.textContent = btn_orig;
+    btn.disabled = false;
+    // Mostrar mensaje de error detallado para saber qué columna falta
+    const msg = e.message || JSON.stringify(e);
+    alert('Error al guardar historia clínica:\n\n' + msg + '\n\nRevisa que todas las columnas existan en Supabase (ver SQL adjunto).');
   }
 }
 
