@@ -1660,7 +1660,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <div class="panel-header">
             <div class="panel-title">🧠 Hitos del desarrollo — CDC "Aprenda los signos. Reaccione pronto."</div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <button class="btn btn-primary btn-sm" onclick="guardarDesarrollo()">💾 Guardar</button>
+              <button class="btn btn-primary btn-sm" onclick="guardarDesarrollo(this)">💾 Guardar</button>
             </div>
           </div>
           <div class="panel-body">
@@ -4174,7 +4174,15 @@ async function actualizarCita() {
   const fecha = document.getElementById('ec-fecha').value;
   const hora = document.getElementById('ec-hora').value;
   const tipoEdit = document.getElementById('ec-tipo').value;
+
+  // Recuperar la cita original para preservar paciente_id, origen y otros campos
+  // que NO deben modificarse al editar datos clínicos/administrativos
+  const citaOriginal = calCitas.find(x => x.id === citaEditandoId) || {};
+
   const data = {
+    // Preservar explícitamente paciente_id y origen para evitar que se pierdan
+    paciente_id: citaOriginal.paciente_id || null,
+    origen: citaOriginal.origen || 'consultorio',
     fecha_hora: `${fecha}T${hora}:00`,
     tipo: tipoEdit,
     duracion: parseInt(document.getElementById('ec-duracion').value),
@@ -5632,8 +5640,11 @@ function renderProgress(edad) {
   }
 }
 
-async function guardarDesarrollo() {
+async function guardarDesarrollo(btn) {
   if (!pacienteActual) return;
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
   try {
     // Delete existing and re-insert
     await api('DELETE','desarrollo_cdc',null,`?paciente_id=eq.${pacienteActual.id}`);
@@ -5643,12 +5654,13 @@ async function guardarDesarrollo() {
     if (rows.length) {
       for (const row of rows) await api('POST','desarrollo_cdc',row);
     }
-    const btn = event.target;
     btn.textContent = '✅ Guardado';
     btn.style.background = 'var(--green-d)';
-    setTimeout(() => { btn.textContent = '💾 Guardar'; btn.style.background = ''; }, 2000);
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.disabled = false; }, 2000);
   } catch(e) {
-    alert('Error al guardar: ' + e.message);
+    btn.textContent = orig;
+    btn.disabled = false;
+    alert('Error al guardar desarrollo: ' + e.message);
   }
 }
 
@@ -5981,9 +5993,11 @@ function limpiarMCHAT() {
 // ==================== PESTAÑA VACUNAS ====================
 async function cargarVacunasTab() {
   if (!pacienteActual) return;
+  // Limpiar SIEMPRE todos los inputs de vacunas antes de cargar
+  document.querySelectorAll('[id^="vac-"]').forEach(el => { el.value = ''; });
   try {
     const res = await api('GET','historia_clinica',null,`?paciente_id=eq.${pacienteActual.id}`);
-    if (!res.length) return;
+    if (!res.length) return;  // Sin historia — campos ya limpios, correcto
     const h = res[0];
     if (h.apnp_vacunas) {
       try {
@@ -6231,6 +6245,35 @@ function showExpTab(tab) {
 
 // ==================== HISTORIA CLINICA ====================
 async function cargarHistoriaClinica(pacienteId) {
+  // Limpiar SIEMPRE todos los campos primero para no mostrar datos del paciente anterior
+  const idsCampos = [
+    'hc-madre-nombre','hc-madre-edad','hc-madre-sangre','hc-madre-religion',
+    'hc-madre-estado-civil','hc-madre-profesion','hc-madre-enfermedades',
+    'hc-padre-nombre','hc-padre-edad','hc-padre-sangre','hc-padre-religion',
+    'hc-padre-estado-civil','hc-padre-profesion','hc-padre-enfermedades',
+    'hc-hermanos','hc-enfermedades-familiares',
+    'hc-apnp-ac-inicio','hc-apnp-ac-metodo','hc-apnp-ablactacion',
+    'hc-apnp-higiene','hc-apnp-vivienda','hc-apnp-animales','hc-apnp-otros',
+    'hc-app-enfermedades','hc-app-hospitalizaciones','hc-app-cirugias',
+    'hc-app-traumatismos','hc-app-alergias-med','hc-app-alergias-alim','hc-app-otros',
+    'hc-ap-parto','hc-ap-sdg','hc-ap-apgar','hc-ap-peso','hc-ap-talla','hc-ap-complicaciones',
+    'lact-materna-inicio','lact-materna-fin','hc-notas','hc-ultima-actualizacion',
+  ];
+  idsCampos.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  // Limpiar radios de lactancia
+  document.querySelectorAll('input[name="lactancia"]').forEach(r => r.checked = false);
+  // Limpiar campos visibles de lactancia/fórmula
+  toggleLactancia('');
+  // Limpiar fórmulas
+  document.getElementById('formula-lista').innerHTML = ''; formulaCount = 0;
+  // Limpiar tamices
+  ['metabolico','auditivo','oftalmologico','cardiaco','cadera'].forEach(t => {
+    const est = document.getElementById(`tamiz-${t}-estado`); if (est) est.value = '';
+    const res = document.getElementById(`tamiz-${t}-resultado`); if (res) res.value = '';
+    const sta = document.getElementById(`file-${t}-status`); if (sta) sta.innerHTML = '';
+    toggleResultado(t);
+  });
+
   try {
     const res = await api('GET','historia_clinica',null,`?paciente_id=eq.${pacienteId}`);
     if (!res.length) return;
