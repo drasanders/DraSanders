@@ -301,7 +301,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
 .soap-p .soap-letter { background:linear-gradient(135deg,#FFDDC2,#FFF0E5); color:var(--peach-d); }
 .soap-p .soap-title  { color:var(--peach-d); background:transparent; }
 
-/* CIE-11 */
+/* CIE-10 */
 .cie-tag {
   display:inline-flex; align-items:center; gap:6px;
   background:linear-gradient(135deg,#E8F5FF,#F0ECFF);
@@ -640,11 +640,11 @@ textarea.form-input { resize:vertical; min-height:70px; }
   height:40px; display:flex; align-items:flex-start;
   justify-content:flex-end; padding:4px 8px 0 0;
   font-size:10px; font-weight:800; color:#9090B0;
-  border-bottom:1px solid #E0E0F0;
+  border-top:2px solid #B8B8D4;
   box-sizing:border-box; letter-spacing:0.3px;
 }
 .cal-time-slot.half {
-  color:transparent; border-bottom:1px dashed #ECECF8;
+  color:transparent; border-top:1px dotted #E8E8F4; font-weight:400;
   height:40px; box-sizing:border-box;
 }
 .cal-day-col { position:relative; border-right:1px solid #E0E0F0; }
@@ -664,8 +664,8 @@ textarea.form-input { resize:vertical; min-height:70px; }
   position:relative; cursor:pointer; transition:background 0.12s;
   box-sizing:border-box;
 }
-.cal-slot:not(.half) { border-bottom:2px solid #D0D0E8; }
-.cal-slot.half { border-bottom:1px dashed #E8E8F4; background:rgba(0,0,0,0.007); }
+.cal-slot:not(.half) { border-top:2px solid #B8B8D4; }
+.cal-slot.half { border-top:1px dotted #E8E8F4; background:rgba(0,0,0,0.007); }
 .cal-slot:hover { background:#EEF2FF; }
 .cal-slot.proximo-disponible { background:#F0FFF8; border-left:3px solid #4A9E6A; }
 .cal-slot.proximo-disponible:hover { background:#D8F5E8; }
@@ -2203,7 +2203,6 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <div class="loading"><div class="spinner"></div></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:18px;">
-          <button class="btn btn-primary" onclick="abrirModalLotePago()">💰 Registrar pago por lote</button>
           <button class="btn btn-ghost" onclick="moverTodosARelacion()">📤 Mover pendientes a "En relación"</button>
         </div>
         <div class="panel">
@@ -2214,13 +2213,10 @@ textarea.form-input { resize:vertical; min-height:70px; }
               style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">📤 En relación</div>
             <div id="mun-tab-pagado" onclick="showMunTab('pagado')"
               style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">✅ Pagadas</div>
-            <div id="mun-tab-lotes" onclick="showMunTab('lotes')"
-              style="padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-light);border-bottom:3px solid transparent;margin-bottom:-2px;">📦 Lotes pagados</div>
           </div>
           <div id="mun-content-pendiente" style="padding:0;"></div>
           <div id="mun-content-en_relacion" style="display:none;padding:0;"></div>
           <div id="mun-content-pagado" style="display:none;padding:0;"></div>
-          <div id="mun-content-lotes" style="display:none;padding:0;"></div>
         </div>
       </div>
     </div>
@@ -2636,19 +2632,18 @@ textarea.form-input { resize:vertical; min-height:70px; }
               <div class="soap-title">Análisis / Diagnóstico</div>
             </div>
             <div class="soap-body">
-              <!-- BUSCADOR CIE-11 -->
-              <div class="form-label" style="margin-bottom:6px;">Buscar diagnóstico CIE-11</div>
+              <!-- BUSCADOR CIE-10 -->
+              <div class="form-label" style="margin-bottom:6px;">Buscar diagnóstico CIE-10</div>
               <div style="position:relative;margin-bottom:10px;">
                 <div class="search-wrap">
                   <span class="search-icon">🔍</span>
-                  <input class="search-input" id="cie11-search" placeholder="Escribe nombre de enfermedad..." oninput="buscarCIE11()" autocomplete="off">
+                  <input class="search-input" id="cie10-search" placeholder="Escribe nombre de enfermedad..." oninput="buscarCIE10()" autocomplete="off">
                 </div>
-                <div id="cie11-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:220px;overflow-y:auto;"></div>
+                <div id="cie10-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:220px;overflow-y:auto;"></div>
               </div>
 
               <!-- DIAGNOSTICOS AGREGADOS -->
               <div id="diagnosticos-lista" style="margin-bottom:10px;"></div>
-              <div id="cie11-loading" style="display:none;font-size:12px;color:var(--text-light);font-weight:600;">⏳ Buscando en CIE-11...</div>
 
               <!-- NOTA LIBRE -->
               <div class="form-group" style="margin-top:10px;">
@@ -2685,6 +2680,8 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="btn btn-primary" onclick="guardarConsulta()">💾 Guardar consulta</button>
+            <button class="btn btn-ghost" onclick="imprimirNotaConsulta()">🖨 Imprimir nota</button>
+            <button class="btn btn-ghost" onclick="imprimirRecetaConsulta()">🖨 Imprimir receta</button>
             <button class="btn btn-ghost" id="btn-cancelar-consulta" onclick="cancelarConsulta()">✕ Cancelar</button>
           </div>
         </div>
@@ -3015,11 +3012,47 @@ textarea.form-input { resize:vertical; min-height:70px; }
 <!-- EDITAR BLOQUEO -->
 <div id="modal-editar-bloqueo" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-editar-bloqueo')">
   <div class="modal">
-    <div class="modal-title">🚫 Bloqueo</div>
-    <div id="eb-info" style="padding:14px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:16px;font-weight:600;font-size:13px;"></div>
+    <div class="modal-title">🚫 Editar bloqueo</div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <div class="form-label">Fecha *</div>
+      <input class="form-input" id="eb-fecha" type="date">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1.5px solid var(--border);">
+        <input type="checkbox" id="eb-dia-completo" style="width:16px;height:16px;cursor:pointer;" onchange="toggleDiaCompletoEdit()">
+        <div>
+          <div style="font-weight:700;font-size:13px;">📅 Bloquear día completo</div>
+          <div style="font-size:11px;color:var(--text-light);">No se podrán agendar citas ese día</div>
+        </div>
+      </label>
+    </div>
+
+    <div id="eb-horario-group">
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Hora inicio *</div>
+          <input class="form-input" id="eb-hora-inicio" type="time">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Hora fin *</div>
+          <input class="form-input" id="eb-hora-fin" type="time">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <div class="form-label">Motivo (opcional)</div>
+      <input class="form-input" id="eb-motivo" placeholder="Cita médica, compromiso personal...">
+    </div>
+
+    <div id="eb-alert"></div>
+
     <div class="form-actions">
-      <button class="btn btn-danger" onclick="eliminarBloqueo()">🗑 Eliminar bloqueo</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-editar-bloqueo')">Cerrar</button>
+      <button class="btn btn-danger" onclick="eliminarBloqueo()">🗑 Eliminar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-editar-bloqueo')">Cancelar</button>
+      <button class="btn btn-primary" style="background:var(--peach-d);" onclick="guardarBloqueoEdit()">💾 Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -3775,18 +3808,48 @@ async function guardarBloqueo() {
 
 let bloqueoEditandoId = null;
 
+function toggleDiaCompletoEdit() {
+  const checked = document.getElementById('eb-dia-completo').checked;
+  document.getElementById('eb-horario-group').style.display = checked ? 'none' : '';
+}
+
 function abrirEditarBloqueo(id) {
   const b = calBloqueos.find(x => x.id === id);
   if (!b) return;
   bloqueoEditandoId = id;
-  const fechaFmt = new Date(b.fecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('eb-info').innerHTML = `
-    <div style="font-size:14px;font-weight:800;margin-bottom:6px;">📅 ${fechaFmt}</div>
-    ${b.dia_completo
-      ? '<div style="color:var(--peach-d);">🚫 Día completo bloqueado</div>'
-      : `<div style="color:var(--peach-d);">⏰ ${b.hora_inicio?.slice(0,5)} — ${b.hora_fin?.slice(0,5)}</div>`}
-    ${b.motivo ? `<div style="color:var(--text-light);margin-top:4px;">${b.motivo}</div>` : ''}`;
+  document.getElementById('eb-fecha').value = b.fecha;
+  document.getElementById('eb-dia-completo').checked = !!b.dia_completo;
+  document.getElementById('eb-horario-group').style.display = b.dia_completo ? 'none' : '';
+  document.getElementById('eb-hora-inicio').value = b.hora_inicio ? b.hora_inicio.slice(0,5) : '08:00';
+  document.getElementById('eb-hora-fin').value = b.hora_fin ? b.hora_fin.slice(0,5) : '09:00';
+  document.getElementById('eb-motivo').value = b.motivo || '';
+  document.getElementById('eb-alert').innerHTML = '';
   openModal('modal-editar-bloqueo');
+}
+
+async function guardarBloqueoEdit() {
+  if (!bloqueoEditandoId) return;
+  const fecha = document.getElementById('eb-fecha').value;
+  if (!fecha) { showAlert('eb-alert','Por favor selecciona una fecha','error'); return; }
+  const diaCompleto = document.getElementById('eb-dia-completo').checked;
+  const horaInicio = document.getElementById('eb-hora-inicio').value;
+  const horaFin = document.getElementById('eb-hora-fin').value;
+  if (!diaCompleto && (!horaInicio || !horaFin)) { showAlert('eb-alert','Por favor indica la hora de inicio y fin','error'); return; }
+  if (!diaCompleto && horaInicio >= horaFin) { showAlert('eb-alert','La hora de fin debe ser mayor a la de inicio','error'); return; }
+
+  const data = {
+    fecha,
+    dia_completo: diaCompleto,
+    hora_inicio: diaCompleto ? null : horaInicio,
+    hora_fin: diaCompleto ? null : horaFin,
+    motivo: document.getElementById('eb-motivo').value || null,
+  };
+  try {
+    await api('PATCH','bloqueos',data,`?id=eq.${bloqueoEditandoId}`);
+    closeModal('modal-editar-bloqueo');
+    await cargarCitasCal();
+    showAlert('citas-alert','✅ Bloqueo actualizado','success');
+  } catch(e) { showAlert('eb-alert','Error: '+e.message,'error'); }
 }
 
 async function eliminarBloqueo() {
@@ -3978,6 +4041,46 @@ function renderCalendario() {
   }
 }
 
+// Distribuye citas que se traslapan en columnas lado a lado (en vez de una encima de otra)
+function calcularColumnasEventos(citas) {
+  const eventos = citas.map(c => {
+    const dt = new Date(c.fecha_hora.replace(' ','T'));
+    const inicio = dt.getHours()*60 + dt.getMinutes();
+    const durMin = c.duracion || (c.tipo==='municipio'?30:c.tipo==='cesarea_parto'?120:40);
+    return { cita:c, dt, inicio, fin: inicio + Math.max(durMin,15), colIndex:0, colTotal:1 };
+  });
+  eventos.sort((a,b) => a.inicio - b.inicio || a.fin - b.fin);
+
+  // Agrupar eventos conectados por traslape (grupos de colisión)
+  const grupos = [];
+  let grupoActual = [];
+  let finMaxGrupo = -Infinity;
+  eventos.forEach(ev => {
+    if (grupoActual.length && ev.inicio >= finMaxGrupo) {
+      grupos.push(grupoActual);
+      grupoActual = [];
+      finMaxGrupo = -Infinity;
+    }
+    grupoActual.push(ev);
+    finMaxGrupo = Math.max(finMaxGrupo, ev.fin);
+  });
+  if (grupoActual.length) grupos.push(grupoActual);
+
+  grupos.forEach(grupo => {
+    const columnasFin = []; // fin del último evento colocado en cada columna
+    grupo.forEach(ev => {
+      let col = columnasFin.findIndex(fin => fin <= ev.inicio);
+      if (col === -1) { col = columnasFin.length; columnasFin.push(ev.fin); }
+      else { columnasFin[col] = ev.fin; }
+      ev.colIndex = col;
+    });
+    const totalCols = columnasFin.length;
+    grupo.forEach(ev => { ev.colTotal = totalCols; });
+  });
+
+  return eventos;
+}
+
 function renderEventosAbsoluto(citas, fechaStr) {
   const SLOT_H = 40;
   const HEADER_H = 64;
@@ -4004,9 +4107,8 @@ function renderEventosAbsoluto(citas, fechaStr) {
     </div>`;
   });
 
-  citas.forEach(c => {
-    // Supabase devuelve "2026-05-04 12:30:00" — reemplazar espacio por T para parsear como local
-    const dt = new Date(c.fecha_hora.replace(' ','T'));
+  const eventosConColumnas = calcularColumnasEventos(citas);
+  eventosConColumnas.forEach(({ cita:c, dt, colIndex, colTotal }) => {
     const horas = dt.getHours() + dt.getMinutes()/60;
     const top = HEADER_H + (horas-START_H)*SLOT_H*2;
     const durMin = c.duracion || (c.tipo==='municipio'?30:c.tipo==='cesarea_parto'?120:40);
@@ -4016,7 +4118,10 @@ function renderEventosAbsoluto(citas, fechaStr) {
     const tipo = c.tipo||'privado';
     const dotClass = `status-${c.estado||'pendiente'}-dot`;
     const pagado = c.monto?`<div style="font-size:10px;font-weight:700;color:var(--green-d);">💰 $${c.monto}</div>`:'';
-    html += `<div class="cal-event ${tipo}" style="position:absolute;top:${top}px;height:${height}px;left:3px;right:3px;"
+    const anchoPct = 100/colTotal;
+    const izqPct = colIndex*anchoPct;
+    const gapPx = colTotal>1 ? 2 : 3;
+    html += `<div class="cal-event ${tipo}" style="position:absolute;top:${top}px;height:${height}px;left:calc(${izqPct}% + ${gapPx}px);width:calc(${anchoPct}% - ${gapPx*2}px);z-index:${2+colIndex};"
       onclick="event.stopPropagation();editarCita('${c.id}')">
       <div style="display:flex;align-items:center;gap:4px;">
         <div class="cal-event-status ${dotClass}"></div>
@@ -4636,12 +4741,12 @@ function showFinTab(tab) {
 }
 
 function showMunTab(tab) {
-  ['pendiente','en_relacion','pagado','lotes'].forEach(t => {
+  ['pendiente','en_relacion','pagado'].forEach(t => {
     const c=document.getElementById(`mun-content-${t}`);
     const b=document.getElementById(`mun-tab-${t}`);
     if(c) c.style.display=t===tab?'':'none';
     if(b){
-      const colors={pendiente:'#B8A84A',en_relacion:'var(--peach-d)',pagado:'var(--green-d)',lotes:'var(--blue-d)'};
+      const colors={pendiente:'#B8A84A',en_relacion:'var(--peach-d)',pagado:'var(--green-d)'};
       b.style.color=t===tab?colors[t]:'var(--text-light)';
       b.style.borderBottom=t===tab?`3px solid ${colors[t]}`:'3px solid transparent';
     }
@@ -4674,13 +4779,17 @@ async function cargarMunicipio() {
         <div class="stat-label">Total cobrado</div>
         <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-top:4px;">Pendiente: $${((pendientes.length+enRelacion.length)*500).toLocaleString('es-MX')}</div></div>`;
 
-    const tablaFilas=lista=>lista.length?`
-      <table class="data-table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Folio</th><th>Cambiar estado</th></tr></thead>
+    const tablaFilas=(lista,tab,conCheckbox)=>lista.length?`
+      <table class="data-table"><thead><tr>
+        ${conCheckbox?`<th style="width:36px;"><input type="checkbox" onchange="toggleSelTodosMun(this,'${tab}')"></th>`:''}
+        <th>Fecha</th><th>Paciente</th><th>Folio</th><th>Cambiar estado</th></tr></thead>
       <tbody>${lista.map(c=>{
         const p=pacientes.find(x=>x.id===c.paciente_id);
         const ep=c.estado_pago_municipio||'pendiente';
         const fecha=new Date((c.fecha_hora||'').replace(' ','T')).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
-        return `<tr><td>${fecha}</td><td style="font-weight:700;">${p?p.nombre:'—'}</td>
+        return `<tr data-fecha="${fecha}" data-paciente="${(p?p.nombre:'—').replace(/"/g,'&quot;')}" data-folio="${c.folio_municipio||'—'}">
+          ${conCheckbox?`<td><input type="checkbox" class="mun-check" value="${c.id}" onchange="actualizarContadorSelMun('${tab}')"></td>`:''}
+          <td>${fecha}</td><td style="font-weight:700;">${p?p.nombre:'—'}</td>
           <td style="font-family:monospace;font-weight:700;color:var(--blue-d);">${c.folio_municipio||'—'}</td>
           <td><select class="form-input" style="padding:4px 8px;font-size:11px;width:160px;" onchange="cambiarEstadoPagoMun('${c.id}',this.value)">
             <option value="pendiente" ${ep==='pendiente'?'selected':''}>🟡 Pendiente</option>
@@ -4691,109 +4800,54 @@ async function cargarMunicipio() {
       `<div class="empty-state" style="padding:24px;"><div class="empty-icon" style="font-size:32px;">✅</div><p>No hay consultas en este estado</p></div>`;
 
     document.getElementById('mun-content-pendiente').innerHTML=`
-      <div style="padding:10px 16px;background:#FFF8E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div style="padding:10px 16px;background:#FFF8E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <span style="font-size:12px;font-weight:700;color:#B8A84A;">Pendiente: $${(pendientes.length*500).toLocaleString('es-MX')}</span>
-        <button class="btn btn-ghost btn-sm" onclick="moverTodosARelacion()">📤 Mover todas a "En relación"</button>
-      </div>${tablaFilas(pendientes)}`;
-    document.getElementById('mun-content-en_relacion').innerHTML=`
-      <div style="padding:10px 16px;background:#FFF0E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;font-weight:700;color:var(--peach-d);">En relación: $${(enRelacion.length*500).toLocaleString('es-MX')}</span>
+        <span id="mun-sel-count-pendiente" style="font-size:11px;font-weight:700;color:var(--blue-d);"></span>
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-primary btn-sm" onclick="abrirModalLotePago()">💰 Registrar pago por lote</button>
+          <button class="btn btn-primary btn-sm" onclick="marcarSeleccionadasPagadas('pendiente')">✅ Marcar seleccionadas como pagadas</button>
+          <button class="btn btn-ghost btn-sm" onclick="moverTodosARelacion()">📤 Mover todas a "En relación"</button>
+        </div>
+      </div>${tablaFilas(pendientes,'pendiente',true)}`;
+    document.getElementById('mun-content-en_relacion').innerHTML=`
+      <div style="padding:10px 16px;background:#FFF0E0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:12px;font-weight:700;color:var(--peach-d);">En relación: $${(enRelacion.length*500).toLocaleString('es-MX')}</span>
+        <span id="mun-sel-count-en_relacion" style="font-size:11px;font-weight:700;color:var(--blue-d);"></span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" onclick="marcarSeleccionadasPagadas('en_relacion')">✅ Marcar seleccionadas como pagadas</button>
           <button class="btn btn-ghost btn-sm" onclick="generarRelacionMunicipio('en_relacion')">📋 PDF</button>
         </div>
-      </div>${tablaFilas(enRelacion)}`;
+      </div>${tablaFilas(enRelacion,'en_relacion',true)}`;
     document.getElementById('mun-content-pagado').innerHTML=`
       <div style="padding:10px 16px;background:#E0F5E8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:12px;font-weight:700;color:var(--green-d);">Cobrado: $${(pagadas.length*500).toLocaleString('es-MX')}</span>
         <button class="btn btn-ghost btn-sm" onclick="generarRelacionMunicipio('pagado')">📋 PDF historial</button>
-      </div>${tablaFilas(pagadas)}`;
-    await renderLotesPagados();
+      </div>${tablaFilas(pagadas,'pagado',false)}`;
     showMunTab('pendiente');
   } catch(e) {
     if(munStats) munStats.innerHTML=`<div class="alert alert-error" style="grid-column:1/-1">Error: ${e.message}</div>`;
   }
 }
 
-async function renderLotesPagados() {
-  const cont=document.getElementById('mun-content-lotes');if(!cont) return;
-  try {
-    const lotes=await api('GET','lotes_municipio',null,'?order=fecha_pago.desc');
-    if(!lotes.length){cont.innerHTML=`<div class="empty-state" style="padding:32px;"><div class="empty-icon">📦</div><p>No hay lotes registrados</p></div>`;return;}
-    cont.innerHTML=lotes.map(l=>{
-      const fecha=l.fecha_pago?new Date(l.fecha_pago+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}):'—';
-      const folios=l.folios?JSON.parse(l.folios):[];
-      return `<div style="padding:16px;border-bottom:1px solid var(--border);">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div><div style="font-weight:800;font-size:15px;margin-bottom:4px;">📦 ${l.nombre}</div>
-            <div style="font-size:12px;color:var(--text-light);font-weight:600;">${fecha} · ${folios.length} folio${folios.length!==1?'s':''}</div>
-            ${l.notas?`<div style="font-size:12px;color:var(--text-light);margin-top:2px;">📝 ${l.notas}</div>`:''}
-            ${folios.length?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">${folios.map(f=>`<span style="font-family:monospace;font-size:11px;font-weight:700;background:#E0F0FF;color:var(--blue-d);padding:2px 8px;border-radius:20px;">${f}</span>`).join('')}</div>`:''}
-          </div>
-          <div style="text-align:right;">
-            <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--green-d);">$${parseFloat(l.monto||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
-            <button class="btn btn-danger btn-sm" style="margin-top:8px;font-size:11px;" onclick="eliminarLote('${l.id}')">🗑 Eliminar</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-  } catch(e){cont.innerHTML=`<div class="alert alert-error">Error: ${e.message}</div>`;}
+function toggleSelTodosMun(cb,tab){
+  document.querySelectorAll(`#mun-content-${tab} .mun-check`).forEach(c=>c.checked=cb.checked);
+  actualizarContadorSelMun(tab);
 }
-
-function abrirModalLotePago(){
-  document.getElementById('lp-nombre').value='';document.getElementById('lp-fecha').value=fechaLocal();
-  document.getElementById('lp-monto').value='';document.getElementById('lp-notas').value='';
-  document.getElementById('lp-sel-todos').checked=false;document.getElementById('lp-alert').innerHTML='';
-  const citasEnRelacion=[];
-  document.querySelectorAll('#mun-content-en_relacion tbody tr').forEach(tr=>{
-    const tds=tr.querySelectorAll('td'),sel=tr.querySelector('select');
-    if(tds.length>=3&&sel){const m=sel.getAttribute('onchange').match(/'([^']+)'/);
-      if(m) citasEnRelacion.push({id:m[1],folio:tds[2].textContent.trim(),paciente:tds[1].textContent.trim(),fecha:tds[0].textContent.trim()});}
-  });
-  const lista=document.getElementById('lp-folios-lista');
-  if(!citasEnRelacion.length){lista.innerHTML=`<div style="padding:16px;text-align:center;color:var(--text-light);font-size:13px;font-weight:600;">No hay consultas "En relación". Muévelas primero.</div>`;}
-  else{lista.innerHTML=citasEnRelacion.map(c=>`
-    <label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
-      <input type="checkbox" class="lp-folio-check" value="${c.id}" data-folio="${c.folio}" onchange="actualizarContadorLote()">
-      <div style="flex:1;"><div style="font-weight:700;font-size:13px;">${c.paciente}</div><div style="font-size:11px;color:var(--text-light);">${c.fecha}</div></div>
-      <span style="font-family:monospace;font-weight:700;font-size:12px;color:var(--blue-d);">${c.folio}</span>
-      <span style="font-weight:800;color:var(--green-d);font-size:13px;">$500</span>
-    </label>`).join('');actualizarContadorLote();}
-  openModal('modal-lote-pago');
+function actualizarContadorSelMun(tab){
+  const checks=document.querySelectorAll(`#mun-content-${tab} .mun-check:checked`);
+  const cont=document.getElementById(`mun-sel-count-${tab}`);
+  if(cont) cont.textContent=checks.length?`${checks.length} seleccionada${checks.length!==1?'s':''}`:'';
 }
-function toggleSelTodosLote(cb){document.querySelectorAll('.lp-folio-check').forEach(c=>c.checked=cb.checked);actualizarContadorLote();}
-function actualizarContadorLote(){
-  const checks=document.querySelectorAll('.lp-folio-check:checked'),total=checks.length*500;
-  const cont=document.getElementById('lp-sel-count');
-  if(cont) cont.textContent=checks.length?`${checks.length} seleccionados — $${total.toLocaleString('es-MX')}`:'';
-  const m=document.getElementById('lp-monto');if(m&&checks.length) m.value=total;
-}
-async function guardarLotePago(){
-  const nombre=document.getElementById('lp-nombre').value.trim(),fecha=document.getElementById('lp-fecha').value,monto=document.getElementById('lp-monto').value;
-  if(!nombre||!fecha||!monto){showAlert('lp-alert','Nombre, fecha y monto requeridos','error');return;}
-  const checks=[...document.querySelectorAll('.lp-folio-check:checked')];
-  if(!checks.length){showAlert('lp-alert','Selecciona al menos un folio','error');return;}
+async function marcarSeleccionadasPagadas(tab){
+  const checks=[...document.querySelectorAll(`#mun-content-${tab} .mun-check:checked`)];
+  if(!checks.length){alert('Selecciona al menos una consulta');return;}
+  if(!confirm(`¿Marcar ${checks.length} consulta${checks.length!==1?'s':''} como pagada${checks.length!==1?'s':''}?`)) return;
   try{
-    await api('POST','lotes_municipio',{nombre,fecha_pago:fecha,monto:parseFloat(monto),notas:document.getElementById('lp-notas').value,folios:JSON.stringify(checks.map(c=>c.dataset.folio))});
     for(const c of checks) await api('PATCH','citas',{estado_pago_municipio:'pagado'},`?id=eq.${c.value}`);
-    closeModal('modal-lote-pago');showAlert('finanzas-alert',`✅ Lote registrado. ${checks.length} consultas pagadas.`,'success');
-    await cargarMunicipio();showMunTab('lotes');
-  }catch(e){showAlert('lp-alert','Error: '+e.message,'error');}
-}
-async function eliminarLote(id){
-  if(!confirm('¿Eliminar este lote? Las consultas volverán a "En relación".')) return;
-  try{
-    const lotes=await api('GET','lotes_municipio',null,`?id=eq.${id}`);
-    if(lotes[0]?.folios){
-      const folios=JSON.parse(lotes[0].folios);
-      const citasMun=await api('GET','citas',null,'?tipo=eq.municipio&estado_pago_municipio=eq.pagado');
-      for(const c of citasMun.filter(c=>folios.includes(c.folio_municipio)))
-        await api('PATCH','citas',{estado_pago_municipio:'en_relacion'},`?id=eq.${c.id}`);
-    }
-    await api('DELETE','lotes_municipio',null,`?id=eq.${id}`);
-    showAlert('finanzas-alert','🗑 Lote eliminado.','success');await cargarMunicipio();
+    showAlert('finanzas-alert',`✅ ${checks.length} consulta${checks.length!==1?'s':''} marcada${checks.length!==1?'s':''} como pagada${checks.length!==1?'s':''}`,'success');
+    await cargarMunicipio();showMunTab('pagado');
   }catch(e){alert('Error: '+e.message);}
 }
+
 async function moverTodosARelacion(){
   const selects=document.querySelectorAll('#mun-content-pendiente select');
   if(!selects.length){alert('No hay consultas pendientes');return;}
@@ -4809,7 +4863,7 @@ async function cambiarEstadoPagoMun(id,estado){
 }
 function generarRelacionMunicipio(estado){
   const cont=document.getElementById(`mun-content-${estado}`);if(!cont) return;
-  const rows=[];cont.querySelectorAll('tbody tr').forEach(tr=>{const tds=tr.querySelectorAll('td');if(tds.length>=3) rows.push({fecha:tds[0].textContent.trim(),paciente:tds[1].textContent.trim(),folio:tds[2].textContent.trim()});});
+  const rows=[];cont.querySelectorAll('tbody tr').forEach(tr=>{if(tr.dataset.fecha) rows.push({fecha:tr.dataset.fecha,paciente:tr.dataset.paciente,folio:tr.dataset.folio});});
   if(!rows.length){alert('No hay consultas');return;}
   const total=rows.length*500,lbl=estado==='en_relacion'?'En relación':'Historial pagado';
   const win=window.open('','_blank');
@@ -5092,7 +5146,7 @@ async function guardarConsulta() {
     estudios_lab: est.lab,
     estudios_imagenes: est.imagenes,
     estudios_otros: est.otros,
-    diagnosticos_cie11: JSON.stringify(cie11Diagnosticos),
+    diagnosticos_cie10: JSON.stringify(cie10Diagnosticos),
     diagnostico: document.getElementById('c-diagnostico').value,
     tratamiento: document.getElementById('c-tratamiento').value,
     plan: document.getElementById('c-plan').value,
@@ -5134,6 +5188,166 @@ async function guardarConsulta() {
   }
 }
 
+// ===== DATOS DEL CONSULTORIO PARA IMPRESIÓN (ajustar con los datos reales) =====
+const CONSULTORIO_INFO = {
+  nombreMedico: 'Dra. Sanders',
+  especialidad: 'Pediatra',
+  cedulaProfesional: '', // TODO: agregar número de cédula profesional
+  direccion: '',         // TODO: agregar dirección del consultorio
+  telefono: '',          // TODO: agregar teléfono de contacto
+};
+
+function _consultorioEncabezadoHTML() {
+  const c = CONSULTORIO_INFO;
+  const linea2 = [c.cedulaProfesional ? `Céd. Prof. ${c.cedulaProfesional}` : '', c.telefono || ''].filter(Boolean).join(' · ');
+  return `
+    <div class="enc-nombre">${c.nombreMedico} — ${c.especialidad}</div>
+    ${linea2 ? `<div class="enc-sub">${linea2}</div>` : ''}
+    ${c.direccion ? `<div class="enc-sub">${c.direccion}</div>` : ''}
+  `;
+}
+
+function _datosPacienteActualConsulta() {
+  const p = pacientes.find(x => x.id === pacienteConsultaId);
+  return {
+    nombre: p ? p.nombre : (document.getElementById('search-consulta-paciente')?.value || ''),
+    edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '',
+  };
+}
+
+function _abrirVentanaNota(pac, fechaLabel, hora, datos) {
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8"><title>Nota clínica — ${pac.nombre}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:40px;max-width:750px;margin:0 auto;color:#333;text-transform:uppercase;}
+      .enc{text-align:center;border-bottom:2px solid #C8A8E8;padding-bottom:14px;margin-bottom:20px;}
+      .enc-nombre{font-size:20px;font-weight:800;color:#4A3F6B;}
+      .enc-sub{font-size:12px;color:#888;}
+      .paciente{display:flex;justify-content:space-between;font-size:13px;margin-bottom:18px;flex-wrap:wrap;gap:6px;}
+      .paciente b{color:#4A3F6B;}
+      h2{font-size:14px;color:#4A3F6B;border-left:4px solid #C8A8E8;padding-left:8px;margin:18px 0 6px;}
+      .campo{font-size:13px;line-height:1.7;white-space:pre-wrap;}
+      .vitales{font-size:12px;color:#555;background:#F8F4FC;padding:8px 12px;border-radius:8px;margin-bottom:10px;}
+      .footer{margin-top:50px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#888;text-align:center;}
+      @media print{body{padding:20px;}}
+    </style></head><body>
+    <div class="enc">${_consultorioEncabezadoHTML()}</div>
+    <div class="paciente">
+      <div><b>Paciente:</b> ${pac.nombre}${pac.edad ? ' — '+pac.edad : ''}</div>
+      <div><b>Fecha:</b> ${fechaLabel}${hora ? ' — '+hora : ''}</div>
+    </div>
+    <h2>Motivo de consulta</h2><div class="campo">${datos.motivo}</div>
+    ${datos.subjetivo ? `<h2>Subjetivo</h2><div class="campo">${datos.subjetivo}</div>` : ''}
+    ${datos.signosVitales ? `<div class="vitales">${datos.signosVitales}</div>` : ''}
+    ${datos.exploracion ? `<h2>Exploración física</h2><div class="campo">${datos.exploracion}</div>` : ''}
+    ${(datos.diagnosticosCIE || datos.diagnosticoLibre) ? `<h2>Diagnóstico</h2><div class="campo">${datos.diagnosticosCIE}${datos.diagnosticosCIE && datos.diagnosticoLibre ? '<br>' : ''}${datos.diagnosticoLibre}</div>` : ''}
+    ${datos.tratamiento ? `<h2>Tratamiento</h2><div class="campo">${datos.tratamiento}</div>` : ''}
+    ${datos.plan ? `<h2>Indicaciones y recomendaciones</h2><div class="campo">${datos.plan}</div>` : ''}
+    ${datos.seguimiento ? `<h2>Seguimiento</h2><div class="campo">${datos.seguimiento}</div>` : ''}
+    <div class="footer">${CONSULTORIO_INFO.nombreMedico} — ${CONSULTORIO_INFO.especialidad}</div>
+    <script>window.onload=()=>window.print();<\\/script>
+    </body></html>`);
+  win.document.close();
+}
+
+function imprimirNotaConsulta() {
+  if (!pacienteConsultaId) { showAlert('consulta-alert','Selecciona un paciente para poder imprimir la nota','error'); return; }
+  const pac = _datosPacienteActualConsulta();
+  const fecha = document.getElementById('c-fecha').value || fechaLocal();
+  const hora = document.getElementById('c-hora').value || '';
+  const fechaLabel = new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+  const motivo = document.getElementById('c-motivo').value || '';
+  const subjetivo = document.getElementById('c-subjetivo').value || '';
+  const exploracion = document.getElementById('c-exploracion').value || '';
+  const diagnosticoLibre = document.getElementById('c-diagnostico').value || '';
+  const diagnosticosCIE = (typeof cie10Diagnosticos !== 'undefined' && cie10Diagnosticos.length)
+    ? cie10Diagnosticos.map(d => `• ${d.title || ''} ${d.code ? '('+d.code+')' : ''}`).join('<br>')
+    : '';
+  const tratamiento = document.getElementById('c-tratamiento').value || '';
+  const plan = document.getElementById('c-plan').value || '';
+  const seguimiento = document.getElementById('c-seguimiento').value || '';
+
+  const peso = document.getElementById('c-peso').value;
+  const talla = document.getElementById('c-talla').value;
+  const pc = document.getElementById('c-pc')?.value;
+  const pb = document.getElementById('c-pb')?.value;
+  const imcTexto = document.getElementById('imc-valor')?.textContent;
+  const temp = document.getElementById('c-temp')?.value;
+  const fc = document.getElementById('c-fc')?.value;
+  const fr = document.getElementById('c-fr')?.value;
+  const spo2 = document.getElementById('c-spo2')?.value;
+  const ta = document.getElementById('c-ta')?.value;
+  const signosVitales = [
+    peso ? `Peso: ${peso} kg` : '', talla ? `Talla: ${talla} cm` : '',
+    (imcTexto && imcTexto !== '—') ? `IMC: ${imcTexto}` : '',
+    pc ? `P. Cefálico: ${pc} cm` : '', pb ? `P. Braquial: ${pb} cm` : '',
+    temp ? `Temp: ${temp}°C` : '', fc ? `FC: ${fc} lpm` : '',
+    fr ? `FR: ${fr} rpm` : '', spo2 ? `SpO2: ${spo2}%` : '', ta ? `TA: ${ta}` : ''
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+  _abrirVentanaNota(pac, fechaLabel, hora, {
+    signosVitales, motivo, subjetivo, exploracion, diagnosticosCIE, diagnosticoLibre, tratamiento, plan, seguimiento
+  });
+}
+
+function _abrirVentanaReceta(pac, fechaLabel, tratamiento, plan, seguimiento) {
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8"><title>Receta médica — ${pac.nombre}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#333;text-transform:uppercase;}
+      .enc{text-align:center;border-bottom:2px solid #C8A8E8;padding-bottom:14px;margin-bottom:24px;}
+      .enc-nombre{font-size:20px;font-weight:800;color:#4A3F6B;}
+      .enc-sub{font-size:12px;color:#888;}
+      .titulo{text-align:center;font-size:15px;font-weight:800;letter-spacing:1px;color:#4A3F6B;margin-bottom:20px;text-transform:uppercase;}
+      .paciente{font-size:13px;margin-bottom:20px;}
+      .paciente div{margin-bottom:4px;}
+      .paciente b{color:#4A3F6B;}
+      .rp{font-size:26px;font-weight:800;color:#C8A8E8;margin-bottom:6px;}
+      .campo-titulo{font-size:12px;font-weight:700;color:#4A3F6B;margin-top:16px;margin-bottom:4px;}
+      .campo{font-size:14px;line-height:1.8;white-space:pre-wrap;min-height:40px;}
+      .firma{margin-top:80px;text-align:center;}
+      .firma-linea{border-top:1px solid #333;width:260px;margin:0 auto;padding-top:8px;font-size:12px;}
+      .footer{margin-top:40px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#888;text-align:center;}
+      @media print{body{padding:20px;}}
+    </style></head><body>
+    <div class="enc">${_consultorioEncabezadoHTML()}</div>
+    <div class="titulo">Receta médica</div>
+    <div class="paciente">
+      <div><b>Paciente:</b> ${pac.nombre}${pac.edad ? ' — '+pac.edad : ''}</div>
+      <div><b>Fecha:</b> ${fechaLabel}</div>
+    </div>
+    <div class="rp">Rp/</div>
+    <div class="campo">${tratamiento || '—'}</div>
+    ${plan ? `<div class="campo-titulo">Indicaciones</div><div class="campo">${plan}</div>` : ''}
+    ${seguimiento ? `<div class="campo-titulo">Seguimiento</div><div class="campo">${seguimiento}</div>` : ''}
+    <div class="firma">
+      <div class="firma-linea">${CONSULTORIO_INFO.nombreMedico}${CONSULTORIO_INFO.cedulaProfesional ? ' — Céd. Prof. '+CONSULTORIO_INFO.cedulaProfesional : ''}</div>
+    </div>
+    <div class="footer">${CONSULTORIO_INFO.nombreMedico} — ${CONSULTORIO_INFO.especialidad}</div>
+    <script>window.onload=()=>window.print();<\\/script>
+    </body></html>`);
+  win.document.close();
+}
+
+function imprimirRecetaConsulta() {
+  if (!pacienteConsultaId) { showAlert('consulta-alert','Selecciona un paciente para poder imprimir la receta','error'); return; }
+  const tratamiento = document.getElementById('c-tratamiento').value || '';
+  const plan = document.getElementById('c-plan').value || '';
+  const seguimiento = document.getElementById('c-seguimiento').value || '';
+  if (!tratamiento.trim() && !plan.trim()) {
+    showAlert('consulta-alert','Captura el tratamiento o las indicaciones antes de imprimir la receta','error');
+    return;
+  }
+  const pac = _datosPacienteActualConsulta();
+  const fecha = document.getElementById('c-fecha').value || fechaLocal();
+  const fechaLabel = new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+  _abrirVentanaReceta(pac, fechaLabel, tratamiento, plan, seguimiento);
+}
+
 function calcularIMC() {
   const peso = parseFloat(document.getElementById('c-peso').value);
   const talla = parseFloat(document.getElementById('c-talla').value);
@@ -5165,7 +5379,7 @@ function limpiarConsultaCampos() {
   if (imcEl) { imcEl.textContent = '—'; imcEl.style.color = 'var(--text-light)'; }
   const interpEl = document.getElementById('imc-interpretacion');
   if (interpEl) interpEl.innerHTML = '';
-  cie11Diagnosticos = [];
+  cie10Diagnosticos = [];
   renderDiagnosticos();
   limpiarEstudios();
 }
@@ -5696,7 +5910,7 @@ async function guardarConsultaEdit(id) {
     motivo: document.getElementById(`edit-motivo-${id}`).value,
     subjetivo: document.getElementById(`edit-subjetivo-${id}`)?.value || '',
     exploracion: document.getElementById(`edit-exploracion-${id}`).value,
-    diagnosticos_cie11: (() => {
+    diagnosticos_cie10: (() => {
       const tags = document.querySelectorAll(`[id^="edit-cie-tag-${id}-"]`);
       const diags = [];
       tags.forEach(t => {
@@ -5744,19 +5958,8 @@ async function guardarConsultaEdit(id) {
         await api('PATCH','consultas',d2,`?id=eq.${id}`);
       } catch(e2) { throw new Error(e2.message || e1.message); }
     }
-    const btn = document.getElementById(`btn-save-${id}`);
-    btn.textContent = '✅ Guardado';
-    btn.style.background = 'var(--green-d)';
-    // Actualizar el header con la nueva fecha/hora sin recargar
-    const nuevaFecha = document.getElementById(`edit-fecha-${id}`)?.value;
-    const nuevaHora = document.getElementById(`edit-hora-${id}`)?.value;
-    if (nuevaFecha) {
-      const fechaLabel = new Date(nuevaFecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-      const horaLabel = nuevaHora ? ` — 🕐 ${nuevaHora}` : '';
-      const headerFecha = document.querySelector(`#consulta-body-${id}`)?.closest('[style*="border:1.5px"]')?.querySelector('[style*="font-weight:800"]');
-      if (headerFecha) headerFecha.innerHTML = `${fechaLabel}<span style="color:var(--blue-d);font-size:12px;">${horaLabel}</span>`;
-    }
-    setTimeout(() => { btn.textContent = '💾 Guardar cambios'; btn.style.background = ''; }, 2000);
+    showAlert('exp-alert','✅ Nota actualizada correctamente','success');
+    if (pacienteActual) await cargarConsultasPaciente(pacienteActual.id);
   } catch(e) {
     alert('Error al guardar: ' + e.message);
   }
@@ -6032,46 +6235,30 @@ async function guardarVacunasTab(btn) {
   }
 }
 
-// CIE-11 en modo edición
-let cie11EditTimers = {};
-function buscarCIE11Edit(consultaId) {
-  const q = document.getElementById(`edit-cie11-input-${consultaId}`)?.value.trim();
-  const resultsEl = document.getElementById(`edit-cie11-results-${consultaId}`);
+// CIE-10 en modo edición
+function buscarCIE10Edit(consultaId) {
+  const q = document.getElementById(`edit-cie10-input-${consultaId}`)?.value.trim();
+  const resultsEl = document.getElementById(`edit-cie10-results-${consultaId}`);
   if (!q || q.length < 2) { if(resultsEl) resultsEl.style.display='none'; return; }
-  clearTimeout(cie11EditTimers[consultaId]);
-  const local = buscarCIE11Local(q);
-  if (local.length && resultsEl) {
-    resultsEl.innerHTML = local.map(f =>
-      `<div class="cie-result-item" onclick="agregarDiagnosticoEdit('${consultaId}','${f.code}','${f.title.replace(/'/g,"&#39;")}')">
-        <span class="cie-result-code">${f.code}</span>
-        <span class="cie-result-name">${f.title}</span>
-      </div>`).join('');
+  const local = buscarCIE10Local(q);
+  if (!resultsEl) return;
+  if (!local.length) {
+    resultsEl.innerHTML = '<div class="cie-result-item" style="color:var(--text-light);">Sin resultados</div>';
     resultsEl.style.display = '';
+    return;
   }
-  cie11EditTimers[consultaId] = setTimeout(async () => {
-    try {
-      const url = `https://id.who.int/icd/release/11/2024-01/mms/search?q=${encodeURIComponent(q)}&highlightingEnabled=false&lang=es`;
-      const res = await fetch(url, { headers: { 'API-Version':'v2','Accept-Language':'es','Accept':'application/json' } });
-      const data = await res.json();
-      if (data.destinationEntities?.length && resultsEl) {
-        resultsEl.innerHTML = data.destinationEntities.slice(0,10).map(e => {
-          const code = e.theCode || '';
-          const title = e.title?.['@value'] || e.title || '';
-          return `<div class="cie-result-item" onclick="agregarDiagnosticoEdit('${consultaId}','${code}',${JSON.stringify(title).replace(/'/g,"&#39;")})">
-            <span class="cie-result-code">${code}</span>
-            <span class="cie-result-name">${title}</span>
-          </div>`;
-        }).join('');
-        resultsEl.style.display = '';
-      }
-    } catch(e) {}
-  }, 500);
+  resultsEl.innerHTML = local.map(f =>
+    `<div class="cie-result-item" onclick="agregarDiagnosticoEdit('${consultaId}','${f.code}','${f.title.replace(/'/g,"&#39;")}')">
+      <span class="cie-result-code">${f.code}</span>
+      <span class="cie-result-name">${f.title}</span>
+    </div>`).join('');
+  resultsEl.style.display = '';
 }
 
 function agregarDiagnosticoEdit(consultaId, code, title) {
-  const lista = document.getElementById(`edit-cie11-lista-${consultaId}`);
-  const input = document.getElementById(`edit-cie11-input-${consultaId}`);
-  const results = document.getElementById(`edit-cie11-results-${consultaId}`);
+  const lista = document.getElementById(`edit-cie10-lista-${consultaId}`);
+  const input = document.getElementById(`edit-cie10-input-${consultaId}`);
+  const results = document.getElementById(`edit-cie10-results-${consultaId}`);
   if (!lista || document.getElementById(`edit-cie-tag-${consultaId}-${code}`)) return;
   const tag = document.createElement('div');
   tag.className = 'cie-tag';
@@ -6779,265 +6966,213 @@ function hideChartTooltip() {
   if (chartTooltipEl) chartTooltipEl.style.display = 'none';
 }
 
-// ==================== CIE-11 ====================
-let cie11Diagnosticos = []; // [{code, title}]
-let cie11Timer = null;
+// ==================== CIE-10 ====================
+let cie10Diagnosticos = []; // [{code, title}]
 
-async function buscarCIE11() {
-  const q = document.getElementById('cie11-search').value.trim();
-  const resultsEl = document.getElementById('cie11-results');
-  const loadingEl = document.getElementById('cie11-loading');
-  if (q.length < 3) { resultsEl.style.display = 'none'; return; }
+function buscarCIE10() {
+  const q = document.getElementById('cie10-search').value.trim();
+  const resultsEl = document.getElementById('cie10-results');
+  if (q.length < 2) { resultsEl.style.display = 'none'; return; }
 
-  clearTimeout(cie11Timer);
-  // Mostrar resultados locales inmediatamente mientras carga la API
-  const localResults = buscarCIE11Local(q);
-  if (localResults.length) {
-    resultsEl.innerHTML = localResults.map(f =>
-      `<div class="cie-result-item" onclick="agregarDiagnostico('${f.code}', '${f.title.replace(/'/g,"&#39;")}')">
-        <span class="cie-result-code">${f.code}</span>
-        <span class="cie-result-name">${f.title}</span>
-      </div>`
-    ).join('');
+  const resultados = buscarCIE10Local(q);
+  if (!resultados.length) {
+    resultsEl.innerHTML = '<div class="cie-result-item" style="color:var(--text-light);">Sin resultados</div>';
     resultsEl.style.display = '';
+    return;
   }
-  cie11Timer = setTimeout(async () => {
-    loadingEl.style.display = '';
-    resultsEl.style.display = 'none';
-    try {
-      // Use WHO ICD-11 API
-      const url = `https://id.who.int/icd/release/11/2024-01/mms/search?q=${encodeURIComponent(q)}&highlightingEnabled=false&lang=es`;
-      const res = await fetch(url, {
-        headers: { 'API-Version': 'v2', 'Accept-Language': 'es', 'Accept': 'application/json' }
-      });
-      const data = await res.json();
-      loadingEl.style.display = 'none';
-
-      if (!data.destinationEntities || !data.destinationEntities.length) {
-        resultsEl.innerHTML = '<div class="cie-result-item" style="color:var(--text-light);">Sin resultados</div>';
-        resultsEl.style.display = '';
-        return;
-      }
-
-      resultsEl.innerHTML = data.destinationEntities.slice(0, 10).map(e => {
-        const code = e.theCode || '';
-        const title = e.title?.['@value'] || e.title || '';
-        return `<div class="cie-result-item" onclick="agregarDiagnostico('${code}', ${JSON.stringify(title).replace(/'/g,"&#39;")})">
-          <span class="cie-result-code">${code}</span>
-          <span class="cie-result-name">${title}</span>
-        </div>`;
-      }).join('');
-      resultsEl.style.display = '';
-    } catch(e) {
-      loadingEl.style.display = 'none';
-      // Fallback: common pediatric diagnoses
-      const fallback = buscarCIE11Local(q);
-      if (fallback.length) {
-        resultsEl.innerHTML = fallback.map(f =>
-          `<div class="cie-result-item" onclick="agregarDiagnostico('${f.code}', '${f.title}')">
-            <span class="cie-result-code">${f.code}</span>
-            <span class="cie-result-name">${f.title}</span>
-          </div>`
-        ).join('');
-        resultsEl.style.display = '';
-      }
-    }
-  }, 400);
+  resultsEl.innerHTML = resultados.map(f =>
+    `<div class="cie-result-item" onclick="agregarDiagnostico('${f.code}', '${f.title.replace(/'/g,"&#39;")}')">
+      <span class="cie-result-code">${f.code}</span>
+      <span class="cie-result-name">${f.title}</span>
+    </div>`
+  ).join('');
+  resultsEl.style.display = '';
 }
 
-// Local fallback with comprehensive pediatric CIE-11 codes
-function buscarCIE11Local(q) {
+// Catálogo local de diagnósticos CIE-10 más frecuentes en pediatría
+function buscarCIE10Local(q) {
   const comunes = [
     // Respiratorio
-    {code:'CA00', title:'Influenza'},
-    {code:'CA08', title:'Neumonía'},
-    {code:'CA26', title:'Bronquiolitis aguda'},
-    {code:'CA40', title:'Otitis media aguda'},
-    {code:'CA41', title:'Otitis media con derrame'},
-    {code:'CA42', title:'Otitis media crónica'},
-    {code:'CA01', title:'Infección viral de vías respiratorias superiores'},
-    {code:'CA22', title:'Bronquitis aguda'},
-    {code:'CA23', title:'Laringitis y traqueitis agudas'},
-    {code:'CA24', title:'Croup — laringotraqueobronquitis'},
-    {code:'CA25', title:'Asma'},
-    {code:'CA50', title:'Faringitis aguda'},
-    {code:'CA51', title:'Amigdalitis aguda'},
-    {code:'CA52', title:'Sinusitis aguda'},
-    {code:'CA60', title:'Rinitis alérgica'},
-    {code:'CA61', title:'Rinitis no alérgica'},
-    {code:'CB01', title:'Bronquiectasias'},
-    {code:'CA27', title:'Epiglotitis aguda'},
+    {code:'J00', title:'Rinofaringitis aguda — resfriado común'},
+    {code:'J06.9', title:'Infección aguda de vías respiratorias superiores, no especificada'},
+    {code:'J02.9', title:'Faringitis aguda, no especificada'},
+    {code:'J03.9', title:'Amigdalitis aguda, no especificada'},
+    {code:'J01.9', title:'Sinusitis aguda, no especificada'},
+    {code:'J32.9', title:'Sinusitis crónica, no especificada'},
+    {code:'J20.9', title:'Bronquitis aguda, no especificada'},
+    {code:'J21.9', title:'Bronquiolitis aguda, no especificada'},
+    {code:'J18.9', title:'Neumonía, no especificada'},
+    {code:'J45.9', title:'Asma, no especificada'},
+    {code:'J05.0', title:'Laringitis obstructiva aguda — crup'},
+    {code:'J04.0', title:'Laringitis aguda'},
+    {code:'J05.1', title:'Epiglotitis aguda'},
+    {code:'H65.9', title:'Otitis media no supurativa, no especificada'},
+    {code:'H66.9', title:'Otitis media, no especificada'},
+    {code:'H66.3', title:'Otitis media supurativa crónica'},
+    {code:'J30.4', title:'Rinitis alérgica, no especificada'},
+    {code:'J35.0', title:'Amigdalitis crónica'},
+    {code:'J11.1', title:'Influenza con manifestaciones respiratorias'},
+    {code:'J47', title:'Bronquiectasia'},
     // Gastrointestinal
-    {code:'DA91', title:'Gastroenteritis y colitis de origen infeccioso'},
-    {code:'DA90', title:'Gastritis'},
-    {code:'DA92', title:'Gastroenteritis viral'},
-    {code:'DA93', title:'Diarrea aguda'},
-    {code:'DA94', title:'Diarrea crónica'},
-    {code:'DD90', title:'Estreñimiento'},
-    {code:'DA41', title:'Reflujo gastroesofágico'},
-    {code:'DA42', title:'Enfermedad por reflujo gastroesofágico'},
-    {code:'DA44', title:'Hernia hiatal'},
-    {code:'DB92', title:'Intolerancia a la lactosa'},
-    {code:'DA95', title:'Vómitos'},
-    {code:'DC30', title:'Apendicitis aguda'},
-    {code:'DB93', title:'Enfermedad celíaca'},
-    {code:'DA80', title:'Cólico del lactante'},
-    {code:'DC31', title:'Invaginación intestinal'},
-    {code:'DC50', title:'Estenosis pilórica'},
-    {code:'DC51', title:'Hirschsprung — megacolon agangliónico'},
+    {code:'A09', title:'Diarrea y gastroenteritis de presunto origen infeccioso'},
+    {code:'K52.9', title:'Gastroenteritis y colitis no infecciosas, no especificadas'},
+    {code:'K21.9', title:'Enfermedad por reflujo gastroesofágico sin esofagitis'},
+    {code:'K21.0', title:'Enfermedad por reflujo gastroesofágico con esofagitis'},
+    {code:'K59.0', title:'Estreñimiento'},
+    {code:'K59.1', title:'Diarrea funcional'},
+    {code:'K30', title:'Dispepsia funcional'},
+    {code:'E73.9', title:'Intolerancia a la lactosa, sin otra especificación'},
+    {code:'K90.0', title:'Enfermedad celíaca'},
+    {code:'R11', title:'Náusea y vómito'},
+    {code:'R10.4', title:'Dolor abdominal, otro y no especificado'},
+    {code:'K35.80', title:'Apendicitis aguda, sin especificar'},
+    {code:'K56.1', title:'Invaginación intestinal'},
+    {code:'Q40.0', title:'Estenosis pilórica hipertrófica congénita'},
+    {code:'Q43.1', title:'Enfermedad de Hirschsprung — megacolon agangliónico'},
+    {code:'K59.9', title:'Trastorno funcional del intestino, no especificado — cólico'},
     // Cavidad oral / lengua
-    {code:'LA31.2', title:'Anquiloglosia — frenillo lingual corto — lengua atada'},
-    {code:'DA00', title:'Fisura labial — labio hendido'},
-    {code:'DA02', title:'Fisura palatina — paladar hendido'},
-    {code:'DA05', title:'Estomatitis'},
-    {code:'DA06', title:'Estomatitis aftosa recurrente — aftas'},
-    {code:'DA07', title:'Candidiasis oral — muguet'},
-    {code:'DA08', title:'Gingivitis'},
-    {code:'DA09', title:'Periodontitis'},
-    {code:'DA10', title:'Erupción dentaria — teething'},
-    {code:'DA11', title:'Maloclusión dental'},
-    {code:'1C62', title:'Candidiasis'},
+    {code:'Q38.1', title:'Anquiloglosia — frenillo lingual corto — lengua atada'},
+    {code:'Q36.9', title:'Labio leporino, unilateral — labio hendido'},
+    {code:'Q35.9', title:'Fisura del paladar, no especificada — paladar hendido'},
+    {code:'K12.0', title:'Aftas bucales recurrentes'},
+    {code:'B37.0', title:'Candidiasis oral — muguet'},
+    {code:'K05.0', title:'Gingivitis aguda'},
+    {code:'K05.1', title:'Gingivitis crónica'},
+    {code:'K00.7', title:'Síndrome de la dentición — erupción dentaria'},
+    {code:'K07.4', title:'Maloclusión, no especificada'},
     // Infecciosas
-    {code:'1F03', title:'Varicela'},
-    {code:'1F00', title:'Sarampión'},
-    {code:'1F02', title:'Rubéola'},
-    {code:'1F01', title:'Parotiditis — paperas'},
-    {code:'1F04', title:'Herpes zóster'},
-    {code:'1F05', title:'Herpes simple'},
-    {code:'1F10', title:'Exantema súbito — roséola — HHV6'},
-    {code:'1F11', title:'Eritema infeccioso — quinta enfermedad — parvovirus B19'},
-    {code:'1F12', title:'Mononucleosis infecciosa — VEB'},
-    {code:'1B95', title:'Escarlatina'},
-    {code:'1C20', title:'Infección por Streptococcus'},
-    {code:'1C30', title:'Tosferina — tos ferina — pertussis'},
-    {code:'1C31', title:'Difteria'},
-    {code:'1C32', title:'Tétanos'},
-    {code:'1C33', title:'Meningitis bacteriana'},
-    {code:'1C34', title:'Meningitis viral'},
-    {code:'1C40', title:'Sepsis neonatal'},
-    {code:'1C41', title:'Sepsis'},
-    {code:'1A00', title:'Cólera'},
-    {code:'1A01', title:'Fiebre tifoidea'},
-    {code:'1A40', title:'Tuberculosis'},
-    {code:'KA84', title:'Impétigo'},
-    {code:'KA86', title:'Celulitis'},
-    {code:'1C62.1', title:'Candidiasis cutánea'},
-    {code:'1C62.2', title:'Candidiasis del pañal'},
-    {code:'1F30', title:'Pediculosis — piojos'},
-    {code:'1F31', title:'Escabiosis — sarna'},
+    {code:'B01.9', title:'Varicela, sin complicaciones'},
+    {code:'B05.9', title:'Sarampión, sin complicaciones'},
+    {code:'B06.9', title:'Rubeola, sin complicaciones'},
+    {code:'B26.9', title:'Parotiditis — paperas, sin complicaciones'},
+    {code:'B02.9', title:'Herpes zóster, sin complicación'},
+    {code:'B00.9', title:'Infección herpesviral, no especificada'},
+    {code:'B08.20', title:'Exantema súbito — roséola, no especificado'},
+    {code:'B08.3', title:'Eritema infeccioso — quinta enfermedad — parvovirus B19'},
+    {code:'B27.9', title:'Mononucleosis infecciosa, no especificada'},
+    {code:'A38', title:'Escarlatina'},
+    {code:'A49.1', title:'Infección estreptocócica, no especificada'},
+    {code:'A37.9', title:'Tos ferina — tosferina, no especificada'},
+    {code:'A36.9', title:'Difteria, no especificada'},
+    {code:'A35', title:'Otros tétanos'},
+    {code:'G00.9', title:'Meningitis bacteriana, no especificada'},
+    {code:'A87.9', title:'Meningitis viral, no especificada'},
+    {code:'A41.9', title:'Sepsis, no especificada'},
+    {code:'P36.9', title:'Sepsis bacteriana del recién nacido, no especificada'},
+    {code:'A00', title:'Cólera'},
+    {code:'A01.0', title:'Fiebre tifoidea'},
+    {code:'A16.9', title:'Tuberculosis respiratoria, no especificada'},
+    {code:'L01.00', title:'Impétigo, no especificado'},
+    {code:'L03.90', title:'Celulitis, no especificada'},
+    {code:'B37.2', title:'Candidiasis de la piel y las uñas'},
+    {code:'B85.0', title:'Pediculosis — piojos'},
+    {code:'B86', title:'Escabiosis — sarna'},
     // Dermatología
-    {code:'KA21', title:'Dermatitis atópica — eczema'},
-    {code:'KA85', title:'Dermatitis del pañal'},
-    {code:'KA20', title:'Dermatitis de contacto'},
-    {code:'LA90', title:'Urticaria'},
-    {code:'LA91', title:'Angioedema'},
-    {code:'KA60', title:'Acné'},
-    {code:'ED40', title:'Psoriasis'},
-    {code:'KA80', title:'Tiña — dermatofitosis'},
-    {code:'KA81', title:'Tiña capitis'},
-    {code:'KA82', title:'Tiña corporis'},
-    {code:'KA83', title:'Tiña pedis — pie de atleta'},
-    {code:'KA87', title:'Forunculosis'},
-    {code:'EK50', title:'Alopecia areata'},
+    {code:'L20.9', title:'Dermatitis atópica — eczema, no especificada'},
+    {code:'L22', title:'Dermatitis del pañal'},
+    {code:'L23.9', title:'Dermatitis alérgica de contacto, de causa no especificada'},
+    {code:'L50.9', title:'Urticaria, no especificada'},
+    {code:'T78.3', title:'Angioedema'},
+    {code:'L70.9', title:'Acné, no especificado'},
+    {code:'L40.9', title:'Psoriasis, no especificada'},
+    {code:'B35.9', title:'Dermatofitosis, no especificada — tiña'},
+    {code:'B35.0', title:'Tiña de la cabeza — tinea capitis'},
+    {code:'B35.4', title:'Tiña del cuerpo — tinea corporis'},
+    {code:'B35.3', title:'Tiña del pie — pie de atleta'},
+    {code:'L02.9', title:'Absceso cutáneo, furúnculo y ántrax de sitio no especificado'},
+    {code:'L63.9', title:'Alopecia areata, no especificada'},
     // Alergia / Inmunología
-    {code:'LA80', title:'Alergia alimentaria'},
-    {code:'LA81', title:'Alergia a proteína de leche de vaca — APLV'},
-    {code:'LA82', title:'Alergia al huevo'},
-    {code:'LA83', title:'Alergia al cacahuate — maní'},
-    {code:'LA84', title:'Alergia al trigo'},
-    {code:'LA85', title:'Anafilaxia'},
-    {code:'CA63', title:'Alergia a picadura de insecto'},
+    {code:'T78.1', title:'Otras reacciones adversas a alimentos — alergia alimentaria'},
+    {code:'T78.2', title:'Choque anafiláctico, no especificado'},
+    {code:'W57', title:'Mordedura o picadura de insecto no venenoso'},
     // Nutrición / Endocrinología
-    {code:'5A00', title:'Diabetes mellitus tipo 1'},
-    {code:'5A10', title:'Diabetes mellitus tipo 2'},
-    {code:'5B55', title:'Obesidad'},
-    {code:'5B54', title:'Sobrepeso'},
-    {code:'5B50', title:'Desnutrición proteico-calórica'},
-    {code:'5B51', title:'Kwashiorkor'},
-    {code:'5B52', title:'Marasmo'},
-    {code:'5B53', title:'Falla de medro — retraso en el crecimiento'},
-    {code:'5A20', title:'Hipotiroidismo'},
-    {code:'5A21', title:'Hipertiroidismo'},
-    {code:'5A40', title:'Raquitismo — deficiencia de vitamina D'},
-    {code:'5A41', title:'Deficiencia de vitamina A'},
-    {code:'5A42', title:'Deficiencia de vitamina C — escorbuto'},
-    {code:'BA00', title:'Anemia por deficiencia de hierro'},
-    {code:'BA01', title:'Anemia megaloblástica'},
-    {code:'BA02', title:'Anemia hemolítica'},
-    {code:'BA80', title:'Anemia de células falciformes — drepanocitosis'},
+    {code:'E10.9', title:'Diabetes mellitus tipo 1, sin complicaciones'},
+    {code:'E11.9', title:'Diabetes mellitus tipo 2, sin complicaciones'},
+    {code:'E66.9', title:'Obesidad, no especificada'},
+    {code:'E66.3', title:'Sobrepeso'},
+    {code:'E44.1', title:'Desnutrición proteico-calórica leve'},
+    {code:'E40', title:'Kwashiorkor'},
+    {code:'E41', title:'Marasmo nutricional'},
+    {code:'R62.8', title:'Falla de medro — retraso en el desarrollo físico esperado'},
+    {code:'E03.9', title:'Hipotiroidismo, no especificado'},
+    {code:'E05.9', title:'Tirotoxicosis — hipertiroidismo, no especificada'},
+    {code:'E55.9', title:'Deficiencia de vitamina D, no especificada — raquitismo'},
+    {code:'E50.9', title:'Deficiencia de vitamina A, no especificada'},
+    {code:'E54', title:'Deficiencia de ácido ascórbico — escorbuto'},
+    {code:'D50.9', title:'Anemia por deficiencia de hierro, no especificada'},
+    {code:'D52.9', title:'Anemia megaloblástica, no especificada'},
+    {code:'D58.9', title:'Anemia hemolítica hereditaria, no especificada'},
+    {code:'D57.1', title:'Anemia de células falciformes — drepanocitosis, sin crisis'},
     // Neurología / Desarrollo
-    {code:'GF80', title:'Trastorno por déficit de atención con hiperactividad — TDAH'},
-    {code:'GC50', title:'Epilepsia'},
-    {code:'GC51', title:'Crisis febriles — convulsiones febriles'},
-    {code:'GC52', title:'Espasmos infantiles — síndrome de West'},
-    {code:'6A00', title:'Trastorno del espectro autista — TEA'},
-    {code:'6A01', title:'Trastorno del desarrollo intelectual'},
-    {code:'6A02', title:'Trastorno del lenguaje'},
-    {code:'6A03', title:'Trastorno del habla'},
-    {code:'MB50', title:'Parálisis cerebral'},
-    {code:'GC53', title:'Meningitis'},
-    {code:'GC54', title:'Encefalitis'},
-    {code:'8A00', title:'Hidrocefalia'},
-    {code:'LA90.1', title:'Cefalea tensional'},
-    {code:'8A80', title:'Migraña'},
-    {code:'GC60', title:'Síndrome de Tourette'},
+    {code:'F90.9', title:'Trastorno de hiperactividad y déficit de atención, no especificado — TDAH'},
+    {code:'G40.9', title:'Epilepsia, no especificada'},
+    {code:'R56.0', title:'Convulsiones febriles'},
+    {code:'F84.0', title:'Autismo infantil — trastorno del espectro autista'},
+    {code:'F79', title:'Retraso mental, no especificado'},
+    {code:'F80.9', title:'Trastorno del desarrollo del habla y del lenguaje, no especificado'},
+    {code:'F80.0', title:'Trastorno específico de la pronunciación'},
+    {code:'G80.9', title:'Parálisis cerebral, no especificada'},
+    {code:'G03.9', title:'Meningitis, no especificada'},
+    {code:'G04.9', title:'Encefalitis, mielitis y encefalomielitis, no especificadas'},
+    {code:'G91.9', title:'Hidrocefalia, no especificada'},
+    {code:'G44.2', title:'Cefalea de tipo tensional'},
+    {code:'G43.9', title:'Migraña, no especificada'},
+    {code:'F95.2', title:'Trastorno de tics vocales y motores múltiples combinados — Tourette'},
     // Nefrología / Urología
-    {code:'GC10', title:'Infección de vías urinarias — IVU'},
-    {code:'GC11', title:'Cistitis'},
-    {code:'GC12', title:'Pielonefritis'},
-    {code:'GC13', title:'Síndrome nefrótico'},
-    {code:'GC14', title:'Síndrome nefrítico'},
-    {code:'GC15', title:'Enuresis nocturna'},
-    {code:'GC16', title:'Fimosis'},
-    {code:'GC17', title:'Criptorquidia'},
-    {code:'GC18', title:'Hidrocele'},
-    {code:'GC19', title:'Hipospadia'},
-    {code:'GC20', title:'Reflujo vesicoureteral'},
+    {code:'N39.0', title:'Infección de vías urinarias, sitio no especificado'},
+    {code:'N30.9', title:'Cistitis, no especificada'},
+    {code:'N10', title:'Nefritis túbulo-intersticial aguda — pielonefritis'},
+    {code:'N04.9', title:'Síndrome nefrótico, no especificado'},
+    {code:'N00.9', title:'Síndrome nefrítico agudo, no especificado'},
+    {code:'N39.44', title:'Enuresis nocturna'},
+    {code:'N47.1', title:'Fimosis'},
+    {code:'Q53.9', title:'Testículo no descendido — criptorquidia, no especificado'},
+    {code:'N43.3', title:'Hidrocele, no especificado'},
+    {code:'Q54.9', title:'Hipospadias, no especificado'},
+    {code:'N13.70', title:'Reflujo vesicoureteral, no especificado'},
     // Ortopedia / Musculoesquelético
-    {code:'FA20', title:'Fractura'},
-    {code:'FA30', title:'Esguince'},
-    {code:'FA40', title:'Luxación'},
-    {code:'FA50', title:'Displasia del desarrollo de cadera — DDC'},
-    {code:'FA51', title:'Pie equino varo — pie zambo'},
-    {code:'FA52', title:'Pie plano'},
-    {code:'FA53', title:'Genu valgo — rodillas en X'},
-    {code:'FA54', title:'Genu varo — piernas en paréntesis'},
-    {code:'FA55', title:'Escoliosis'},
-    {code:'FA56', title:'Cifosis'},
-    {code:'FA57', title:'Lordosis'},
-    {code:'FA60', title:'Artritis'},
-    {code:'FA61', title:'Artritis idiopática juvenil — AIJ'},
+    {code:'T14.2', title:'Fractura de región no especificada del cuerpo'},
+    {code:'S93.40', title:'Esguince de tobillo, no especificado'},
+    {code:'Q65.9', title:'Deformidad congénita de la cadera, no especificada — DDC'},
+    {code:'Q66.0', title:'Pie equinovaro congénito — pie zambo'},
+    {code:'M21.4', title:'Pie plano [pes planus] adquirido'},
+    {code:'M21.06', title:'Genu valgo — rodillas en X, pierna'},
+    {code:'M21.16', title:'Genu varo — piernas en paréntesis, pierna'},
+    {code:'M41.9', title:'Escoliosis, no especificada'},
+    {code:'M40.209', title:'Cifosis, no especificada'},
+    {code:'M13.9', title:'Artritis, no especificada'},
+    {code:'M08.0', title:'Artritis reumatoide juvenil'},
     // Oftalmología
-    {code:'9A00', title:'Conjuntivitis'},
-    {code:'9A01', title:'Conjuntivitis alérgica'},
-    {code:'9A02', title:'Conjuntivitis bacteriana'},
-    {code:'9A03', title:'Conjuntivitis viral'},
-    {code:'9A04', title:'Dacriocistitis — obstrucción del conducto lagrimal'},
-    {code:'9A10', title:'Estrabismo'},
-    {code:'9A11', title:'Ambliopía — ojo perezoso'},
-    {code:'9A12', title:'Miopía'},
-    {code:'9A13', title:'Hipermetropía'},
-    {code:'9A14', title:'Astigmatismo'},
+    {code:'H10.9', title:'Conjuntivitis, no especificada'},
+    {code:'H10.1', title:'Conjuntivitis atópica aguda — alérgica'},
+    {code:'H10.3', title:'Conjuntivitis aguda, no especificada — bacteriana'},
+    {code:'B30.9', title:'Conjuntivitis viral, no especificada'},
+    {code:'H04.9', title:'Trastorno del aparato lagrimal, no especificado'},
+    {code:'H50.9', title:'Estrabismo, no especificado'},
+    {code:'H53.00', title:'Ambliopía, no especificada — ojo perezoso'},
+    {code:'H52.1', title:'Miopía'},
+    {code:'H52.0', title:'Hipermetropía'},
+    {code:'H52.2', title:'Astigmatismo'},
     // Cardíaco
-    {code:'LA80.1', title:'Soplo cardíaco inocente'},
-    {code:'LA80.2', title:'Comunicación interventricular — CIV'},
-    {code:'LA80.3', title:'Comunicación interauricular — CIA'},
-    {code:'LA80.4', title:'Persistencia del conducto arterioso — PCA'},
-    {code:'LA80.5', title:'Tetralogía de Fallot'},
+    {code:'R01.1', title:'Soplo cardíaco benigno e inocente'},
+    {code:'Q21.0', title:'Comunicación interventricular — CIV'},
+    {code:'Q21.1', title:'Comunicación interauricular — CIA'},
+    {code:'Q25.0', title:'Conducto arterioso persistente — PCA'},
+    {code:'Q21.3', title:'Tetralogía de Fallot'},
     // Neonatal
-    {code:'KA00', title:'Ictericia neonatal'},
-    {code:'KA01', title:'Ictericia neonatal por incompatibilidad ABO'},
-    {code:'KA02', title:'Hiperbilirrubinemia neonatal'},
-    {code:'KA03', title:'Sepsis neonatal'},
-    {code:'KA04', title:'Prematuridad'},
-    {code:'KA05', title:'Bajo peso al nacer'},
-    {code:'KA06', title:'Síndrome de dificultad respiratoria neonatal'},
+    {code:'P59.9', title:'Ictericia neonatal, no especificada'},
+    {code:'P55.1', title:'Enfermedad hemolítica del recién nacido por incompatibilidad ABO'},
+    {code:'P59.3', title:'Ictericia neonatal asociada a lactancia materna'},
+    {code:'P07.30', title:'Prematuridad, no especificada'},
+    {code:'P07.10', title:'Bajo peso al nacer, no especificado'},
+    {code:'P22.9', title:'Dificultad respiratoria del recién nacido, no especificada'},
     // Preventivo / Salud general
-    {code:'QA00.1', title:'Examen de salud de rutina del niño — niño sano — control'},
-    {code:'FA24', title:'Fiebre sin foco'},
-    {code:'FA25', title:'Fiebre de origen desconocido'},
-    {code:'MG40', title:'Consulta de seguimiento'},
-    {code:'QA41', title:'Accidente — traumatismo no especificado'},
+    {code:'Z00.129', title:'Examen de salud de rutina del niño — niño sano — control'},
+    {code:'R22.1', title:'Tumefacción, masa o bulto en el cuello (sin diagnóstico confirmado)'},
+    {code:'R50.9', title:'Fiebre, no especificada — fiebre sin foco'},
+    {code:'R50.81', title:'Fiebre de origen desconocido'},
+    {code:'Z09', title:'Examen de seguimiento después de tratamiento — consulta de seguimiento'},
+    {code:'T14.90', title:'Lesión, no especificada — accidente, traumatismo'},
   ];
 
   const q2 = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -7049,28 +7184,28 @@ function buscarCIE11Local(q) {
 }
 
 function agregarDiagnostico(code, title) {
-  if (cie11Diagnosticos.find(d => d.code === code)) {
-    document.getElementById('cie11-search').value = '';
-    document.getElementById('cie11-results').style.display = 'none';
+  if (cie10Diagnosticos.find(d => d.code === code)) {
+    document.getElementById('cie10-search').value = '';
+    document.getElementById('cie10-results').style.display = 'none';
     return;
   }
-  cie11Diagnosticos.push({ code, title });
+  cie10Diagnosticos.push({ code, title });
   renderDiagnosticos();
-  document.getElementById('cie11-search').value = '';
-  document.getElementById('cie11-results').style.display = 'none';
+  document.getElementById('cie10-search').value = '';
+  document.getElementById('cie10-results').style.display = 'none';
 }
 
 function eliminarDiagnostico(code) {
-  cie11Diagnosticos = cie11Diagnosticos.filter(d => d.code !== code);
+  cie10Diagnosticos = cie10Diagnosticos.filter(d => d.code !== code);
   renderDiagnosticos();
 }
 
 function renderDiagnosticos() {
   const el = document.getElementById('diagnosticos-lista');
   if (!el) return;
-  if (!cie11Diagnosticos.length) { el.innerHTML = ''; return; }
+  if (!cie10Diagnosticos.length) { el.innerHTML = ''; return; }
   el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px 0;">
-    ${cie11Diagnosticos.map((d,i) => `
+    ${cie10Diagnosticos.map((d,i) => `
       <div class="cie-tag">
         ${i === 0 ? '<span style="font-size:9px;background:var(--blue-d);color:white;padding:1px 6px;border-radius:10px;margin-right:2px;">Principal</span>' : ''}
         <span class="cie-code">${d.code}</span>
@@ -7082,8 +7217,8 @@ function renderDiagnosticos() {
 
 // Close CIE dropdown when clicking outside
 document.addEventListener('click', e => {
-  if (!e.target.closest('#cie11-search') && !e.target.closest('#cie11-results')) {
-    const r = document.getElementById('cie11-results');
+  if (!e.target.closest('#cie10-search') && !e.target.closest('#cie10-results')) {
+    const r = document.getElementById('cie10-results');
     if (r) r.style.display = 'none';
   }
 });
@@ -8263,6 +8398,8 @@ function buildWFLChart(tabla, puntos, colorPaciente, esMasculino) {
 }
 
 // ==================== CONSULTAS PACIENTE ====================
+let consultasCache = {};
+
 async function cargarConsultasPaciente(id) {
   document.getElementById('detalle-consultas').innerHTML = '<div class="loading"><div class="spinner"></div> Cargando historial...</div>';
   try {
@@ -8317,6 +8454,7 @@ async function cargarConsultasPaciente(id) {
       return;
     }
     document.getElementById('detalle-consultas').innerHTML = notaNacHTML + (consultas.length ? consultas.map(c => {
+      consultasCache[c.id] = c;
       const fecha = new Date(c.fecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       const horaDisplay = c.hora ? ` — 🕐 ${c.hora}` : '';
       const imc = c.peso && c.talla ? (parseFloat(c.peso)/Math.pow(parseFloat(c.talla)/100,2)).toFixed(1) : (c.imc || '—');
@@ -8342,7 +8480,18 @@ async function cargarConsultasPaciente(id) {
         <!-- BODY EXPANDIBLE -->
         <div id="consulta-body-${c.id}" style="display:none;padding:16px;border-top:1px solid var(--border);background:#FAFAFC;">
 
-          <!-- FECHA Y HORA -->
+        <!-- VISTA (solo lectura) -->
+        <div id="consulta-view-${c.id}">
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="mostrarEdicionConsulta('${c.id}')">✏️ Editar</button>
+            <button class="btn btn-ghost btn-sm" onclick="imprimirConsultaHistorial('${c.id}')">🖨 Imprimir nota</button>
+            <button class="btn btn-ghost btn-sm" onclick="imprimirRecetaHistorial('${c.id}')">🖨 Imprimir receta</button>
+          </div>
+          ${_formatearVistaConsulta(c)}
+        </div>
+
+        <!-- EDICIÓN -->
+        <div id="consulta-edit-${c.id}" style="display:none;">
           <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;padding:10px 14px;background:white;border-radius:var(--radius-sm);border:1.5px solid var(--border);">
             <span style="font-size:18px;">📅</span>
             <div class="form-group" style="margin:0;flex:1;">
@@ -8432,11 +8581,11 @@ async function cargarConsultasPaciente(id) {
           </div>
 
           <div class="form-group" style="margin-bottom:10px;">
-            <div class="form-label">Diagnósticos CIE-11</div>
-            <div id="edit-cie11-lista-${c.id}" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+            <div class="form-label">Diagnósticos CIE-10</div>
+            <div id="edit-cie10-lista-${c.id}" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
               ${(() => {
                 try {
-                  const diags = JSON.parse(c.diagnosticos_cie11 || '[]');
+                  const diags = JSON.parse(c.diagnosticos_cie10 || '[]');
                   return diags.map(d => `
                     <div class="cie-tag" id="edit-cie-tag-${c.id}-${d.code}">
                       <span class="cie-code">${d.code}</span>
@@ -8447,8 +8596,8 @@ async function cargarConsultasPaciente(id) {
               })()}
             </div>
             <div style="position:relative;">
-              <input class="form-input" id="edit-cie11-input-${c.id}" placeholder="Buscar diagnóstico..." oninput="buscarCIE11Edit('${c.id}')" autocomplete="off">
-              <div id="edit-cie11-results-${c.id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:180px;overflow-y:auto;"></div>
+              <input class="form-input" id="edit-cie10-input-${c.id}" placeholder="Buscar diagnóstico..." oninput="buscarCIE10Edit('${c.id}')" autocomplete="off">
+              <div id="edit-cie10-results-${c.id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:50;max-height:180px;overflow-y:auto;"></div>
             </div>
           </div>
           <div class="form-group" style="margin-bottom:10px;">
@@ -8472,12 +8621,131 @@ async function cargarConsultasPaciente(id) {
             <input class="form-input" id="edit-seguimiento-${c.id}" value="${c.seguimiento||''}">
           </div>
           <button id="btn-save-${c.id}" class="btn btn-primary btn-sm" onclick="guardarConsultaEdit('${c.id}')">💾 Guardar cambios</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelarEdicionConsulta('${c.id}')">✕ Cancelar</button>
+        </div>
         </div>
       </div>`;
     }).join('') : '');
   } catch(e) {
     document.getElementById('detalle-consultas').innerHTML = `<div class="alert alert-error">Error al cargar consultas</div>`;
   }
+}
+
+function _formatearVistaConsulta(c) {
+  const imc = c.peso && c.talla ? (parseFloat(c.peso)/Math.pow(parseFloat(c.talla)/100,2)).toFixed(1) : (c.imc || '');
+
+  const chip = (label, valor) => valor ? `<div style="background:white;border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;"><span style="color:var(--text-light);">${label}:</span> <b>${valor}</b></div>` : '';
+  const vitalesChips = [
+    chip('Peso', c.peso ? `${c.peso} kg` : ''),
+    chip('Talla', c.talla ? `${c.talla} cm` : ''),
+    chip('IMC', imc),
+    chip('P. Cefálico', c.perimetro_cefalico ? `${c.perimetro_cefalico} cm` : ''),
+    chip('P. Braquial', c.perimetro_braquial ? `${c.perimetro_braquial} cm` : ''),
+    chip('Temp', c.temperatura ? `${c.temperatura}°C` : ''),
+    chip('FC', c.frecuencia_cardiaca ? `${c.frecuencia_cardiaca} lpm` : ''),
+    chip('FR', c.frecuencia_respiratoria ? `${c.frecuencia_respiratoria} rpm` : ''),
+    chip('SpO2', c.spo2 ? `${c.spo2}%` : ''),
+    chip('T/A', c.tension_arterial || ''),
+  ].filter(Boolean).join('');
+
+  const diagsHTML = (() => {
+    try {
+      const diags = JSON.parse(c.diagnosticos_cie10 || '[]');
+      return diags.map(d => `<div class="cie-tag" style="display:inline-flex;"><span class="cie-code">${d.code}</span><span class="cie-name">${d.title}</span></div>`).join('');
+    } catch(e) { return ''; }
+  })();
+  const imagenesHTML = (() => {
+    try {
+      const imgs = JSON.parse(c.estudios_imagenes || '[]');
+      if (!imgs.length) return '';
+      return imgs.map(img => `<div style="font-size:12px;margin-bottom:4px;"><strong>${img.tipo||'Imagen'}</strong>${img.descripcion ? ': '+img.descripcion : ''}${img.resultado ? ' — '+img.resultado : ''}</div>`).join('');
+    } catch(e) { return ''; }
+  })();
+
+  const seccion = (titulo, contenido, colorClass) => contenido ? `
+    <div style="margin-bottom:14px;">
+      <div class="seccion-label ${colorClass}" style="font-size:11px;margin-bottom:6px;">${titulo}</div>
+      <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);">${contenido}</div>
+    </div>` : '';
+
+  const hayDatos = c.motivo || c.subjetivo || c.exploracion || c.diagnostico || diagsHTML || c.tratamiento || c.plan || c.seguimiento;
+
+  return `
+    ${seccion('📋 Motivo de consulta', c.motivo, 'lilac')}
+    ${seccion('🗣️ Subjetivo', c.subjetivo, 'lilac')}
+    ${vitalesChips ? `<div style="margin-bottom:16px;"><div class="seccion-label blue" style="font-size:11px;margin-bottom:6px;">❤️ Signos vitales y mediciones</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${vitalesChips}</div></div>` : ''}
+    ${seccion('🔍 Exploración física', c.exploracion, 'blue')}
+    ${seccion('🩸 Laboratorio', c.estudios_lab, 'blue')}
+    ${imagenesHTML ? `<div style="margin-bottom:14px;"><div class="seccion-label blue" style="font-size:11px;margin-bottom:6px;">🩻 Imagen</div>${imagenesHTML}</div>` : ''}
+    ${seccion('📄 Otros estudios', c.estudios_otros, 'blue')}
+    ${(diagsHTML || c.diagnostico) ? `<div style="margin-bottom:14px;"><div class="seccion-label lilac" style="font-size:11px;margin-bottom:6px;">🩺 Diagnóstico</div>${diagsHTML ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${diagsHTML}</div>` : ''}${c.diagnostico ? `<div style="font-size:13px;white-space:pre-wrap;">${c.diagnostico}</div>` : ''}</div>` : ''}
+    ${seccion('💊 Tratamiento', c.tratamiento, 'green')}
+    ${seccion('📌 Indicaciones y recomendaciones', c.plan, 'green')}
+    ${seccion('🔁 Seguimiento', c.seguimiento, 'blue')}
+    ${!hayDatos && !vitalesChips ? '<div style="color:var(--text-light);font-size:12px;">Sin más datos registrados en esta nota.</div>' : ''}
+  `;
+}
+
+function mostrarEdicionConsulta(id) {
+  const vista = document.getElementById(`consulta-view-${id}`);
+  const edicion = document.getElementById(`consulta-edit-${id}`);
+  if (vista) vista.style.display = 'none';
+  if (edicion) edicion.style.display = '';
+}
+
+function cancelarEdicionConsulta(id) {
+  // Recargamos el historial para descartar cualquier cambio no guardado en el formulario
+  if (pacienteActual) cargarConsultasPaciente(pacienteActual.id);
+}
+
+function imprimirConsultaHistorial(id) {
+  const c = consultasCache[id];
+  if (!c) return;
+  const p = pacienteActual;
+  const pac = { nombre: p ? p.nombre : '', edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '' };
+  const fechaLabel = new Date(c.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+  const diagnosticosCIE = (() => {
+    try {
+      const diags = JSON.parse(c.diagnosticos_cie10 || '[]');
+      return diags.map(d => `• ${d.title || ''} ${d.code ? '('+d.code+')' : ''}`).join('<br>');
+    } catch(e) { return ''; }
+  })();
+  const imc = c.peso && c.talla ? (parseFloat(c.peso)/Math.pow(parseFloat(c.talla)/100,2)).toFixed(1) : (c.imc || '');
+  const signosVitales = [
+    c.peso ? `Peso: ${c.peso} kg` : '', c.talla ? `Talla: ${c.talla} cm` : '',
+    imc ? `IMC: ${imc}` : '',
+    c.perimetro_cefalico ? `P. Cefálico: ${c.perimetro_cefalico} cm` : '',
+    c.perimetro_braquial ? `P. Braquial: ${c.perimetro_braquial} cm` : '',
+    c.temperatura ? `Temp: ${c.temperatura}°C` : '', c.frecuencia_cardiaca ? `FC: ${c.frecuencia_cardiaca} lpm` : '',
+    c.frecuencia_respiratoria ? `FR: ${c.frecuencia_respiratoria} rpm` : '', c.spo2 ? `SpO2: ${c.spo2}%` : '',
+    c.tension_arterial ? `TA: ${c.tension_arterial}` : ''
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+  _abrirVentanaNota(pac, fechaLabel, c.hora || '', {
+    signosVitales,
+    motivo: c.motivo || '',
+    subjetivo: c.subjetivo || '',
+    exploracion: c.exploracion || '',
+    diagnosticosCIE,
+    diagnosticoLibre: c.diagnostico || '',
+    tratamiento: c.tratamiento || '',
+    plan: c.plan || '',
+    seguimiento: c.seguimiento || ''
+  });
+}
+
+function imprimirRecetaHistorial(id) {
+  const c = consultasCache[id];
+  if (!c) return;
+  if (!(c.tratamiento||'').trim() && !(c.plan||'').trim()) {
+    showAlert('exp-alert','Esta nota no tiene tratamiento ni indicaciones capturadas','error');
+    return;
+  }
+  const p = pacienteActual;
+  const pac = { nombre: p ? p.nombre : '', edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '' };
+  const fechaLabel = new Date(c.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  _abrirVentanaReceta(pac, fechaLabel, c.tratamiento || '', c.plan || '', c.seguimiento || '');
 }
 
 function toggleNacimientoCard() {
@@ -9410,46 +9678,6 @@ async function guardarNotaParto(btn) {
 
 
 </script>
-<!-- ============ MODAL LOTE DE PAGO ============ -->
-<div id="modal-lote-pago" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event,'modal-lote-pago')">
-  <div class="modal" style="width:640px;">
-    <div class="modal-title">💰 Registrar pago por lote — Municipio</div>
-    <div class="form-row">
-      <div class="form-group">
-        <div class="form-label">Nombre del lote *</div>
-        <input class="form-input" id="lp-nombre" placeholder="Ej. Lote Mayo 2026...">
-      </div>
-      <div class="form-group">
-        <div class="form-label">Fecha de pago *</div>
-        <input class="form-input" id="lp-fecha" type="date">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <div class="form-label">Monto total recibido *</div>
-        <input class="form-input" id="lp-monto" type="number" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <div class="form-label">Notas</div>
-        <input class="form-input" id="lp-notas" placeholder="Referencia bancaria...">
-      </div>
-    </div>
-    <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-bottom:8px;">📋 Folios incluidos en este pago</div>
-    <div style="max-height:280px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--radius-sm);">
-      <div style="padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
-        <input type="checkbox" id="lp-sel-todos" onchange="toggleSelTodosLote(this)">
-        <label for="lp-sel-todos" style="font-size:12px;font-weight:700;cursor:pointer;">Seleccionar todos</label>
-        <span id="lp-sel-count" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--blue-d);"></span>
-      </div>
-      <div id="lp-folios-lista" style="padding:8px;"></div>
-    </div>
-    <div id="lp-alert" style="margin-top:10px;"></div>
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-lote-pago')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarLotePago()">💰 Registrar pago</button>
-    </div>
-  </div>
-</div>
 
 <!-- NAV INFERIOR MÓVIL -->
 <nav class="mobile-nav" id="mobile-nav">
