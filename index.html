@@ -134,6 +134,8 @@ body { font-family:'Quicksand',sans-serif; background:var(--bg); color:var(--tex
 .badge-peach  { background:#FFF0E0; color:var(--peach-d); }
 .badge-lilac  { background:#F0ECFF; color:var(--lilac-d); }
 .badge-red    { background:#FFE8E8; color:#C84A4A; }
+.badge-yellow { background:#FFF6D8; color:#B8952A; }
+.badge-teal   { background:#DAF3EE; color:#2E8A76; }
 
 /* MODAL */
 .modal-overlay {
@@ -681,6 +683,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
 .cal-event.privado { background:#D4EEF8; border-color:#6BAEC6; }
 .cal-event.municipio { background:#D4F0DC; border-color:#7DBF99; }
 .cal-event.cesarea_parto { background:#EDE8F5; border-color:#9B82CC; }
+.cal-event.pase_visita { background:#D6F0EA; border-color:#4FA894; }
+.cal-event.interconsulta_urgencias { background:#FDE4E4; border-color:#D66A6A; }
+.cal-event.bono_laboratorio { background:#FFF3D6; border-color:#D9B04A; }
 .cal-event-time { font-size:10px; opacity:0.8; }
 .cal-event-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cal-event-status {
@@ -2900,6 +2905,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <option value="privado">🔵 Privado</option>
           <option value="municipio">🟢 Municipio</option>
           <option value="cesarea_parto">🟣 Cesárea / Parto</option>
+          <option value="pase_visita">🏥 Pase de visita — Hospitalización</option>
+          <option value="interconsulta_urgencias">🚨 Interconsulta en Urgencias</option>
+          <option value="bono_laboratorio">🧪 Bono laboratorio</option>
         </select>
       </div>
       <div class="form-group">
@@ -3144,6 +3152,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <option value="privado">🔵 Privado</option>
           <option value="municipio">🟢 Municipio</option>
           <option value="cesarea_parto">🟣 Cesárea / Parto</option>
+          <option value="pase_visita">🏥 Pase de visita — Hospitalización</option>
+          <option value="interconsulta_urgencias">🚨 Interconsulta en Urgencias</option>
+          <option value="bono_laboratorio">🧪 Bono laboratorio</option>
         </select>
       </div>
       <div class="form-group">
@@ -3872,6 +3883,19 @@ function fechaLocal(date) {
 let calFecha = new Date();
 let calVista = 'semana';
 let calCitas = [];
+const DURACION_DEFAULT_TIPO = { municipio:30, cesarea_parto:120, pase_visita:30, interconsulta_urgencias:30, bono_laboratorio:15 };
+const TIPO_CITA_INFO = {
+  municipio:               { label:'Municipio',                    badge:'badge-green',  emoji:'🟢' },
+  cesarea_parto:           { label:'Cesárea / Parto',              badge:'badge-lilac',  emoji:'🟣' },
+  pase_visita:             { label:'Pase de visita — Hospital.',   badge:'badge-teal',   emoji:'🏥' },
+  interconsulta_urgencias: { label:'Interconsulta Urgencias',      badge:'badge-red',    emoji:'🚨' },
+  bono_laboratorio:        { label:'Bono laboratorio',             badge:'badge-yellow', emoji:'🧪' },
+  privado:                 { label:'Privado',                      badge:'badge-blue',   emoji:'🔵' },
+};
+function badgeTipoCita(tipo) {
+  const info = TIPO_CITA_INFO[tipo] || TIPO_CITA_INFO.privado;
+  return `<span class="badge ${info.badge}">${info.emoji} ${info.label}</span>`;
+}
 let citaEditandoId = null;
 
 function setVistaCal(vista) {
@@ -3924,7 +3948,7 @@ async function cargarCitas() {
             return `<tr onclick="verPaciente('${c.paciente_id}')">
               <td><strong>${hora}</strong></td>
               <td>${c.paciente_nombre}</td>
-              <td><span class="badge ${c.tipo==='municipio'?'badge-green':c.tipo==='cesarea_parto'?'badge-lilac':'badge-blue'}">${c.tipo==='municipio'?'Municipio':c.tipo==='cesarea_parto'?'🟣 Cesárea':'Privado'}</span></td>
+              <td>${badgeTipoCita(c.tipo)}</td>
               <td>${c.motivo||'—'}</td>
               <td>${badgeEstado(c.estado)}</td>
             </tr>`;
@@ -3964,11 +3988,11 @@ async function cargarCitasCal() {
 }
 
 function renderCalendario() {
-  // 30-min slots: 7:00 to 20:30 = 27 slots
+  // 30-min slots: 00:00 a 23:30 = 48 slots (24 horas completas)
   const slots = [];
-  for (let h = 7; h <= 17; h++) {
+  for (let h = 0; h <= 23; h++) {
     slots.push({ h, m: 0, label: `${h}:00`, isHalf: false });
-    if (h < 17) slots.push({ h, m: 30, label: '', isHalf: true });
+    slots.push({ h, m: 30, label: '', isHalf: true });
   }
   const hoy = fechaLocal();
 
@@ -4046,7 +4070,7 @@ function calcularColumnasEventos(citas) {
   const eventos = citas.map(c => {
     const dt = new Date(c.fecha_hora.replace(' ','T'));
     const inicio = dt.getHours()*60 + dt.getMinutes();
-    const durMin = c.duracion || (c.tipo==='municipio'?30:c.tipo==='cesarea_parto'?120:40);
+    const durMin = c.duracion || DURACION_DEFAULT_TIPO[c.tipo] || 40;
     return { cita:c, dt, inicio, fin: inicio + Math.max(durMin,15), colIndex:0, colTotal:1 };
   });
   eventos.sort((a,b) => a.inicio - b.inicio || a.fin - b.fin);
@@ -4084,7 +4108,7 @@ function calcularColumnasEventos(citas) {
 function renderEventosAbsoluto(citas, fechaStr) {
   const SLOT_H = 40;
   const HEADER_H = 64;
-  const START_H = 7;
+  const START_H = 0;
   const bloqueosDia = calBloqueos.filter(b => b.fecha === fechaStr);
   const diaCompleto = bloqueosDia.find(b => b.dia_completo);
   let html = '';
@@ -4111,7 +4135,7 @@ function renderEventosAbsoluto(citas, fechaStr) {
   eventosConColumnas.forEach(({ cita:c, dt, colIndex, colTotal }) => {
     const horas = dt.getHours() + dt.getMinutes()/60;
     const top = HEADER_H + (horas-START_H)*SLOT_H*2;
-    const durMin = c.duracion || (c.tipo==='municipio'?30:c.tipo==='cesarea_parto'?120:40);
+    const durMin = c.duracion || DURACION_DEFAULT_TIPO[c.tipo] || 40;
     const height = Math.max(25,(durMin/30)*SLOT_H);
     const p = pacientes.find(p=>p.id===c.paciente_id);
     const nombre = p ? p.nombre : (c.nombre_paciente_web || 'Cita web');
@@ -4188,16 +4212,15 @@ function nuevaCitaEnHora(fecha, hora) {
 
 function renderLineaHora() {
   const now = new Date();
-  const minsDesdeSiete = (now.getHours() - 7) * 60 + now.getMinutes();
-  if (minsDesdeSiete < 0 || minsDesdeSiete > 10*60) return '';
-  const top = 64 + (minsDesdeSiete / 30) * 40;
+  const minsDesdeMedianoche = now.getHours() * 60 + now.getMinutes();
+  const top = 64 + (minsDesdeMedianoche / 30) * 40;
   return `<div class="cal-now-line" style="top:${top}px;"></div>`;
 }
 
 function scrollAHoraActual() {
   setTimeout(() => {
     const cont = document.querySelector('.cal-grid-dia') || document.querySelector('.cal-grid-semana');
-    if (cont) { const h = new Date().getHours()-7; cont.scrollTop = Math.max(0,(h-1)*80); }
+    if (cont) { const h = new Date().getHours(); cont.scrollTop = Math.max(0,(h-1)*80); }
   }, 100);
 }
 
@@ -4223,7 +4246,7 @@ function editarCita(id) {
   document.getElementById('ec-fecha').value = fechaLocal(dt);
   document.getElementById('ec-hora').value = dt.toTimeString().slice(0,5);
   document.getElementById('ec-tipo').value = c.tipo || 'privado';
-  document.getElementById('ec-duracion').value = c.duracion || (c.tipo === 'municipio' ? 30 : 40);
+  document.getElementById('ec-duracion').value = c.duracion || DURACION_DEFAULT_TIPO[c.tipo] || 40;
   // Folio municipio
   const esMunicipio = c.tipo === 'municipio';
   const esCesarea   = c.tipo === 'cesarea_parto';
@@ -4625,6 +4648,30 @@ async function cargarFinanzas() {
         </div>`
       : `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text-light);">Sin datos de ${MESES_ES[mesAnt]}</div>`;
 
+    // Helper: total $ de un concepto (excluye cortesías) para un set de citas
+    const totalTipo = (lista, filtro) => lista.filter(c=>c.metodo_pago!=='cortesia' && filtro(c)).reduce((s,c)=>s+parseFloat(c.monto||0),0);
+    // Helper: mini comparativo vs mes anterior para las tarjetas de concepto
+    const miniDiff = (actual, anterior) => {
+      if (anterior > 0) {
+        const d = (actual-anterior)/anterior*100;
+        return `<div style="font-size:10px;font-weight:800;color:${d>=0?'var(--green-d)':'var(--peach-d)'};margin-top:2px;">${d>=0?'📈':'📉'} ${d>=0?'+':''}${d.toFixed(1)}% vs ${MESES_ES[mesAnt]}</div>`;
+      }
+      return actual > 0
+        ? `<div style="font-size:10px;color:var(--text-light);margin-top:2px;">Sin datos de ${MESES_ES[mesAnt]}</div>`
+        : '';
+    };
+    const noConsulta = ['cesarea_parto','pase_visita','interconsulta_urgencias','bono_laboratorio'];
+    const totalConsultas   = totalTipo(cobradas, c=>!noConsulta.includes(c.tipo));
+    const totalConsultasAnt= totalTipo(cobradas_ant, c=>!noConsulta.includes(c.tipo));
+    const totalCesarea     = totalTipo(cobradas, c=>c.tipo==='cesarea_parto');
+    const totalCesareaAnt  = totalTipo(cobradas_ant, c=>c.tipo==='cesarea_parto');
+    const totalPase        = totalTipo(cobradas, c=>c.tipo==='pase_visita');
+    const totalPaseAnt     = totalTipo(cobradas_ant, c=>c.tipo==='pase_visita');
+    const totalUrg         = totalTipo(cobradas, c=>c.tipo==='interconsulta_urgencias');
+    const totalUrgAnt      = totalTipo(cobradas_ant, c=>c.tipo==='interconsulta_urgencias');
+    const totalBono        = totalTipo(cobradas, c=>c.tipo==='bono_laboratorio');
+    const totalBonoAnt     = totalTipo(cobradas_ant, c=>c.tipo==='bono_laboratorio');
+
     document.getElementById('finanzas-stats').innerHTML = `
       <div class="stat-card green" style="grid-column:span 2;">
         <span class="stat-icon">💰</span>
@@ -4635,11 +4682,30 @@ async function cargarFinanzas() {
         ${diffHTML}
       </div>
       <div class="stat-card blue"><span class="stat-icon">🩺</span>
-        <div class="stat-value">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo!=='cesarea_parto').length}</div>
-        <div class="stat-label">Consultas cobradas</div></div>
+        <div class="stat-value">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&!noConsulta.includes(c.tipo)).length}</div>
+        <div class="stat-label">Consultas cobradas</div>
+        <div style="font-size:13px;font-weight:800;color:var(--blue-d);margin-top:4px;">$${totalConsultas.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
+        ${miniDiff(totalConsultas,totalConsultasAnt)}</div>
       <div class="stat-card" style="background:linear-gradient(135deg,#EDE8F5,#E0D8F0);"><span class="stat-icon">🟣</span>
         <div class="stat-value" style="color:var(--lilac-d);">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo==='cesarea_parto').length}</div>
-        <div class="stat-label" style="color:var(--lilac-d);">Cesáreas / Partos</div></div>
+        <div class="stat-label" style="color:var(--lilac-d);">Cesáreas / Partos</div>
+        <div style="font-size:13px;font-weight:800;color:var(--lilac-d);margin-top:4px;">$${totalCesarea.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
+        ${miniDiff(totalCesarea,totalCesareaAnt)}</div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#D6F0EA,#C0E8DE);"><span class="stat-icon">🏥</span>
+        <div class="stat-value" style="color:#2E8A76;">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo==='pase_visita').length}</div>
+        <div class="stat-label" style="color:#2E8A76;">Pases de visita</div>
+        <div style="font-size:13px;font-weight:800;color:#2E8A76;margin-top:4px;">$${totalPase.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
+        ${miniDiff(totalPase,totalPaseAnt)}</div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#FDE4E4,#FCD4D4);"><span class="stat-icon">🚨</span>
+        <div class="stat-value" style="color:#B84A4A;">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo==='interconsulta_urgencias').length}</div>
+        <div class="stat-label" style="color:#B84A4A;">Interconsultas Urg.</div>
+        <div style="font-size:13px;font-weight:800;color:#B84A4A;margin-top:4px;">$${totalUrg.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
+        ${miniDiff(totalUrg,totalUrgAnt)}</div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#FFF3D6,#FCE8B8);"><span class="stat-icon">🧪</span>
+        <div class="stat-value" style="color:#A8842A;">${cobradas.filter(c=>c.metodo_pago!=='cortesia'&&c.tipo==='bono_laboratorio').length}</div>
+        <div class="stat-label" style="color:#A8842A;">Bonos laboratorio</div>
+        <div style="font-size:13px;font-weight:800;color:#A8842A;margin-top:4px;">$${totalBono.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
+        ${miniDiff(totalBono,totalBonoAnt)}</div>
       <div class="stat-card" style="background:linear-gradient(135deg,#FFE8F0,#FFDAE8);">
         <span class="stat-icon">🎁</span>
         <div class="stat-value" style="color:#C04060;">${cortesias.length}</div>
@@ -4712,7 +4778,7 @@ async function cargarFinanzas() {
             <td><div style="font-weight:700;">${dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}</div>
                 <div style="font-size:11px;color:var(--text-light);">${dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</div></td>
             <td style="font-weight:700;">${p?p.nombre:'—'}</td>
-            <td>${c.tipo==='cesarea_parto'?'<span class="badge badge-lilac">🟣 Cesárea</span>':'<span class="badge badge-blue">🔵 Consulta</span>'}</td>
+            <td>${badgeTipoCita(c.tipo)}</td>
             <td>${metodoLabels[c.metodo_pago||'']||'—'}</td>
             <td style="font-weight:800;color:${esCortesia?'#E07090':'var(--green-d)'};">${esCortesia?'🎁 Cortesía':'$'+parseFloat(c.monto).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
             <td>${c.requiere_factura?`<span class="badge badge-lilac">🧾 ${c.rfc||'Sin RFC'}</span>`:'<span style="color:var(--text-light);font-size:12px;">No</span>'}</td>
@@ -4918,6 +4984,9 @@ function actualizarDuracionDefault() {
   if (!dur) return;
   if (tipo === 'municipio') dur.value = '20';
   else if (tipo === 'cesarea_parto') dur.value = '120';
+  else if (tipo === 'pase_visita') dur.value = '30';
+  else if (tipo === 'interconsulta_urgencias') dur.value = '30';
+  else if (tipo === 'bono_laboratorio') dur.value = '15';
   else dur.value = '40';
   const folioGroup = document.getElementById('nc-folio-group');
   if (folioGroup) folioGroup.style.display = tipo === 'municipio' ? '' : 'none';
@@ -4929,6 +4998,9 @@ function actualizarDuracionEditDefault() {
   if (!dur) return;
   if (tipo === 'municipio') dur.value = '20';
   else if (tipo === 'cesarea_parto') dur.value = '120';
+  else if (tipo === 'pase_visita') dur.value = '30';
+  else if (tipo === 'interconsulta_urgencias') dur.value = '30';
+  else if (tipo === 'bono_laboratorio') dur.value = '15';
   else dur.value = '40';
   const folioGroup = document.getElementById('ec-folio-group');
   if (folioGroup) folioGroup.style.display = tipo === 'municipio' ? '' : 'none';
