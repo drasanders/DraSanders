@@ -1061,15 +1061,15 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <!-- TAB GENERAL -->
       <div id="expcontent-general">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">📋 Datos generales</div>
+          <div class="panel" style="border-top:4px solid var(--blue);">
+            <div class="panel-header" style="background:linear-gradient(135deg,#F0F8FF,#ffffff);">
+              <div class="panel-title" style="color:var(--blue-d);">📋 Datos generales</div>
               <button class="btn btn-ghost btn-sm" onclick="toggleEditarPaciente()" id="btn-editar-paciente">✏️ Editar</button>
             </div>
             <div class="panel-body" id="detalle-datos"></div>
           </div>
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">⚠️ Alergias y notas</div></div>
+          <div class="panel" style="border-top:4px solid var(--peach);">
+            <div class="panel-header" style="background:linear-gradient(135deg,#FFF6EE,#ffffff);"><div class="panel-title" style="color:var(--peach-d);">⚠️ Alergias y notas</div></div>
             <div class="panel-body" id="detalle-alergias"></div>
           </div>
         </div>
@@ -1077,9 +1077,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
 
       <!-- TAB HISTORIA CLINICA -->
       <div id="expcontent-historia" style="display:none;">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">📖 Historia Clínica — NOM-004-SSA3-2012</div>
+        <div class="panel" style="border-top:4px solid var(--lilac);">
+          <div class="panel-header" style="background:linear-gradient(135deg,#F0F4FF,#F7F0FF);">
+            <div class="panel-title" style="color:var(--lilac-d);">📖 Historia Clínica — NOM-004-SSA3-2012</div>
             <div style="display:flex;gap:8px;align-items:center;">
               <span id="hc-ultima-actualizacion" style="font-size:11px;color:var(--text-light);font-weight:600;"></span>
               <button class="btn btn-primary btn-sm" onclick="guardarHistoriaClinica(this)">💾 Guardar</button>
@@ -1088,7 +1088,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <div class="panel-body">
 
             <!-- SECCION 1: AHF -->
-            <div class="hc-section">
+            <div class="hc-section" style="background:#F7F2FF;border-left:4px solid var(--lilac-d);border-radius:12px;padding:16px 18px 20px;border-bottom:none;margin-bottom:18px;">
               <div class="hc-section-title">1. Antecedentes Heredofamiliares</div>
 
               <!-- MADRE -->
@@ -1196,7 +1196,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
 
             <!-- SECCION 2: APP -->
-            <div class="hc-section">
+            <div class="hc-section" style="background:#EAF5FF;border-left:4px solid var(--blue-d);border-radius:12px;padding:16px 18px 20px;border-bottom:none;margin-bottom:18px;">
               <div class="hc-section-title">2. Antecedentes Personales Patológicos</div>
               <div class="form-row">
                 <div class="form-group">
@@ -1235,7 +1235,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
 
             <!-- SECCION 3: PERINATALES -->
-            <div class="hc-section">
+            <div class="hc-section" style="background:#F7F2FF;border-left:4px solid var(--lilac-d);border-radius:12px;padding:16px 18px 20px;border-bottom:none;margin-bottom:18px;">
               <div class="hc-section-title">3. Antecedentes Perinatales</div>
               <div class="form-row-3">
                 <div class="form-group">
@@ -1274,7 +1274,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
 
             <!-- SECCION 4: ALIMENTACION -->
-            <div class="hc-section">
+            <div class="hc-section" style="background:#EAF5FF;border-left:4px solid var(--blue-d);border-radius:12px;padding:16px 18px 20px;border-bottom:none;margin-bottom:18px;">
               <div class="hc-section-title">4. Alimentación</div>
 
               <!-- TIPO DE LACTANCIA -->
@@ -1363,7 +1363,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
 
             <!-- SECCION 5: TAMICES -->
-            <div class="hc-section">
+            <div class="hc-section" style="background:#EAF9EE;border-left:4px solid var(--green-d);border-radius:12px;padding:16px 18px 20px;border-bottom:none;margin-bottom:18px;">
               <div class="hc-section-title">5. Tamices Neonatales</div>
 
               <!-- TABLA HEADER -->
@@ -1523,7 +1523,7 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
 
             <!-- SECCION 6: NOTAS -->
-            <div class="hc-section" style="border-bottom:none;">
+            <div class="hc-section" style="border-bottom:none;background:#F7F2FF;border-left:4px solid var(--lilac-d);border-radius:12px;padding:16px 18px 20px;border-bottom:none;margin-bottom:18px;">
               <div class="hc-section-title">6. Notas adicionales</div>
               <div class="form-group">
                 <div class="form-label">Observaciones generales</div>
@@ -2595,8 +2595,8 @@ textarea.form-input { resize:vertical; min-height:70px; }
             </div>
             <div class="soap-body">
               <div class="form-group">
-                <div class="form-label">Exploración física</div>
-                <textarea class="form-input" id="c-exploracion" rows="4" placeholder="Aspecto general, cabeza, cuello, cardiopulmonar, abdomen, extremidades, neurológico..."></textarea>
+                <div class="form-label">Exploración física <span id="c-exploracion-hint" style="display:none;font-weight:600;color:var(--text-light);text-transform:none;letter-spacing:0;">— precargada de la consulta anterior, edítala si cambió</span></div>
+                <textarea class="form-input" id="c-exploracion" rows="4" oninput="document.getElementById('c-exploracion-hint').style.display='none'" placeholder="Aspecto general, cabeza, cuello, cardiopulmonar, abdomen, extremidades, neurológico..."></textarea>
               </div>
             </div>
           </div>
@@ -2654,6 +2654,10 @@ textarea.form-input { resize:vertical; min-height:70px; }
               <div class="form-group" style="margin-top:10px;">
                 <div class="form-label">Notas de análisis (opcional)</div>
                 <textarea class="form-input" id="c-diagnostico" rows="2" placeholder="Observaciones adicionales sobre el diagnóstico..."></textarea>
+              </div>
+              <div class="form-group" style="margin-top:10px;">
+                <div class="form-label">Pronóstico</div>
+                <textarea class="form-input" id="c-pronostico" rows="2" placeholder="Pronóstico del paciente..."></textarea>
               </div>
             </div>
           </div>
@@ -2785,11 +2789,8 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <option value="">Seleccionar...</option>
           <option>O+</option><option>O-</option><option>A+</option><option>A-</option>
           <option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+          <option>Desconocen</option>
         </select>
-      </div>
-      <div class="form-group">
-        <div class="form-label">CURP</div>
-        <input class="form-input" id="np-curp" placeholder="CURP">
       </div>
     </div>
     <div class="form-row">
@@ -2810,12 +2811,6 @@ textarea.form-input { resize:vertical; min-height:70px; }
       <div class="form-group">
         <div class="form-label">Teléfono papá</div>
         <input class="form-input" id="np-tel-papa" placeholder="55 9876 5432" type="tel">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group full">
-        <div class="form-label">Email de contacto</div>
-        <input class="form-input" id="np-email" placeholder="email@ejemplo.com" type="email">
       </div>
     </div>
     <div class="form-group" style="margin-bottom:12px;">
@@ -2876,13 +2871,9 @@ textarea.form-input { resize:vertical; min-height:70px; }
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group full">
           <div class="form-label">Nombre de la mamá</div>
           <input class="form-input" id="ncp-tutor" placeholder="Nombre completo">
-        </div>
-        <div class="form-group">
-          <div class="form-label">CURP</div>
-          <input class="form-input" id="ncp-curp" placeholder="Opcional" style="font-family:monospace;font-size:12px;">
         </div>
       </div>
       <div id="ncp-alert" style="margin-top:8px;"></div>
@@ -4353,12 +4344,10 @@ async function guardarPaciente() {
     fecha_nacimiento: fecha,
     sexo: document.getElementById('np-sexo').value,
     tipo_sangre: document.getElementById('np-sangre').value,
-    curp: document.getElementById('np-curp').value,
     nombre_mama: document.getElementById('np-mama').value,
     telefono_mama: document.getElementById('np-tel-mama').value,
     nombre_papa: document.getElementById('np-papa').value,
     telefono_papa: document.getElementById('np-tel-papa').value,
-    email_contacto: document.getElementById('np-email').value,
     alergias: document.getElementById('np-alergias').value,
   };
 
@@ -4375,7 +4364,7 @@ async function guardarPaciente() {
 }
 
 function limpiarFormPaciente() {
-  ['np-nombre','np-fecha','np-sexo','np-sangre','np-curp','np-mama','np-tel-mama','np-papa','np-tel-papa','np-email','np-alergias'].forEach(id => {
+  ['np-nombre','np-fecha','np-sexo','np-sangre','np-mama','np-tel-mama','np-papa','np-tel-papa','np-alergias'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -4401,7 +4390,7 @@ async function verPaciente(id) {
 
   document.getElementById('detalle-alergias').innerHTML = p.alergias
     ? `<div style="background:#FFF0F0;border-radius:var(--radius-sm);padding:14px;border:1.5px solid #FFCCCC;"><div style="font-weight:800;color:#C84A4A;margin-bottom:8px;">⚠️ Alergias registradas</div><div>${p.alergias.split(',').map(a => `<span class="tag tag-red">${a.trim()}</span>`).join('')}</div></div>`
-    : `<div style="color:var(--text-light);font-weight:600;padding:10px;">Sin alergias registradas</div>`;
+    : `<div style="background:#E0F5E8;border-radius:var(--radius-sm);padding:14px;border:1.5px solid #C0E8CC;color:var(--green-d);font-weight:700;">✅ Sin alergias registradas</div>`;
 
   // Consultas del paciente
   document.getElementById('detalle-consultas').innerHTML = '<div class="loading"><div class="spinner"></div> Cargando historial...</div>';
@@ -5027,7 +5016,7 @@ function toggleNuevoPacienteCita() {
   sel.style.display  = visible ? '' : 'none';
   label.textContent  = visible ? '＋ Nuevo paciente' : '← Seleccionar existente';
   if (!visible) {
-    ['ncp-nombre','ncp-nacimiento','ncp-telefono','ncp-tutor','ncp-curp'].forEach(id => {
+    ['ncp-nombre','ncp-nacimiento','ncp-telefono','ncp-tutor'].forEach(id => {
       const el = document.getElementById(id); if(el) el.value = '';
     });
     document.getElementById('ncp-sexo').value = 'masculino';
@@ -5073,7 +5062,6 @@ async function guardarCita() {
         sexo:           document.getElementById('ncp-sexo').value,
         telefono_mama:  document.getElementById('ncp-telefono').value || null,
         nombre_mama:    document.getElementById('ncp-tutor').value   || null,
-        curp:           document.getElementById('ncp-curp').value     || null,
       });
       await cargarPacientes();
       pacienteId = nuevo[0]?.id;
@@ -5129,7 +5117,7 @@ function filtrarPacientesConsulta() {
     </div>`).join('');
 }
 
-function seleccionarPacienteConsulta(id) {
+async function seleccionarPacienteConsulta(id) {
   const p = pacientes.find(x => x.id === id);
   if (!p) return;
 
@@ -5146,6 +5134,18 @@ function seleccionarPacienteConsulta(id) {
   document.getElementById('c-fecha').value = hoy;
   document.getElementById('c-hora').value = horaActual;
   document.getElementById('form-consulta-panel').style.display = '';
+
+  // Precargar la exploración física de la última consulta (si la tiene), para solo editarla
+  try {
+    const anteriores = await api('GET','consultas',null,`?paciente_id=eq.${id}&order=fecha.desc&limit=1`);
+    const hint = document.getElementById('c-exploracion-hint');
+    if (anteriores.length && anteriores[0].exploracion) {
+      document.getElementById('c-exploracion').value = anteriores[0].exploracion;
+      if (hint) hint.style.display = '';
+    } else if (hint) {
+      hint.style.display = 'none';
+    }
+  } catch(e) { console.error('Error cargando exploración física anterior:', e); }
 }
 
 let consultaOrigen = null; // id del paciente desde cuyo expediente se abrió la nota
@@ -5220,6 +5220,7 @@ async function guardarConsulta() {
     estudios_otros: est.otros,
     diagnosticos_cie10: JSON.stringify(cie10Diagnosticos),
     diagnostico: document.getElementById('c-diagnostico').value,
+    pronostico: document.getElementById('c-pronostico').value,
     tratamiento: document.getElementById('c-tratamiento').value,
     plan: document.getElementById('c-plan').value,
     seguimiento: document.getElementById('c-seguimiento').value,
@@ -5262,16 +5263,16 @@ async function guardarConsulta() {
 
 // ===== DATOS DEL CONSULTORIO PARA IMPRESIÓN (ajustar con los datos reales) =====
 const CONSULTORIO_INFO = {
-  nombreMedico: 'Dra. Sanders',
-  especialidad: 'Pediatra',
-  cedulaProfesional: '', // TODO: agregar número de cédula profesional
+  nombreMedico: 'Dra. Cristina Sanders Rosique',
+  especialidad: 'Especialista en Pediatría',
+  cedulaProfesional: 'C.P. 11977048 / C.E. 14422958',
   direccion: '',         // TODO: agregar dirección del consultorio
   telefono: '',          // TODO: agregar teléfono de contacto
 };
 
 function _consultorioEncabezadoHTML() {
   const c = CONSULTORIO_INFO;
-  const linea2 = [c.cedulaProfesional ? `Céd. Prof. ${c.cedulaProfesional}` : '', c.telefono || ''].filter(Boolean).join(' · ');
+  const linea2 = [c.cedulaProfesional || '', c.telefono || ''].filter(Boolean).join(' · ');
   return `
     <div class="enc-nombre">${c.nombreMedico} — ${c.especialidad}</div>
     ${linea2 ? `<div class="enc-sub">${linea2}</div>` : ''}
@@ -5284,6 +5285,7 @@ function _datosPacienteActualConsulta() {
   return {
     nombre: p ? p.nombre : (document.getElementById('search-consulta-paciente')?.value || ''),
     edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '',
+    fechaNacimiento: p && p.fecha_nacimiento ? new Date(p.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '',
   };
 }
 
@@ -5301,12 +5303,15 @@ function _abrirVentanaNota(pac, fechaLabel, hora, datos) {
       h2{font-size:14px;color:#4A3F6B;border-left:4px solid #C8A8E8;padding-left:8px;margin:18px 0 6px;}
       .campo{font-size:13px;line-height:1.7;white-space:pre-wrap;}
       .vitales{font-size:12px;color:#555;background:#F8F4FC;padding:8px 12px;border-radius:8px;margin-bottom:10px;}
-      .footer{margin-top:50px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#888;text-align:center;}
+      .firma{margin-top:70px;text-align:center;}
+      .firma-linea{border-top:1px solid #333;width:260px;margin:0 auto;padding-top:8px;font-size:12px;}
+      .footer{margin-top:20px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#888;text-align:center;}
       @media print{body{padding:20px;}}
     </style></head><body>
     <div class="enc">${_consultorioEncabezadoHTML()}</div>
     <div class="paciente">
       <div><b>Paciente:</b> ${pac.nombre}${pac.edad ? ' — '+pac.edad : ''}</div>
+      ${pac.fechaNacimiento ? `<div><b>Fecha de nacimiento:</b> ${pac.fechaNacimiento}</div>` : ''}
       <div><b>Fecha:</b> ${fechaLabel}${hora ? ' — '+hora : ''}</div>
     </div>
     <h2>Motivo de consulta</h2><div class="campo">${datos.motivo}</div>
@@ -5314,10 +5319,13 @@ function _abrirVentanaNota(pac, fechaLabel, hora, datos) {
     ${datos.signosVitales ? `<div class="vitales">${datos.signosVitales}</div>` : ''}
     ${datos.exploracion ? `<h2>Exploración física</h2><div class="campo">${datos.exploracion}</div>` : ''}
     ${(datos.diagnosticosCIE || datos.diagnosticoLibre) ? `<h2>Diagnóstico</h2><div class="campo">${datos.diagnosticosCIE}${datos.diagnosticosCIE && datos.diagnosticoLibre ? '<br>' : ''}${datos.diagnosticoLibre}</div>` : ''}
+    ${datos.pronostico ? `<h2>Pronóstico</h2><div class="campo">${datos.pronostico}</div>` : ''}
     ${datos.tratamiento ? `<h2>Tratamiento</h2><div class="campo">${datos.tratamiento}</div>` : ''}
     ${datos.plan ? `<h2>Indicaciones y recomendaciones</h2><div class="campo">${datos.plan}</div>` : ''}
     ${datos.seguimiento ? `<h2>Seguimiento</h2><div class="campo">${datos.seguimiento}</div>` : ''}
-    <div class="footer">${CONSULTORIO_INFO.nombreMedico} — ${CONSULTORIO_INFO.especialidad}</div>
+    <div class="firma">
+      <div class="firma-linea">${CONSULTORIO_INFO.nombreMedico}<br>${CONSULTORIO_INFO.especialidad}<br>${CONSULTORIO_INFO.cedulaProfesional}</div>
+    </div>
     <script>window.onload=()=>window.print();<\\/script>
     </body></html>`);
   win.document.close();
@@ -5334,6 +5342,7 @@ function imprimirNotaConsulta() {
   const subjetivo = document.getElementById('c-subjetivo').value || '';
   const exploracion = document.getElementById('c-exploracion').value || '';
   const diagnosticoLibre = document.getElementById('c-diagnostico').value || '';
+  const pronostico = document.getElementById('c-pronostico').value || '';
   const diagnosticosCIE = (typeof cie10Diagnosticos !== 'undefined' && cie10Diagnosticos.length)
     ? cie10Diagnosticos.map(d => `• ${d.title || ''} ${d.code ? '('+d.code+')' : ''}`).join('<br>')
     : '';
@@ -5360,7 +5369,7 @@ function imprimirNotaConsulta() {
   ].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
   _abrirVentanaNota(pac, fechaLabel, hora, {
-    signosVitales, motivo, subjetivo, exploracion, diagnosticosCIE, diagnosticoLibre, tratamiento, plan, seguimiento
+    signosVitales, motivo, subjetivo, exploracion, diagnosticosCIE, diagnosticoLibre, pronostico, tratamiento, plan, seguimiento
   });
 }
 
@@ -5396,9 +5405,8 @@ function _abrirVentanaReceta(pac, fechaLabel, tratamiento, plan, seguimiento) {
     ${plan ? `<div class="campo-titulo">Indicaciones</div><div class="campo">${plan}</div>` : ''}
     ${seguimiento ? `<div class="campo-titulo">Seguimiento</div><div class="campo">${seguimiento}</div>` : ''}
     <div class="firma">
-      <div class="firma-linea">${CONSULTORIO_INFO.nombreMedico}${CONSULTORIO_INFO.cedulaProfesional ? ' — Céd. Prof. '+CONSULTORIO_INFO.cedulaProfesional : ''}</div>
+      <div class="firma-linea">${CONSULTORIO_INFO.nombreMedico}<br>${CONSULTORIO_INFO.especialidad}<br>${CONSULTORIO_INFO.cedulaProfesional}</div>
     </div>
-    <div class="footer">${CONSULTORIO_INFO.nombreMedico} — ${CONSULTORIO_INFO.especialidad}</div>
     <script>window.onload=()=>window.print();<\\/script>
     </body></html>`);
   win.document.close();
@@ -5443,7 +5451,7 @@ function calcularIMC() {
 // Limpia solo los campos clínicos (sin resetear búsqueda de paciente ni ocultar el panel)
 function limpiarConsultaCampos() {
   ['c-peso','c-talla','c-temp','c-fc','c-fr','c-spo2','c-ta','c-pc','c-pb',
-   'c-motivo','c-subjetivo','c-exploracion','c-diagnostico','c-tratamiento','c-plan','c-seguimiento','c-fecha','c-hora'].forEach(id => {
+   'c-motivo','c-subjetivo','c-exploracion','c-diagnostico','c-pronostico','c-tratamiento','c-plan','c-seguimiento','c-fecha','c-hora'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -5451,6 +5459,8 @@ function limpiarConsultaCampos() {
   if (imcEl) { imcEl.textContent = '—'; imcEl.style.color = 'var(--text-light)'; }
   const interpEl = document.getElementById('imc-interpretacion');
   if (interpEl) interpEl.innerHTML = '';
+  const exploracionHint = document.getElementById('c-exploracion-hint');
+  if (exploracionHint) exploracionHint.style.display = 'none';
   cie10Diagnosticos = [];
   renderDiagnosticos();
   limpiarEstudios();
@@ -5992,29 +6002,11 @@ async function guardarConsultaEdit(id) {
       });
       return JSON.stringify(diags);
     })(),
-    estudios_lab: document.getElementById(`edit-lab-${id}`)?.value || '',
-    estudios_imagenes: (() => {
-      // Si el textarea de texto tiene contenido, convertirlo a JSON simple
-      const txt = document.getElementById(`edit-imagenes-texto-${id}`)?.value || '';
-      if (!txt.trim()) return '[]';
-      // Intentar parsear líneas como "tipo: descripcion — resultado"
-      const lines = txt.split('\n').filter(l => l.trim());
-      const imgs = lines.map(line => {
-        const colonIdx = line.indexOf(':');
-        const dashIdx = line.indexOf(' — ');
-        if (colonIdx > 0 && dashIdx > colonIdx) {
-          return {
-            tipo: line.substring(0, colonIdx).trim(),
-            descripcion: line.substring(colonIdx+1, dashIdx).trim(),
-            resultado: line.substring(dashIdx+3).trim()
-          };
-        }
-        return { tipo: '', descripcion: line.trim(), resultado: '' };
-      });
-      return JSON.stringify(imgs);
-    })(),
-    estudios_otros: document.getElementById(`edit-otros-estudios-${id}`)?.value || '',
+    estudios_lab: leerEstudiosParaGuardarEdit(id).lab,
+    estudios_imagenes: leerEstudiosParaGuardarEdit(id).imagenes,
+    estudios_otros: leerEstudiosParaGuardarEdit(id).otros,
     diagnostico: document.getElementById(`edit-diagnostico-${id}`).value,
+    pronostico: document.getElementById(`edit-pronostico-${id}`)?.value || '',
     tratamiento: document.getElementById(`edit-tratamiento-${id}`)?.value || '',
     plan: document.getElementById(`edit-plan-${id}`).value,
     seguimiento: document.getElementById(`edit-seguimiento-${id}`)?.value || '',
@@ -6744,32 +6736,30 @@ function renderDatosPaciente(p, editar) {
     if (btn) btn.textContent = '✏️ Editar';
     document.getElementById('detalle-datos').innerHTML = `
       <div class="detail-grid">
-        <div class="detail-field"><div class="detail-label">Nombre completo</div><div class="detail-value">${p.nombre || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Fecha de nacimiento</div><div class="detail-value">${p.fecha_nacimiento ? new Date(p.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Sexo</div><div class="detail-value">${p.sexo || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Tipo de sangre</div><div class="detail-value">${p.tipo_sangre || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">CURP</div><div class="detail-value">${p.curp || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Mamá</div><div class="detail-value">${p.nombre_mama || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Tel. mamá</div><div class="detail-value" style="color:var(--blue-d)">${p.telefono_mama || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Papá</div><div class="detail-value">${p.nombre_papa || '—'}</div></div>
-        <div class="detail-field"><div class="detail-label">Tel. papá</div><div class="detail-value" style="color:var(--blue-d)">${p.telefono_papa || '—'}</div></div>
-        <div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Email</div><div class="detail-value">${p.email_contacto || '—'}</div></div>
-        <div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Alergias</div><div class="detail-value">${p.alergias || 'Ninguna'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--lilac-d);">Nombre completo</div><div class="detail-value" style="background:#F0ECFF;">${p.nombre || '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--blue-d);">Fecha de nacimiento</div><div class="detail-value" style="background:#E0F0FF;">${p.fecha_nacimiento ? new Date(p.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--green-d);">Sexo</div><div class="detail-value" style="background:#E0F5E8;">${p.sexo || '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--peach-d);">Tipo de sangre</div><div class="detail-value" style="background:#FFF0E0;">${p.tipo_sangre || '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--lilac-d);">Mamá</div><div class="detail-value" style="background:#F0ECFF;">${p.nombre_mama || '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--blue-d);">Tel. mamá</div><div class="detail-value" style="background:#E0F0FF;color:var(--blue-d);font-weight:800;">${p.telefono_mama || '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--green-d);">Papá</div><div class="detail-value" style="background:#E0F5E8;">${p.nombre_papa || '—'}</div></div>
+        <div class="detail-field"><div class="detail-label" style="color:var(--blue-d);">Tel. papá</div><div class="detail-value" style="background:#E0F0FF;color:var(--blue-d);font-weight:800;">${p.telefono_papa || '—'}</div></div>
+        <div class="detail-field" style="grid-column:1/-1"><div class="detail-label" style="color:var(--peach-d);">Alergias</div><div class="detail-value" style="background:#FFF0E0;">${p.alergias || 'Ninguna'}</div></div>
       </div>`;
   } else {
     if (btn) btn.textContent = '✕ Cancelar';
     document.getElementById('detalle-datos').innerHTML = `
       <div class="detail-grid">
         <div class="detail-field" style="grid-column:1/-1">
-          <div class="detail-label">Nombre completo *</div>
+          <div class="detail-label" style="color:var(--lilac-d);">Nombre completo *</div>
           <input class="form-input" id="ep-nombre" value="${p.nombre || ''}">
         </div>
         <div class="detail-field">
-          <div class="detail-label">Fecha de nacimiento *</div>
+          <div class="detail-label" style="color:var(--blue-d);">Fecha de nacimiento *</div>
           <input class="form-input" id="ep-fecha" type="date" value="${p.fecha_nacimiento || ''}">
         </div>
         <div class="detail-field">
-          <div class="detail-label">Sexo</div>
+          <div class="detail-label" style="color:var(--green-d);">Sexo</div>
           <select class="form-input" id="ep-sexo">
             <option value="">Seleccionar...</option>
             <option ${p.sexo==='Masculino'?'selected':''}>Masculino</option>
@@ -6777,38 +6767,30 @@ function renderDatosPaciente(p, editar) {
           </select>
         </div>
         <div class="detail-field">
-          <div class="detail-label">Tipo de sangre</div>
+          <div class="detail-label" style="color:var(--peach-d);">Tipo de sangre</div>
           <select class="form-input" id="ep-sangre">
             <option value="">Seleccionar...</option>
-            ${['O+','O-','A+','A-','B+','B-','AB+','AB-'].map(s=>`<option ${p.tipo_sangre===s?'selected':''}>${s}</option>`).join('')}
+            ${['O+','O-','A+','A-','B+','B-','AB+','AB-','Desconocen'].map(s=>`<option ${p.tipo_sangre===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </div>
         <div class="detail-field">
-          <div class="detail-label">CURP</div>
-          <input class="form-input" id="ep-curp" value="${p.curp || ''}">
-        </div>
-        <div class="detail-field">
-          <div class="detail-label">Mamá</div>
+          <div class="detail-label" style="color:var(--lilac-d);">Mamá</div>
           <input class="form-input" id="ep-mama" value="${p.nombre_mama || ''}">
         </div>
         <div class="detail-field">
-          <div class="detail-label">Tel. mamá</div>
+          <div class="detail-label" style="color:var(--blue-d);">Tel. mamá</div>
           <input class="form-input" id="ep-tel-mama" value="${p.telefono_mama || ''}" type="tel">
         </div>
         <div class="detail-field">
-          <div class="detail-label">Papá</div>
+          <div class="detail-label" style="color:var(--green-d);">Papá</div>
           <input class="form-input" id="ep-papa" value="${p.nombre_papa || ''}">
         </div>
         <div class="detail-field">
-          <div class="detail-label">Tel. papá</div>
+          <div class="detail-label" style="color:var(--blue-d);">Tel. papá</div>
           <input class="form-input" id="ep-tel-papa" value="${p.telefono_papa || ''}" type="tel">
         </div>
         <div class="detail-field" style="grid-column:1/-1">
-          <div class="detail-label">Email</div>
-          <input class="form-input" id="ep-email" value="${p.email_contacto || ''}" type="email">
-        </div>
-        <div class="detail-field" style="grid-column:1/-1">
-          <div class="detail-label">Alergias</div>
+          <div class="detail-label" style="color:var(--peach-d);">Alergias</div>
           <input class="form-input" id="ep-alergias" value="${p.alergias || ''}" placeholder="Penicilina, mariscos...">
         </div>
         <div class="detail-field" style="grid-column:1/-1;margin-top:6px;">
@@ -6833,12 +6815,10 @@ async function guardarEdicionPaciente() {
     fecha_nacimiento: document.getElementById('ep-fecha').value,
     sexo: document.getElementById('ep-sexo').value,
     tipo_sangre: document.getElementById('ep-sangre').value,
-    curp: document.getElementById('ep-curp').value,
     nombre_mama: document.getElementById('ep-mama').value,
     telefono_mama: document.getElementById('ep-tel-mama').value,
     nombre_papa: document.getElementById('ep-papa').value,
     telefono_papa: document.getElementById('ep-tel-papa').value,
-    email_contacto: document.getElementById('ep-email').value,
     alergias: document.getElementById('ep-alergias').value,
   };
 
@@ -6856,7 +6836,7 @@ async function guardarEdicionPaciente() {
     // Update alergias panel
     document.getElementById('detalle-alergias').innerHTML = data.alergias
       ? `<div style="background:#FFF0F0;border-radius:var(--radius-sm);padding:14px;border:1.5px solid #FFCCCC;"><div style="font-weight:800;color:#C84A4A;margin-bottom:8px;">⚠️ Alergias registradas</div><div>${data.alergias.split(',').map(a => `<span class="tag tag-red">${a.trim()}</span>`).join('')}</div></div>`
-      : `<div style="color:var(--text-light);font-weight:600;padding:10px;">Sin alergias registradas</div>`;
+      : `<div style="background:#E0F5E8;border-radius:var(--radius-sm);padding:14px;border:1.5px solid #C0E8CC;color:var(--green-d);font-weight:700;">✅ Sin alergias registradas</div>`;
 
     // Update WhatsApp button
     if (data.telefono_mama) {
@@ -6875,6 +6855,9 @@ async function guardarEdicionPaciente() {
 // ==================== ESTUDIOS COMPLEMENTARIOS ====================
 // Cada estudio: { cat: 'lab'|'imagen'|'otro', tipo:'', descripcion:'', resultado:'' }
 let estudiosLista = [];
+
+// Estudios en modo edición del historial: mapa consultaId -> lista de estudios
+let estudiosListaEditMap = {};
 
 // Compatibilidad legacy
 let estudiosImagenes = [];
@@ -7002,6 +6985,124 @@ function limpiarEstudios() {
   if (lab) lab.value = '';
   if (otros) otros.value = '';
   renderEstudiosLista();
+}
+
+// ==================== ESTUDIOS COMPLEMENTARIOS — MODO EDICIÓN (historial) ====================
+function initEstudiosEdit(c) {
+  if (estudiosListaEditMap[c.id]) return; // ya inicializado, no pisar cambios en curso
+  const lista = [];
+  if (c.estudios_lab) lista.push({ cat:'lab', tipo:'', descripcion:c.estudios_lab, resultado:'' });
+  try {
+    const imgs = JSON.parse(c.estudios_imagenes || '[]');
+    imgs.forEach(img => lista.push({ cat:'imagen', tipo:img.tipo||'', descripcion:img.descripcion||'', resultado:img.resultado||'' }));
+  } catch(e) {}
+  if (c.estudios_otros) lista.push({ cat:'otro', tipo:'', descripcion:c.estudios_otros, resultado:'' });
+  estudiosListaEditMap[c.id] = lista;
+}
+
+function agregarEstudioEdit(id) {
+  const sel = document.getElementById(`est-tipo-selector-${id}`);
+  const cat = sel ? sel.value : '';
+  if (!cat) { sel && sel.focus(); return; }
+  if (!estudiosListaEditMap[id]) estudiosListaEditMap[id] = [];
+  estudiosListaEditMap[id].push({ cat, tipo:'', descripcion:'', resultado:'' });
+  renderEstudiosListaEdit(id);
+  if (sel) sel.value = '';
+}
+
+function eliminarEstudioEdit(id, idx) {
+  estudiosListaEditMap[id].splice(idx, 1);
+  renderEstudiosListaEdit(id);
+}
+
+function renderEstudiosListaEdit(id) {
+  const cont = document.getElementById(`edit-estudios-lista-${id}`);
+  if (!cont) return;
+  const lista = estudiosListaEditMap[id] || [];
+
+  if (lista.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text-light);font-weight:600;">No se han agregado estudios aún</div>';
+    return;
+  }
+
+  cont.innerHTML = lista.map((e, i) => {
+    const colores = { lab:'#E8F5FF', imagen:'#F5F0FF', otro:'#F0FFF0' };
+    const coloresB = { lab:'var(--blue-d)', imagen:'var(--lilac-d)', otro:'var(--green-d)' };
+    const titulos = { lab:'🩸 Laboratorio', imagen:'🩻 Imagen', otro:'📄 Otro estudio' };
+    const bg = colores[e.cat] || 'var(--bg)';
+    const bc = coloresB[e.cat] || 'var(--border)';
+    const titulo = titulos[e.cat] || 'Estudio';
+
+    let camposTipo = '';
+    if (e.cat === 'imagen') {
+      camposTipo = `
+        <div>
+          <div class="form-label" style="font-size:11px;">Tipo de imagen</div>
+          <select class="form-input" style="font-size:12px;" onchange="estudiosListaEditMap['${id}'][${i}].tipo=this.value">
+            <option value="" ${!e.tipo?'selected':''}>Seleccionar...</option>
+            <option value="Radiografía" ${e.tipo==='Radiografía'?'selected':''}>🩻 Radiografía</option>
+            <option value="Ultrasonido" ${e.tipo==='Ultrasonido'?'selected':''}>🔊 Ultrasonido (USG)</option>
+            <option value="Tomografía" ${e.tipo==='Tomografía'?'selected':''}>🧠 Tomografía (TC)</option>
+            <option value="Resonancia magnética" ${e.tipo==='Resonancia magnética'?'selected':''}>🧲 Resonancia (RM)</option>
+            <option value="Ecocardiograma" ${e.tipo==='Ecocardiograma'?'selected':''}>❤️ Ecocardiograma</option>
+            <option value="Otro" ${e.tipo==='Otro'?'selected':''}>📄 Otro</option>
+          </select>
+        </div>
+        <div>
+          <div class="form-label" style="font-size:11px;">Región / área</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: Tórax PA, abdomen, cadera..."
+            oninput="estudiosListaEditMap['${id}'][${i}].descripcion=this.value">
+        </div>`;
+    } else if (e.cat === 'lab') {
+      camposTipo = `
+        <div style="grid-column:1/-1;">
+          <div class="form-label" style="font-size:11px;">Estudio(s) solicitado(s) / resultado</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: BH, QS, EGO, hemocultivo, perfil tiroideo..."
+            oninput="estudiosListaEditMap['${id}'][${i}].descripcion=this.value">
+        </div>`;
+    } else {
+      camposTipo = `
+        <div style="grid-column:1/-1;">
+          <div class="form-label" style="font-size:11px;">Nombre del estudio</div>
+          <input class="form-input" style="font-size:12px;" value="${e.descripcion||''}"
+            placeholder="Ej: Electrocardiograma, espirometría, audiometría..."
+            oninput="estudiosListaEditMap['${id}'][${i}].descripcion=this.value">
+        </div>`;
+    }
+
+    return `
+    <div style="background:${bg};border:1.5px solid ${bc};border-radius:var(--radius-sm);padding:12px;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:800;color:${bc};">${titulo}</span>
+        <button onclick="eliminarEstudioEdit('${id}',${i})" type="button"
+          style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-light);line-height:1;padding:0 2px;"
+          title="Eliminar">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        ${camposTipo}
+      </div>
+      <div>
+        <div class="form-label" style="font-size:11px;">Resultado / hallazgos / interpretación</div>
+        <textarea class="form-input" style="font-size:12px;" rows="2"
+          placeholder="Describe el resultado, hallazgos o lo que se solicitó..."
+          oninput="estudiosListaEditMap['${id}'][${i}].resultado=this.value">${e.resultado||''}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function leerEstudiosParaGuardarEdit(id) {
+  const lista = estudiosListaEditMap[id] || [];
+  const labs = lista.filter(e => e.cat === 'lab').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
+  const imgs = lista.filter(e => e.cat === 'imagen');
+  const otros = lista.filter(e => e.cat === 'otro').map(e => (e.descripcion||'') + (e.resultado ? ' — ' + e.resultado : '')).join('\n');
+  return {
+    lab: labs,
+    imagenes: JSON.stringify(imgs.map(e => ({ tipo: e.tipo, descripcion: e.descripcion, resultado: e.resultado }))),
+    otros: otros,
+  };
 }
 
 // ==================== CHART TOOLTIP ====================
@@ -7932,7 +8033,6 @@ function buildCDCChart(titulo, tabla, puntosPaciente, yUnit, colorPaciente, modo
 let crecPuntosTodos = []; // todos los puntos (0–N meses) del paciente
 let crecEsMasculino = true;
 let crecErrorCarga = null;
-let crecDebugInfo = null;
 
 async function iniciarCrecimiento() {
   const sexo = pacienteActual?.sexo || '';
@@ -7958,15 +8058,12 @@ async function iniciarCrecimiento() {
   } catch(e) { console.error('Error cargando historia clínica:', e); }
 
   // 2. Consultas — todas sin límite de edad (aislado: si falla, no debe perderse el punto de nacimiento ya cargado)
-  crecDebugInfo = null;
   try {
     const consultas = await api('GET','consultas',null,`?paciente_id=eq.${pacienteActual.id}&order=fecha.asc`);
-    const debugFilas = [];
     consultas.forEach(c => {
       const fechaConsulta = new Date(c.fecha + 'T12:00:00');
       const diasExactos = (fechaConsulta - nacimiento) / (1000 * 60 * 60 * 24);
       const meses = diasExactos / 30.4375;
-      debugFilas.push(`fecha="${c.fecha}" peso=${JSON.stringify(c.peso)} talla=${JSON.stringify(c.talla)} → meses=${meses}`);
       if (isNaN(meses)) return;
       if (meses < -0.1) return;
       if (meses < 0.1 && crecPuntosTodos.find(p => p.fuente === 'nacimiento')) return;
@@ -7982,7 +8079,6 @@ async function iniciarCrecimiento() {
         });
       }
     });
-    crecDebugInfo = `nacimiento="${pacienteActual.fecha_nacimiento}" (parsed: ${nacimiento}) — ${consultas.length} consultas obtenidas:\n` + debugFilas.join('\n');
   } catch(e) {
     console.error('Error cargando consultas para gráficas de crecimiento:', e);
     crecErrorCarga = e.message || 'Error desconocido';
@@ -8025,16 +8121,10 @@ function renderGraficas(esMasculino, puntos) {
 }
 
 function _crecErrorBannerHTML() {
-  const error = crecErrorCarga ? `
-    <div style="margin-bottom:12px;padding:12px 16px;background:#FFE8E8;border:1.5px solid #E8A8A8;border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:#C84A4A;">
+  return crecErrorCarga ? `
+    <div style="margin-bottom:16px;padding:12px 16px;background:#FFE8E8;border:1.5px solid #E8A8A8;border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:#C84A4A;">
       ⚠️ No se pudieron cargar las consultas para la gráfica (solo se muestran datos de nacimiento). Error: ${crecErrorCarga}
     </div>` : '';
-  const debug = crecDebugInfo ? `
-    <div style="margin-bottom:16px;padding:12px 16px;background:#FFF8E0;border:1.5px solid #E8D8A8;border-radius:var(--radius-sm);font-size:11px;font-family:monospace;color:#7A6A2A;white-space:pre-wrap;">
-🔍 DIAGNÓSTICO TEMPORAL — cópiale esto a Claude:
-${crecDebugInfo}
-    </div>` : '';
-  return error + debug;
 }
 
 function renderGraficasOMS() {
@@ -8643,39 +8733,16 @@ async function cargarConsultasPaciente(id) {
           <!-- ESTUDIOS COMPLEMENTARIOS (edición) -->
           <div style="border-left:4px solid #7CB8D4;padding-left:14px;margin-bottom:14px;">
             <div style="font-weight:800;font-size:12px;color:#5A9AB8;margin-bottom:8px;">🔬 Estudios complementarios</div>
-            <div class="form-group" style="margin-bottom:10px;">
-              <div class="form-label" style="font-size:11px;">🩸 Laboratorio / Sangre y orina</div>
-              <textarea class="form-input" id="edit-lab-${c.id}" rows="3"
-                placeholder="BH, QS, EGO, cultivos, otros laboratorios...">${c.estudios_lab||''}</textarea>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+              <select id="est-tipo-selector-${c.id}" class="form-input" style="flex:1;min-width:180px;font-size:13px;">
+                <option value="">— Seleccionar tipo de estudio —</option>
+                <option value="lab">🩸 Laboratorio (BH, QS, EGO, cultivos...)</option>
+                <option value="imagen">🩻 Imagen (Rx, USG, TC, RM...)</option>
+                <option value="otro">📄 Otro estudio (ECG, espirometría...)</option>
+              </select>
+              <button type="button" class="btn btn-primary btn-sm" onclick="agregarEstudioEdit('${c.id}')" style="white-space:nowrap;">+ Agregar</button>
             </div>
-            <div class="form-group" style="margin-bottom:10px;">
-              <div class="form-label" style="font-size:11px;">🩻 Imagen (Rx, USG, TC, RM, otros)</div>
-              <div id="edit-imagenes-lista-${c.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
-                ${(() => {
-                  try {
-                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
-                    return imgs.map((img, i) => `
-                      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;">
-                        <div style="font-size:12px;font-weight:700;color:#5A9AB8;margin-bottom:4px;">${img.tipo||'Imagen'} — ${img.descripcion||''}</div>
-                        <div style="font-size:12px;color:var(--text);">${img.resultado||''}</div>
-                      </div>`).join('');
-                  } catch(e) { return ''; }
-                })()}
-              </div>
-              <textarea class="form-input" id="edit-imagenes-texto-${c.id}" rows="2"
-                placeholder="Agregar / editar estudios de imagen (tipo: descripción — resultado)"
-                style="font-size:11px;">${(() => {
-                  try {
-                    const imgs = JSON.parse(c.estudios_imagenes || '[]');
-                    return imgs.map(img => `${img.tipo||''}: ${img.descripcion||''} — ${img.resultado||''}`).join('\n');
-                  } catch(e) { return c.estudios_imagenes||''; }
-                })()}</textarea>
-            </div>
-            <div class="form-group">
-              <div class="form-label" style="font-size:11px;">📄 Otros estudios</div>
-              <textarea class="form-input" id="edit-otros-estudios-${c.id}" rows="2"
-                placeholder="ECG, espirometría, audiometría...">${c.estudios_otros||''}</textarea>
-            </div>
+            <div id="edit-estudios-lista-${c.id}" style="display:flex;flex-direction:column;gap:10px;"></div>
           </div>
 
           <div class="form-group" style="margin-bottom:10px;">
@@ -8702,6 +8769,10 @@ async function cargarConsultasPaciente(id) {
             <div class="form-label">Diagnóstico (notas adicionales)</div>
             <textarea class="form-input" id="edit-diagnostico-${c.id}" rows="2">${c.diagnostico||''}</textarea>
           </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <div class="form-label">Pronóstico</div>
+            <textarea class="form-input" id="edit-pronostico-${c.id}" rows="2">${c.pronostico||''}</textarea>
+          </div>
           <div class="form-row" style="margin-bottom:10px;">
             <div class="form-group" style="position:relative;">
               <div class="form-label">Tratamiento</div>
@@ -8724,6 +8795,7 @@ async function cargarConsultasPaciente(id) {
         </div>
       </div>`;
     }).join('') : '');
+    consultas.forEach(c => { initEstudiosEdit(c); renderEstudiosListaEdit(c.id); });
   } catch(e) {
     document.getElementById('detalle-consultas').innerHTML = `<div class="alert alert-error">Error al cargar consultas</div>`;
   }
@@ -8766,7 +8838,7 @@ function _formatearVistaConsulta(c) {
       <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);">${contenido}</div>
     </div>` : '';
 
-  const hayDatos = c.motivo || c.subjetivo || c.exploracion || c.diagnostico || diagsHTML || c.tratamiento || c.plan || c.seguimiento;
+  const hayDatos = c.motivo || c.subjetivo || c.exploracion || c.diagnostico || c.pronostico || diagsHTML || c.tratamiento || c.plan || c.seguimiento;
 
   return `
     ${seccion('📋 Motivo de consulta', c.motivo, 'lilac')}
@@ -8777,6 +8849,7 @@ function _formatearVistaConsulta(c) {
     ${imagenesHTML ? `<div style="margin-bottom:14px;"><div class="seccion-label blue" style="font-size:11px;margin-bottom:6px;">🩻 Imagen</div>${imagenesHTML}</div>` : ''}
     ${seccion('📄 Otros estudios', c.estudios_otros, 'blue')}
     ${(diagsHTML || c.diagnostico) ? `<div style="margin-bottom:14px;"><div class="seccion-label lilac" style="font-size:11px;margin-bottom:6px;">🩺 Diagnóstico</div>${diagsHTML ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${diagsHTML}</div>` : ''}${c.diagnostico ? `<div style="font-size:13px;white-space:pre-wrap;">${c.diagnostico}</div>` : ''}</div>` : ''}
+    ${seccion('🔮 Pronóstico', c.pronostico, 'lilac')}
     ${seccion('💊 Tratamiento', c.tratamiento, 'green')}
     ${seccion('📌 Indicaciones y recomendaciones', c.plan, 'green')}
     ${seccion('🔁 Seguimiento', c.seguimiento, 'blue')}
@@ -8792,7 +8865,8 @@ function mostrarEdicionConsulta(id) {
 }
 
 function cancelarEdicionConsulta(id) {
-  // Recargamos el historial para descartar cualquier cambio no guardado en el formulario
+  // Descartar el borrador de estudios sin guardar y recargar el historial desde la BD
+  delete estudiosListaEditMap[id];
   if (pacienteActual) cargarConsultasPaciente(pacienteActual.id);
 }
 
@@ -8800,7 +8874,7 @@ function imprimirConsultaHistorial(id) {
   const c = consultasCache[id];
   if (!c) return;
   const p = pacienteActual;
-  const pac = { nombre: p ? p.nombre : '', edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '' };
+  const pac = { nombre: p ? p.nombre : '', edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '', fechaNacimiento: p && p.fecha_nacimiento ? new Date(p.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '' };
   const fechaLabel = new Date(c.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
 
   const diagnosticosCIE = (() => {
@@ -8827,6 +8901,7 @@ function imprimirConsultaHistorial(id) {
     exploracion: c.exploracion || '',
     diagnosticosCIE,
     diagnosticoLibre: c.diagnostico || '',
+    pronostico: c.pronostico || '',
     tratamiento: c.tratamiento || '',
     plan: c.plan || '',
     seguimiento: c.seguimiento || ''
@@ -8841,7 +8916,7 @@ function imprimirRecetaHistorial(id) {
     return;
   }
   const p = pacienteActual;
-  const pac = { nombre: p ? p.nombre : '', edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '' };
+  const pac = { nombre: p ? p.nombre : '', edad: p && p.fecha_nacimiento ? calcEdad(p.fecha_nacimiento) : '', fechaNacimiento: p && p.fecha_nacimiento ? new Date(p.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '' };
   const fechaLabel = new Date(c.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
   _abrirVentanaReceta(pac, fechaLabel, c.tratamiento || '', c.plan || '', c.seguimiento || '');
 }
