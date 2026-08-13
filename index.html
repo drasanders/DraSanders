@@ -996,6 +996,26 @@ textarea.form-input { resize:vertical; min-height:70px; }
           <div class="loading"><div class="spinner"></div> Cargando...</div>
         </div>
       </div>
+
+      <!-- CUMPLEAÑEROS DEL MES -->
+      <div class="panel" style="border-top:4px solid var(--peach);">
+        <div class="panel-header" style="background:linear-gradient(135deg,#FFF6EE,#ffffff);">
+          <div class="panel-title" style="color:var(--peach-d);">🎂 Cumpleañeros del mes</div>
+        </div>
+        <div class="panel-body" id="dashboard-cumpleaneros">
+          <div class="loading"><div class="spinner"></div> Cargando...</div>
+        </div>
+      </div>
+
+      <!-- CONTROL DE NIÑO SANO -->
+      <div class="panel" style="border-top:4px solid var(--green);">
+        <div class="panel-header" style="background:linear-gradient(135deg,#EEFAF2,#ffffff);">
+          <div class="panel-title" style="color:var(--green-d);">🩺 Les toca control de niño sano</div>
+        </div>
+        <div class="panel-body" id="dashboard-control-nino-sano">
+          <div class="loading"><div class="spinner"></div> Cargando...</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3459,6 +3479,129 @@ async function cargarDashboard() {
     const consultas = await api('GET','consultas',null,`?fecha=gte.${inicio}&select=id`);
     if(document.getElementById('stat-consultas')) document.getElementById('stat-consultas').textContent = consultas.length;
   } catch(e) { if(document.getElementById('stat-consultas')) document.getElementById('stat-consultas').textContent = '0'; }
+
+  // Cumpleañeros del mes
+  await cargarCumpleanerosMes();
+
+  // Control de niño sano
+  await cargarControlNinoSano();
+}
+
+// Esquema de control de niño sano: [edadMesesMax, intervaloMeses, etiqueta]
+const ESQUEMA_CONTROL_NINO_SANO = [
+  { hastaMeses: 6,   intervaloMeses: 1,  etiqueta: '0–6 meses (mensual)' },
+  { hastaMeses: 12,  intervaloMeses: 2,  etiqueta: '6–12 meses (cada 2 meses)' },
+  { hastaMeses: 24,  intervaloMeses: 3,  etiqueta: '1–2 años (cada 3 meses)' },
+  { hastaMeses: 60,  intervaloMeses: 6,  etiqueta: '2–5 años (cada 6 meses)' },
+  { hastaMeses: Infinity, intervaloMeses: 12, etiqueta: '6+ años (anual)' },
+];
+
+function _intervaloControlPorEdad(edadMeses) {
+  return ESQUEMA_CONTROL_NINO_SANO.find(e => edadMeses < e.hastaMeses) || ESQUEMA_CONTROL_NINO_SANO[ESQUEMA_CONTROL_NINO_SANO.length-1];
+}
+
+async function cargarControlNinoSano() {
+  const cont = document.getElementById('dashboard-control-nino-sano');
+  if (!cont) return;
+  const hoy = new Date();
+
+  try {
+    // Última consulta de cada paciente (cualquier motivo)
+    const todasConsultas = await api('GET','consultas',null,'?select=paciente_id,fecha&order=fecha.desc');
+    const ultimaConsultaPorPaciente = {};
+    todasConsultas.forEach(c => { if (!ultimaConsultaPorPaciente[c.paciente_id]) ultimaConsultaPorPaciente[c.paciente_id] = c.fecha; });
+
+    // Pacientes con una cita futura ya agendada (se ocultan de la lista)
+    const ahoraISO = hoy.toISOString();
+    const proximasCitas = await api('GET','citas',null,`?fecha_hora=gte.${ahoraISO}&select=paciente_id`);
+    const idsConCitaFutura = new Set(proximasCitas.map(c => c.paciente_id));
+
+    const pendientes = pacientes.filter(p => {
+      if (!p.fecha_nacimiento) return false;
+      if (idsConCitaFutura.has(p.id)) return false;
+      if (!ultimaConsultaPorPaciente[p.id]) return false; // solo pacientes con al menos una consulta previa
+      const nacimiento = new Date(p.fecha_nacimiento+'T12:00:00');
+      const edadMeses = (hoy - nacimiento) / (1000*60*60*24*30.4375);
+      const esquema = _intervaloControlPorEdad(edadMeses);
+      const ultimaFecha = new Date(ultimaConsultaPorPaciente[p.id]+'T12:00:00');
+      const mesesDesdeUltima = (hoy - ultimaFecha) / (1000*60*60*24*30.4375);
+      return mesesDesdeUltima >= esquema.intervaloMeses;
+    }).map(p => {
+      const nacimiento = new Date(p.fecha_nacimiento+'T12:00:00');
+      const edadMeses = (hoy - nacimiento) / (1000*60*60*24*30.4375);
+      const esquema = _intervaloControlPorEdad(edadMeses);
+      const ultimaFecha = new Date(ultimaConsultaPorPaciente[p.id]+'T12:00:00');
+      const diasAtraso = Math.floor((hoy - ultimaFecha)/(1000*60*60*24) - esquema.intervaloMeses*30.4375);
+      return { p, esquema, ultimaFecha, diasAtraso };
+    }).sort((a, b) => b.diasAtraso - a.diasAtraso);
+
+    if (!pendientes.length) {
+      cont.innerHTML = `<div class="empty-state"><div class="empty-icon">🩺</div><p>Nadie tiene pendiente su control por ahora</p></div>`;
+      return;
+    }
+
+    cont.innerHTML = `
+      <table class="data-table">
+        <thead><tr><th>Paciente</th><th>Esquema</th><th>Última consulta</th></tr></thead>
+        <tbody>${pendientes.map(({p, esquema, ultimaFecha, diasAtraso}) => `
+          <tr onclick="verPaciente('${p.id}')">
+            <td><div style="display:flex;align-items:center;gap:10px;"><div class="p-avatar" style="background:${avatarColor(p.nombre)}">${p.nombre.charAt(0)}</div><span style="font-weight:700;">${p.nombre}</span></div></td>
+            <td style="font-size:12px;color:var(--green-d);font-weight:700;">${esquema.etiqueta}</td>
+            <td><span class="badge badge-peach">${ultimaFecha.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}${diasAtraso>0 ? ` — ${diasAtraso}d atraso` : ''}</span></td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+  } catch(e) {
+    console.error('Error cargando control de niño sano:', e);
+    cont.innerHTML = `<div class="alert alert-error">Error al cargar control de niño sano</div>`;
+  }
+}
+
+async function cargarCumpleanerosMes() {
+  const cont = document.getElementById('dashboard-cumpleaneros');
+  if (!cont) return;
+  const hoy = new Date();
+  const mesActual = hoy.getMonth();
+
+  const cumpleaneros = pacientes.filter(p => {
+    if (!p.fecha_nacimiento) return false;
+    const [, m] = p.fecha_nacimiento.split('-');
+    return (parseInt(m, 10) - 1) === mesActual;
+  }).sort((a, b) => {
+    const diaA = parseInt(a.fecha_nacimiento.split('-')[2], 10);
+    const diaB = parseInt(b.fecha_nacimiento.split('-')[2], 10);
+    return diaA - diaB;
+  });
+
+  if (!cumpleaneros.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="empty-icon">🎂</div><p>Nadie cumple años este mes</p></div>`;
+    return;
+  }
+
+  // Revisar la próxima cita agendada de cada uno (cualquier fecha futura, no solo este mes)
+  let citaPorPaciente = {};
+  try {
+    const ahoraISO = hoy.toISOString();
+    const idsLista = cumpleaneros.map(p => p.id).join(',');
+    const proximasCitas = await api('GET','citas',null,`?paciente_id=in.(${idsLista})&fecha_hora=gte.${ahoraISO}&order=fecha_hora.asc&select=paciente_id,fecha_hora`);
+    proximasCitas.forEach(c => { if (!citaPorPaciente[c.paciente_id]) citaPorPaciente[c.paciente_id] = c.fecha_hora; });
+  } catch(e) { console.error('Error revisando citas de cumpleañeros:', e); }
+
+  cont.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Paciente</th><th>Cumple</th><th>Próxima cita agendada</th></tr></thead>
+      <tbody>${cumpleaneros.map(p => {
+        const dia = parseInt(p.fecha_nacimiento.split('-')[2], 10);
+        const fechaCita = citaPorPaciente[p.id];
+        const citaLabel = fechaCita
+          ? `<span class="badge badge-green">✅ ${new Date(fechaCita.replace(' ','T')).toLocaleDateString('es-MX',{day:'2-digit',month:'short'})} — ${new Date(fechaCita.replace(' ','T')).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</span>`
+          : '<span class="badge badge-red">— No agendada</span>';
+        return `<tr onclick="verPaciente('${p.id}')">
+          <td><div style="display:flex;align-items:center;gap:10px;"><div class="p-avatar" style="background:${avatarColor(p.nombre)}">${p.nombre.charAt(0)}</div><span style="font-weight:700;">${p.nombre}</span></div></td>
+          <td style="font-weight:700;color:var(--peach-d);">🎂 ${dia} de ${MESES_ES[mesActual]}</td>
+          <td>${citaLabel}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
 }
 
 // ==================== CITAS ====================
@@ -5318,6 +5461,7 @@ function _abrirVentanaNota(pac, fechaLabel, hora, datos) {
     ${datos.subjetivo ? `<h2>Subjetivo</h2><div class="campo">${datos.subjetivo}</div>` : ''}
     ${datos.signosVitales ? `<div class="vitales">${datos.signosVitales}</div>` : ''}
     ${datos.exploracion ? `<h2>Exploración física</h2><div class="campo">${datos.exploracion}</div>` : ''}
+    ${datos.estudios ? `<h2>Estudios complementarios</h2><div class="campo">${datos.estudios}</div>` : ''}
     ${(datos.diagnosticosCIE || datos.diagnosticoLibre) ? `<h2>Diagnóstico</h2><div class="campo">${datos.diagnosticosCIE}${datos.diagnosticosCIE && datos.diagnosticoLibre ? '<br>' : ''}${datos.diagnosticoLibre}</div>` : ''}
     ${datos.pronostico ? `<h2>Pronóstico</h2><div class="campo">${datos.pronostico}</div>` : ''}
     ${datos.tratamiento ? `<h2>Tratamiento</h2><div class="campo">${datos.tratamiento}</div>` : ''}
@@ -5350,6 +5494,15 @@ function imprimirNotaConsulta() {
   const plan = document.getElementById('c-plan').value || '';
   const seguimiento = document.getElementById('c-seguimiento').value || '';
 
+  const est = leerEstudiosParaGuardar();
+  const estudiosPartes = [];
+  if (est.lab) estudiosPartes.push(`<b>Laboratorio:</b><br>${est.lab.replace(/\n/g,'<br>')}`);
+  let imgsList = [];
+  try { imgsList = JSON.parse(est.imagenes || '[]'); } catch(e) {}
+  if (imgsList.length) estudiosPartes.push(`<b>Imagen:</b><br>` + imgsList.map(img => `${img.tipo||'Imagen'}${img.descripcion?': '+img.descripcion:''}${img.resultado?' — '+img.resultado:''}`).join('<br>'));
+  if (est.otros) estudiosPartes.push(`<b>Otros estudios:</b><br>${est.otros.replace(/\n/g,'<br>')}`);
+  const estudios = estudiosPartes.join('<br><br>');
+
   const peso = document.getElementById('c-peso').value;
   const talla = document.getElementById('c-talla').value;
   const pc = document.getElementById('c-pc')?.value;
@@ -5369,7 +5522,7 @@ function imprimirNotaConsulta() {
   ].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
   _abrirVentanaNota(pac, fechaLabel, hora, {
-    signosVitales, motivo, subjetivo, exploracion, diagnosticosCIE, diagnosticoLibre, pronostico, tratamiento, plan, seguimiento
+    signosVitales, motivo, subjetivo, exploracion, diagnosticosCIE, diagnosticoLibre, pronostico, estudios, tratamiento, plan, seguimiento
   });
 }
 
@@ -6991,12 +7144,25 @@ function limpiarEstudios() {
 function initEstudiosEdit(c) {
   if (estudiosListaEditMap[c.id]) return; // ya inicializado, no pisar cambios en curso
   const lista = [];
-  if (c.estudios_lab) lista.push({ cat:'lab', tipo:'', descripcion:c.estudios_lab, resultado:'' });
+  // Cada renglón (separado por salto de línea) es un estudio individual, como se capturó originalmente.
+  // Se guardan como "descripción — resultado"; separamos de vuelta en los dos campos.
+  const parsearLineas = (texto, cat) => {
+    if (!texto) return;
+    texto.split('\n').filter(l => l.trim()).forEach(linea => {
+      const idx = linea.indexOf(' — ');
+      if (idx > -1) {
+        lista.push({ cat, tipo:'', descripcion: linea.slice(0, idx).trim(), resultado: linea.slice(idx+3).trim() });
+      } else {
+        lista.push({ cat, tipo:'', descripcion: linea.trim(), resultado:'' });
+      }
+    });
+  };
+  parsearLineas(c.estudios_lab, 'lab');
   try {
     const imgs = JSON.parse(c.estudios_imagenes || '[]');
     imgs.forEach(img => lista.push({ cat:'imagen', tipo:img.tipo||'', descripcion:img.descripcion||'', resultado:img.resultado||'' }));
   } catch(e) {}
-  if (c.estudios_otros) lista.push({ cat:'otro', tipo:'', descripcion:c.estudios_otros, resultado:'' });
+  parsearLineas(c.estudios_otros, 'otro');
   estudiosListaEditMap[c.id] = lista;
 }
 
@@ -7258,17 +7424,13 @@ function buscarCIE10Local(q) {
     {code:'T78.1', title:'Otras reacciones adversas a alimentos — alergia alimentaria'},
     {code:'T78.2', title:'Choque anafiláctico, no especificado'},
     {code:'W57', title:'Mordedura o picadura de insecto no venenoso'},
-    // Nutrición / Endocrinología
-    {code:'E10.9', title:'Diabetes mellitus tipo 1, sin complicaciones'},
-    {code:'E11.9', title:'Diabetes mellitus tipo 2, sin complicaciones'},
+    // Nutrición
     {code:'E66.9', title:'Obesidad, no especificada'},
     {code:'E66.3', title:'Sobrepeso'},
     {code:'E44.1', title:'Desnutrición proteico-calórica leve'},
     {code:'E40', title:'Kwashiorkor'},
     {code:'E41', title:'Marasmo nutricional'},
     {code:'R62.8', title:'Falla de medro — retraso en el desarrollo físico esperado'},
-    {code:'E03.9', title:'Hipotiroidismo, no especificado'},
-    {code:'E05.9', title:'Tirotoxicosis — hipertiroidismo, no especificada'},
     {code:'E55.9', title:'Deficiencia de vitamina D, no especificada — raquitismo'},
     {code:'E50.9', title:'Deficiencia de vitamina A, no especificada'},
     {code:'E54', title:'Deficiencia de ácido ascórbico — escorbuto'},
@@ -7276,6 +7438,30 @@ function buscarCIE10Local(q) {
     {code:'D52.9', title:'Anemia megaloblástica, no especificada'},
     {code:'D58.9', title:'Anemia hemolítica hereditaria, no especificada'},
     {code:'D57.1', title:'Anemia de células falciformes — drepanocitosis, sin crisis'},
+    // Endocrinología
+    {code:'E10.9', title:'Diabetes mellitus tipo 1, sin complicaciones'},
+    {code:'E11.9', title:'Diabetes mellitus tipo 2, sin complicaciones'},
+    {code:'E30.1', title:'Pubertad precoz'},
+    {code:'E30.0', title:'Pubertad retrasada'},
+    {code:'E34.3', title:'Talla baja, no clasificada en otra parte — talla baja idiopática'},
+    {code:'E34.4', title:'Talla alta constitucional'},
+    {code:'E22.8', title:'Otros estados de hiperfunción hipofisaria — gigantismo'},
+    {code:'E23.0', title:'Hipopituitarismo'},
+    {code:'E25.9', title:'Trastorno adrenogenital, no especificado — hiperplasia suprarrenal congénita'},
+    {code:'E27.1', title:'Insuficiencia corticosuprarrenal primaria — Addison'},
+    {code:'E24.9', title:'Síndrome de Cushing, no especificado'},
+    {code:'E28.2', title:'Síndrome de ovario poliquístico'},
+    {code:'E29.9', title:'Disfunción testicular, no especificada'},
+    {code:'E03.0', title:'Hipotiroidismo congénito con bocio difuso'},
+    {code:'E03.1', title:'Hipotiroidismo congénito sin bocio'},
+    {code:'E03.9', title:'Hipotiroidismo, no especificado'},
+    {code:'E05.9', title:'Tirotoxicosis — hipertiroidismo, no especificada'},
+    {code:'E06.3', title:'Tiroiditis autoinmune — Hashimoto'},
+    {code:'E21.0', title:'Hiperparatiroidismo primario'},
+    {code:'E20.9', title:'Hipoparatiroidismo, no especificado'},
+    {code:'E16.2', title:'Hipoglicemia, no especificada'},
+    {code:'Q96', title:'Síndrome de Turner'},
+    {code:'Q98.4', title:'Síndrome de Klinefelter — cariotipo 47,XXY'},
     // Neurología / Desarrollo
     {code:'F90.9', title:'Trastorno de hiperactividad y déficit de atención, no especificado — TDAH'},
     {code:'G40.9', title:'Epilepsia, no especificada'},
@@ -8894,6 +9080,14 @@ function imprimirConsultaHistorial(id) {
     c.tension_arterial ? `TA: ${c.tension_arterial}` : ''
   ].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
+  const estudiosPartes = [];
+  if (c.estudios_lab) estudiosPartes.push(`<b>Laboratorio:</b><br>${c.estudios_lab.replace(/\n/g,'<br>')}`);
+  let imgsList = [];
+  try { imgsList = JSON.parse(c.estudios_imagenes || '[]'); } catch(e) {}
+  if (imgsList.length) estudiosPartes.push(`<b>Imagen:</b><br>` + imgsList.map(img => `${img.tipo||'Imagen'}${img.descripcion?': '+img.descripcion:''}${img.resultado?' — '+img.resultado:''}`).join('<br>'));
+  if (c.estudios_otros) estudiosPartes.push(`<b>Otros estudios:</b><br>${c.estudios_otros.replace(/\n/g,'<br>')}`);
+  const estudios = estudiosPartes.join('<br><br>');
+
   _abrirVentanaNota(pac, fechaLabel, c.hora || '', {
     signosVitales,
     motivo: c.motivo || '',
@@ -8902,6 +9096,7 @@ function imprimirConsultaHistorial(id) {
     diagnosticosCIE,
     diagnosticoLibre: c.diagnostico || '',
     pronostico: c.pronostico || '',
+    estudios,
     tratamiento: c.tratamiento || '',
     plan: c.plan || '',
     seguimiento: c.seguimiento || ''
